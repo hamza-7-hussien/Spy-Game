@@ -84,9 +84,6 @@
   .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 180px; overflow-y: auto; background: #0b0f19; padding: 10px; border-radius: 12px; }
   .player-item { background: #111827; padding: 8px 12px; border-radius: 12px; border: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
-  .chat-box { background: #0b0f19; border-radius: 12px; border: 1px solid #1f2937; height: 120px; overflow-y: auto; padding: 10px; text-align: left; font-size: 13px; margin: 10px 0; }
-  .chat-msg { background: #111827; padding: 6px 10px; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
-
   .hidden { display: none !important; }
 
   /* Install PWA Banner */
@@ -103,8 +100,8 @@
 
 <div class="card">
   <!-- PWA Install Banner -->
-  <div id="pwa-banner" class="hidden">
-    <span style="font-size:12px;" data-key="pwaText">Install SPY STATION on Home Screen!</span>
+  <div id="pwa-banner">
+    <span style="font-size:12px;" data-key="pwaText">Install SPY STATION on Mobile!</span>
     <button onclick="installPWA()" style="width:auto; padding:5px 12px; font-size:11px; margin:0;" data-key="pwaBtn">Install 📲</button>
   </div>
 
@@ -160,7 +157,6 @@
 
     <input type="text" id="roomCodeInput" placeholder="Room Code">
     <button class="btn-secondary" onclick="joinRoom()" data-key="joinRoom">Join Room 🛰️</button>
-    <button class="btn-danger" style="margin-top:15px;" onclick="logout()" data-key="logout">Logout</button>
   </div>
 
   <!-- CREATE / UPDATE ROOM MODAL -->
@@ -174,8 +170,18 @@
       <option value="places">🗺️ Famous Places</option>
     </select>
     
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblSpies">Spies / Imposters (1 - 5):</label>
-    <input type="number" id="spyCountSelect" min="1" max="5" value="1">
+    <!-- Dropdown for Spies (1 to 8) -->
+    <label style="font-size:11px; color:#94a3b8;" data-key="lblSpies">Spies / Imposters:</label>
+    <select id="spyCountSelect">
+      <option value="1">1 Spy 🕵️</option>
+      <option value="2">2 Spies 🕵️🕵️</option>
+      <option value="3">3 Spies 🕵️🕵️🕵️</option>
+      <option value="4">4 Spies 🕵️</option>
+      <option value="5">5 Spies 🕵️</option>
+      <option value="6">6 Spies 🕵️</option>
+      <option value="7">7 Spies 🕵️</option>
+      <option value="8">8 Spies 🕵️</option>
+    </select>
     
     <label style="font-size:11px; color:#94a3b8;" data-key="lblRoundTimer">Round Time (Seconds):</label>
     <input type="number" id="roundTimerSelect" value="180">
@@ -189,13 +195,16 @@
     <h3 data-key="settingsTitle">Profile & Settings ⚙️</h3>
     <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
     
-    <!-- Image File Upload or URL -->
     <label style="font-size:11px; color:#94a3b8;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
     <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
     <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
     
     <input type="text" id="settingUsername" placeholder="Change Username">
     
+    <!-- Sound Controls -->
+    <label style="font-size:11px; color:#94a3b8;" data-key="lblSound">Sound Volume 🔊:</label>
+    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
+
     <label style="font-size:11px; color:#94a3b8;" data-key="lblLang">Language / اللغة:</label>
     <select id="languageSelect" onchange="changeLanguage(this.value)">
       <option value="en">English</option>
@@ -203,6 +212,7 @@
     </select>
 
     <button onclick="saveSettings()" data-key="btnSaveSettings">Save Changes 💾</button>
+    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
     <button class="btn-secondary" onclick="backToMenu()" data-key="btnBack">Back</button>
   </div>
 
@@ -227,8 +237,6 @@
     <div id="timerDisplay" style="font-size:16px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
     <div id="roleDisplay" style="font-size:20px; font-weight:bold; margin:15px 0; background:#0b0f19; padding:15px; border-radius:12px;">...</div>
 
-    <div class="chat-box" id="chatMessages"></div>
-
     <button class="btn-danger" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
     <div id="voteModal" class="hidden" style="margin-top:15px; background:#0b0f19; padding:15px; border-radius:12px;">
@@ -236,7 +244,6 @@
       <div id="voteContainer" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;"></div>
     </div>
 
-    <div id="gameResult" style="margin-top:10px; font-weight:bold; font-size:14px;"></div>
     <button id="resetBtn" class="hidden btn-secondary" style="margin-top:15px;" onclick="resetGameToLobby()" data-key="btnReturnLobby">Return to Lobby 🔄</button>
   </div>
 </div>
@@ -261,23 +268,50 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Full Translation Dictionary
+// Persistent Session Setup
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+// Sound System Setup
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let soundVol = 0.5;
+
+function playSound(freq = 440, type = 'sine', duration = 0.15) {
+  if (soundVol <= 0) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = soundVol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e){}
+}
+
+function updateVolume() {
+  soundVol = parseFloat(document.getElementById('soundVolume').value);
+  playSound(520, 'sine', 0.1);
+}
+
+// Full Dictionary
 const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
     settingsBtn: "Settings ⚙️", chooseCategory: "Choose Category to Create Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
-    joinRoom: "Join Room 🛰️", logout: "Logout", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters (1 - 5):",
+    joinRoom: "Join Room 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters:",
     lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Room 🚀", btnCancel: "Cancel", settingsTitle: "Profile & Settings ⚙️",
-    lblUploadAvatar: "Upload Avatar Image:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾", btnBack: "Back",
+    lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾", btnBack: "Back",
     stationCode: "Station Code:", btnEditRoom: "Change Room Settings ⚙️", btnStartGame: "Start Game 🚀 (Min 3 Players)", txtAstronauts: "Astronauts",
-    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Vote to Eject Imposter", btnReturnLobby: "Return to Lobby 🔄", pwaText: "Install SPY STATION on Home Screen!", pwaBtn: "Install 📲"
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Vote to Eject Imposter", btnReturnLobby: "Return to Lobby 🔄", pwaText: "Install SPY STATION on Mobile!", pwaBtn: "Install 📲"
   },
   ar: {
     googleAuth: "الدخول السريع بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
     settingsBtn: "الإعدادات ⚙️", chooseCategory: "اختر الفئة لإنشاء الغرفة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
-    joinRoom: "دخول الغرفة 🛰️", logout: "تسجيل الخروج", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس (1 - 5):",
+    joinRoom: "دخول الغرفة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق الغرفة 🚀", btnCancel: "إلغاء", settingsTitle: "الملف الشخصي والإعدادات ⚙️",
-    lblUploadAvatar: "رفع صورة شخصية:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾", btnBack: "رجوع",
+    lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾", btnBack: "رجوع",
     stationCode: "كود المحطة:", btnEditRoom: "تعديل إعدادات الغرفة ⚙️", btnStartGame: "بدء الجولة 🚀 (أقل عدد 3)", txtAstronauts: "رواد الفضاء",
     btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "تصويت لطرد الجاسوس", btnReturnLobby: "العودة للانتظار 🔄", pwaText: "نزل تطبيق اللعبة على الشاشة الرئيسية!", pwaBtn: "تثبيت 📲"
   }
@@ -306,23 +340,24 @@ const wordsDB = {
   places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo"]
 };
 
-// PWA Installation Trigger
+// PWA Installation Setup
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById('pwa-banner').classList.remove('hidden');
+  document.getElementById('pwa-banner').style.display = 'flex';
 });
 
 function installPWA() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(() => {
-      document.getElementById('pwa-banner').classList.add('hidden');
+      document.getElementById('pwa-banner').style.display = 'none';
     });
   }
 }
 
 function showToast(msg) {
+  playSound(600, 'triangle', 0.1);
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = 'toast';
@@ -377,7 +412,7 @@ function initUser(user) {
 
 function logout() { auth.signOut().then(() => location.reload()); }
 
-// File Upload Handler for Base64 Profile Pictures
+// File Upload Handler
 function handleFileUpload(e) {
   const file = e.target.files[0];
   if(file) {
@@ -392,8 +427,9 @@ function handleFileUpload(e) {
 
 function updateAvatarPreview() { document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value; }
 
-// Navigation & Modals
+// Modals Navigation
 function openCreateRoomModal(cat) {
+  playSound(350, 'sine', 0.1);
   document.getElementById('categorySelect').value = cat;
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('create-room-screen').classList.remove('hidden');
@@ -412,6 +448,7 @@ function backToMenu() {
 }
 
 function showSettings() {
+  playSound(400, 'sine', 0.1);
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('settings-screen').classList.remove('hidden');
   document.getElementById('settingUsername').value = currentUser.displayName || '';
