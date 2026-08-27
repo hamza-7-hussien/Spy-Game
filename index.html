@@ -52,6 +52,10 @@
 
   button { background: linear-gradient(135deg, #38bdf8, #3b82f6); color: #030712; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
   button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
+  
+  .btn-google { background: #ffffff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; }
+  .btn-google:hover { background: #f3f4f6; }
+
   .btn-secondary { background: #1f2937; color: white; box-shadow: none; }
   .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
 
@@ -60,14 +64,17 @@
   .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 160px; overflow-y: auto; background: #0b0f19; padding: 10px; border-radius: 12px; }
   .player-item { background: #111827; padding: 8px 12px; border-radius: 8px; font-size: 14px; border: 1px solid #1f2937; display: flex; align-items: center; gap: 8px; }
 
-  .word-box { background: linear-gradient(135deg, #1e1b4b, #312e81); border: 1px solid #6366f1; font-size: 24px; padding: 20px; border-radius: 16px; margin: 15px 0; font-weight: bold; }
+  .word-box { background: linear-gradient(135deg, #1e1b4b, #312e81); border: 1px solid #6366f1; font-size: 24px; padding: 20px; border-radius: 16px; margin: 15px 0; font-weight: bold; white-space: pre-line; }
   .spy-box { background: linear-gradient(135deg, #450a0a, #7f1d1d); border-color: #ef4444; }
 
-  .chat-box { background: #0b0f19; border-radius: 12px; border: 1px solid #1f2937; height: 130px; overflow-y: auto; padding: 10px; text-align: right; font-size: 13px; margin: 10px 0; }
-  .vote-btn { background: #111827; color: white; border: 1px solid #1f2937; margin: 4px 0; padding: 10px; border-radius: 10px; }
+  .chat-box { background: #0b0f19; border-radius: 12px; border: 1px solid #1f2937; height: 130px; overflow-y: auto; padding: 10px; text-align: right; font-size: 13px; margin: 10px 0; display: flex; flex-direction: column; gap: 6px; }
+  .chat-msg { background: #111827; padding: 6px 10px; border-radius: 8px; border: 1px solid #1f2937; }
+  
+  .vote-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px 0; }
+  .vote-btn { background: #111827; color: white; border: 1px solid #1f2937; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+  .vote-btn:hover { border-color: #ef4444; background: #1f2937; }
   
   .hidden { display: none; }
-  .auth-toggle { color: #38bdf8; cursor: pointer; font-size: 13px; margin-top: 10px; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -76,18 +83,18 @@
   <!-- اللوجو الفضائي -->
   <div class="logo-container">
     <div class="logo-title">🛸 SPY STATION</div>
-    <div class="logo-subtitle">7 STUDIOS SPACE EDITION</div>
+    <div class="logo-subtitle">SPACE EDITION</div>
   </div>
 
-  <!-- شاشة الحسابات (تسجيل الدخول / إنشاء حساب) -->
+  <!-- شاشة الدخول بحساب Google -->
   <div id="auth-screen">
-    <h3 id="auth-title">تسجيل الدخول</h3>
-    <input type="email" id="authEmail" placeholder="البريد الإلكتروني">
-    <input type="password" id="authPassword" placeholder="كلمة السر">
-    <input type="text" id="authUsername" placeholder="اسم المستخدم (للحساب الجديد فقط)" class="hidden">
+    <h3>تسجيل الدخول للمحطة 🌐</h3>
+    <p style="font-size: 12px; color: #94a3b8; margin: 12px 0;">سجل دخولك فوراً بضغطة زر واحدة بواسطة حساب جوجل</p>
     
-    <button onclick="handleAuth()" id="authBtn">دخول 🚀</button>
-    <div class="auth-toggle" onclick="toggleAuthMode()" id="authToggleText">ليس لديك حساب؟ أنشئ حساباً الآن</div>
+    <button class="btn-google" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/></svg>
+      الدخول بحساب Google 🚀
+    </button>
   </div>
 
   <!-- الشاشة الرئيسية بعد تسجيل الدخول -->
@@ -160,8 +167,8 @@
     <hr style="margin: 15px 0; border-color: #1f2937;">
 
     <h3>مركز التصويت وطرد الجاسوس 🗳️</h3>
-    <div id="voteContainer"></div>
-    <div id="gameResult" style="margin-top:10px; font-weight:bold;"></div>
+    <div id="voteContainer" class="vote-grid"></div>
+    <div id="gameResult" style="margin-top:10px; font-weight:bold; font-size: 16px;"></div>
 
     <button id="resetBtn" class="hidden btn-danger" style="margin-top:15px;" onclick="resetGame()">إعادة الجولة 🔄</button>
   </div>
@@ -174,14 +181,16 @@
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyD5Jpus1aRmd0xOan4gl7FETYLJMjudwHo",
-  authDomain: "studios-9b8c4.firebaseapp.com",
-  databaseURL: "https://studios-9b8c4-default-rtdb.firebaseio.com",
-  projectId: "studios-9b8c4",
-  storageBucket: "studios-9b8c4.firebasestorage.app",
-  messagingSenderId: "710268925216",
-  appId: "1:710268925216:web:77be520e4a1716621f5345"
+  apiKey: "AIzaSyAmOPqQ1AV9YEJ4wU7jjW9_kIy4Gbby8Zs",
+  authDomain: "spy-game-4f727.firebaseapp.com",
+  databaseURL: "https://spy-game-4f727-default-rtdb.firebaseio.com",
+  projectId: "spy-game-4f727",
+  storageBucket: "spy-game-4f727.firebasestorage.app",
+  messagingSenderId: "567560688609",
+  appId: "1:567560688609:web:9a85e21fcf318e888d78a0",
+  measurementId: "G-TTFB8B3SBK"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
@@ -195,36 +204,20 @@ const wordsDatabase = {
 };
 
 let currentUser = null;
-let isSignUpMode = false;
 let currentRoom = null;
 let isHost = false;
+let timerInterval = null;
 
-// إدارة الحسابات
-function toggleAuthMode() {
-  isSignUpMode = !isSignUpMode;
-  document.getElementById('auth-title').innerText = isSignUpMode ? "حساب جديد" : "تسجيل الدخول";
-  document.getElementById('authBtn').innerText = isSignUpMode ? "إنشاء حساب 🚀" : "دخول 🚀";
-  document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
-  document.getElementById('authToggleText').innerText = isSignUpMode ? "لديك حساب بالفعل؟ سجل دخولك" : "ليس لديك حساب؟ أنشئ حساباً الآن";
-}
-
-function handleAuth() {
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPassword').value;
-  const username = document.getElementById('authUsername').value;
-
-  if(!email || !password) return alert("اكتب البريد وكلمة السر!");
-
-  if(isSignUpMode) {
-    if(!username) return alert("اكتب اسم المستخدم!");
-    auth.createUserWithEmailAndPassword(email, password).then(res => {
-      res.user.updateProfile({ displayName: username }).then(() => initUser(res.user));
-    }).catch(err => alert(err.message));
-  } else {
-    auth.signInWithEmailAndPassword(email, password).then(res => {
-      initUser(res.user);
-    }).catch(err => alert(err.message));
-  }
+// تسجيل الدخول بواسطة Google
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then((result) => {
+      initUser(result.user);
+    })
+    .catch((error) => {
+      alert("حدث خطأ في الدخول بحساب جوجل: " + error.message);
+    });
 }
 
 auth.onAuthStateChanged(user => { if(user) initUser(user); });
@@ -240,7 +233,7 @@ function logout() {
   auth.signOut().then(() => location.reload());
 }
 
-// إنشاء والغرف
+// إنشاء والدخول للغرف
 function showCreateRoomOptions() {
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('create-room-screen').classList.remove('hidden');
@@ -261,7 +254,7 @@ function confirmCreateRoom() {
 
   db.ref('spy_rooms/' + currentRoom).set({
     status: 'waiting',
-    host: currentUser.displayName || currentUser.email,
+    host: currentUser.displayName || currentUser.email.split('@')[0],
     category: category,
     spyCount: spyCount,
     timer: timerSec,
@@ -309,6 +302,21 @@ function joinRoomProcess() {
     ).join('');
 
     if(data.status === 'playing') showGameScreen(data);
+    if(data.status === 'waiting') showLobbyScreen();
+  });
+
+  db.ref(`spy_rooms/${currentRoom}/messages`).on('child_added', snapshot => {
+    const msg = snapshot.val();
+    const chatBox = document.getElementById('chatMessages');
+    const msgEl = document.createElement('div');
+    msgEl.className = 'chat-msg';
+    msgEl.innerHTML = `<b style="color:#38bdf8;">${msg.sender}:</b> ${msg.text}`;
+    chatBox.appendChild(msgEl);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+
+  db.ref(`spy_rooms/${currentRoom}/votes`).on('value', snapshot => {
+    updateVotesUI(snapshot.val());
   });
 }
 
@@ -319,16 +327,23 @@ function startGame() {
     const selectedWord = wordList[Math.floor(Math.random() * wordList.length)];
     const players = Object.values(data.players).map(p => p.name);
 
+    if (players.length < 2) return alert("محتاج على الأقل لاعبين لتبدأ اللعبة!");
+
     let spies = [];
-    while(spies.length < data.spyCount) {
+    let count = Math.min(data.spyCount, players.length - 1);
+    while(spies.length < count) {
       let randName = players[Math.floor(Math.random() * players.length)];
       if(!spies.includes(randName)) spies.push(randName);
     }
 
+    db.ref(`spy_rooms/${currentRoom}/messages`).remove();
+    db.ref(`spy_rooms/${currentRoom}/votes`).remove();
+
     db.ref('spy_rooms/' + currentRoom).update({
       status: 'playing',
       word: selectedWord,
-      spies: spies
+      spies: spies,
+      startTime: Date.now()
     });
   });
 }
@@ -348,6 +363,93 @@ function showGameScreen(data) {
     roleDisplay.innerText = `الكلمة هي:\n${data.word}`;
     roleDisplay.className = "word-box";
   }
+
+  const players = data.players ? Object.values(data.players) : [];
+  const voteContainer = document.getElementById('voteContainer');
+  voteContainer.innerHTML = players.map(p => `
+    <button class="vote-btn" id="vbtn-${p.name}" onclick="castVote('${p.name}')">
+      🎯 ${p.name} (<span id="vc-${p.name}">0</span>)
+    </button>
+  `).join('');
+
+  if(isHost) {
+    document.getElementById('resetBtn').classList.remove('hidden');
+  }
+
+  clearInterval(timerInterval);
+  let duration = data.timer || 120;
+  timerInterval = setInterval(() => {
+    let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
+    let remaining = duration - elapsed;
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById('timerDisplay').innerText = "⏳ انتهى الوقت!";
+      evaluateGameResult(data);
+    } else {
+      document.getElementById('timerDisplay').innerText = `⏳ الوقت المتبقي: ${remaining} ثانية`;
+    }
+  }, 1000);
+}
+
+function castVote(targetName) {
+  const myName = currentUser.displayName || currentUser.email.split('@')[0];
+  db.ref(`spy_rooms/${currentRoom}/votes/${myName}`).set(targetName);
+}
+
+function updateVotesUI(votesData) {
+  if(!votesData) return;
+  
+  document.querySelectorAll('[id^="vc-"]').forEach(el => el.innerText = "0");
+
+  let counts = {};
+  Object.values(votesData).forEach(target => {
+    counts[target] = (counts[target] || 0) + 1;
+  });
+
+  for(let target in counts) {
+    const el = document.getElementById(`vc-${target}`);
+    if(el) el.innerText = counts[target];
+  }
+}
+
+function evaluateGameResult(data) {
+  db.ref(`spy_rooms/${currentRoom}/votes`).once('value', snapshot => {
+    const votes = snapshot.val() || {};
+    let counts = {};
+    Object.values(votes).forEach(target => counts[target] = (counts[target] || 0) + 1);
+
+    let maxVotes = 0;
+    let suspected = null;
+    for(let p in counts) {
+      if(counts[p] > maxVotes) {
+        maxVotes = counts[p];
+        suspected = p;
+      }
+    }
+
+    const resultEl = document.getElementById('gameResult');
+    if(suspected) {
+      const wasSpy = data.spies && data.spies.includes(suspected);
+      if(wasSpy) {
+        resultEl.style.color = "#38bdf8";
+        resultEl.innerText = `🎉 تم طرد (${suspected}) وكان هو الجاسوس! كسبتم الجولة!`;
+      } else {
+        resultEl.style.color = "#ef4444";
+        resultEl.innerText = `🚨 تم طرد (${suspected}) وللأسف كان بريء! الجواسيس هم: ${data.spies.join(' ، ')}`;
+      }
+    } else {
+      resultEl.style.color = "#ef4444";
+      resultEl.innerText = `🚨 لم يتم الاتفاق على أحد! الجواسيس هم: ${data.spies.join(' ، ')}`;
+    }
+  });
+}
+
+function showLobbyScreen() {
+  clearInterval(timerInterval);
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('lobby-screen').classList.remove('hidden');
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('gameResult').innerText = '';
 }
 
 function sendMessage() {
@@ -360,8 +462,6 @@ function sendMessage() {
 
 function resetGame() {
   db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' });
-  document.getElementById('game-screen').classList.add('hidden');
-  document.getElementById('lobby-screen').classList.remove('hidden');
 }
 </script>
 </body>
