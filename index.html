@@ -6,22 +6,53 @@
 <title>7 STUDIOS - لعبة الجاسوس المتقدمة</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-  body { background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-  .card { background: #1e293b; border: 2px solid #38bdf8; border-radius: 16px; padding: 20px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  h1 { color: #38bdf8; margin-bottom: 10px; font-size: 22px; }
-  input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: none; font-size: 15px; text-align: center; }
+  body { background: #0b0f19; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+  
+  .card { 
+    background: #1e293b; 
+    border: 1px solid #334155; 
+    border-radius: 20px; 
+    padding: 24px; 
+    width: 100%; 
+    max-width: 550px; 
+    text-align: center; 
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5);
+    animation: fadeIn 0.4s ease-in-out;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  h1 { color: #38bdf8; margin-bottom: 12px; font-size: 26px; font-weight: 800; }
+  p { color: #94a3b8; font-size: 14px; }
+
+  input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; font-size: 15px; text-align: center; outline: none; transition: 0.2s; }
   input, select { background: #0f172a; color: white; border: 1px solid #334155; }
-  button { background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; transition: 0.2s; }
-  button:hover { background: #0284c7; color: white; }
-  .code-box { background: #334155; color: #f59e0b; font-size: 26px; font-weight: bold; letter-spacing: 3px; padding: 8px; border-radius: 8px; margin: 10px 0; }
-  .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; text-align: right; margin: 10px 0; max-height: 180px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 8px; }
-  .player-item { background: #334155; padding: 6px 10px; border-radius: 6px; font-size: 14px; display: flex; justify-content: space-between; }
-  .dead { background: #7f1d1d; color: #fca5a5; text-decoration: line-through; }
-  .word-box { background: #0284c7; font-size: 22px; padding: 15px; border-radius: 12px; margin: 10px 0; font-weight: bold; }
-  .spy-box { background: #ef4444; }
-  .vote-btn { background: #475569; color: white; margin: 4px 0; padding: 8px; border-radius: 6px; }
+  input:focus, select:focus { border-color: #38bdf8; }
+
+  button { background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; }
+  button:hover { background: #0284c7; color: white; transform: translateY(-1px); }
+  .btn-danger { background: #ef4444; color: white; }
+  .btn-danger:hover { background: #dc2626; }
+
+  .code-box { background: #0f172a; color: #f59e0b; font-size: 32px; font-weight: bold; letter-spacing: 4px; padding: 12px; border-radius: 12px; border: 2px dashed #f59e0b; margin: 12px 0; }
+  
+  .timer-box { font-size: 20px; font-weight: bold; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 8px; border-radius: 8px; border: 1px solid #ef4444; margin: 10px 0; }
+
+  .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; text-align: right; margin: 10px 0; max-height: 160px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #334155; }
+  .player-item { background: #1e293b; padding: 8px 12px; border-radius: 8px; font-size: 14px; border: 1px solid #334155; }
+  
+  .word-box { background: linear-gradient(135deg, #0284c7, #2563eb); font-size: 24px; padding: 20px; border-radius: 14px; margin: 12px 0; font-weight: bold; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
+  .spy-box { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); }
+
+  /* Chat Box Styling */
+  .chat-box { background: #0f172a; border-radius: 10px; border: 1px solid #334155; height: 140px; overflow-y: auto; padding: 10px; text-align: right; font-size: 13px; margin-top: 10px; }
+  .chat-msg { margin-bottom: 6px; }
+  .chat-msg span { color: #38bdf8; font-weight: bold; }
+
+  .vote-btn { background: #334155; color: white; margin: 4px 0; padding: 10px; border-radius: 8px; font-weight: normal; }
+  .vote-btn:hover { background: #475569; }
+  
   .hidden { display: none; }
-  .status-tag { font-size: 12px; color: #38bdf8; }
 </style>
 </head>
 <body>
@@ -31,59 +62,75 @@
 
   <!-- شاشة البداية -->
   <div id="start-screen">
-    <input type="text" id="playerName" placeholder="ادخل اسمك">
-    <button onclick="createRoom()">إنشاء غرفة جديدة (حد أقصى 20)</button>
-    <hr style="margin: 12px 0; border-color: #334155;">
+    <p>ادخل اسمك وإنشئ غرفة للعب مع 20 لاعب!</p>
+    <input type="text" id="playerName" placeholder="ادخل اسمك هنا">
+    <button onclick="createRoom()">إنشاء غرفة جديدة</button>
+    <hr style="margin: 15px 0; border-color: #334155;">
     <input type="text" id="roomCodeInput" placeholder="ادخل كود الغرفة">
     <button onclick="joinRoom()">دخول الغرفة</button>
   </div>
 
   <!-- شاشة الانتظار (Lobby) -->
   <div id="lobby-screen" class="hidden">
-    <h3>كود الغرفة:</h3>
+    <p>شارك الكود مع أصحابك للدخول:</p>
     <div id="roomCodeDisplay" class="code-box">----</div>
     
     <div id="host-controls" class="hidden">
-      <label>اختر الفئة:</label>
+      <label>اختر فئة الكلمات:</label>
       <select id="categorySelect">
         <option value="players">⚽ لاعيبين كرة</option>
         <option value="food">🍕 أكلات ومشروبات</option>
         <option value="places">🗺️ أماكن ومعالم</option>
+        <option value="movies">🎬 أفلام ومسلسلات</option>
+        <option value="countries">🗺️ دول وأعلام</option>
+        <option value="brands">🏷️ ماركات عالمية</option>
+        <option value="anime">⛩️ أنمي وكرتون</option>
       </select>
 
       <label>عدد الجواسيس:</label>
       <select id="spyCountSelect">
-        <option value="1">جاسوس واحد (1)</option>
-        <option value="2">جاسوسين (2)</option>
+        <option value="1">1 جاسوس</option>
+        <option value="2">2 جاسوس</option>
         <option value="3">3 جواسيس</option>
         <option value="4">4 جواسيس</option>
-        <option value="5">5 جواسيس</option>
       </select>
 
-      <button onclick="startGame()">بدء اللعبة الان 🚀</button>
+      <button onclick="startGame()">بدء اللعبة الآن 🚀</button>
     </div>
 
-    <div style="margin-top:10px;">
-      <b>اللاعبين (<span id="playerCount">0</span> / 20):</b>
+    <div style="margin-top:12px;">
+      <b>اللاعبون الان (<span id="playerCount">0</span> / 20):</b>
       <div id="playersContainer" class="player-grid"></div>
     </div>
   </div>
 
   <!-- شاشة اللعب والكلمة -->
   <div id="game-screen" class="hidden">
-    <h2>دورك في الجولة:</h2>
+    <div id="timerDisplay" class="timer-box">⏳ الوقت المتبقي: 02:00</div>
+    
     <div id="roleDisplay" class="word-box">...</div>
-    
-    <hr style="margin: 15px 0; border-color: #334155;">
-    
-    <h3>مركز التصويت والإقصاء 🗳️</h3>
-    <p style="font-size:13px; color:#94a3b8; margin-bottom:8px;">صوتوا على الشخص المشكوك فيه. صاحب أغلبية الأصوات سيتم طرده!</p>
-    
-    <div id="voteContainer"></div>
-    
-    <div id="gameResult" style="margin-top:15px; font-weight:bold; font-size:18px;"></div>
 
-    <button id="resetBtn" class="hidden" style="margin-top:15px; background:#e11d48;" onclick="resetGame()">العودة للانتظار 🔄</button>
+    <!-- خيار التخمين للجاسوس -->
+    <div id="spyGuessArea" class="hidden" style="margin: 10px 0;">
+      <input type="text" id="spyGuessInput" placeholder="تخمين الكلمة السرية...">
+      <button class="btn-danger" onclick="guessWord()">تخمين الكلمة 🎯</button>
+    </div>
+
+    <!-- الشات الجماعي -->
+    <div class="chat-box" id="chatMessages"></div>
+    <div style="display:flex; gap:5px;">
+      <input type="text" id="chatInput" placeholder="اكتب تلميحك أو شكوكك..." style="margin:5px 0;">
+      <button style="width:30%; margin:5px 0;" onclick="sendMessage()">إرسال</button>
+    </div>
+
+    <hr style="margin: 15px 0; border-color: #334155;">
+
+    <h3>مركز التصويت والإقصاء 🗳️</h3>
+    <div id="voteContainer" style="margin-top:8px;"></div>
+    
+    <div id="gameResult" style="margin-top:15px; font-weight:bold; font-size:16px;"></div>
+
+    <button id="resetBtn" class="hidden btn-danger" style="margin-top:15px;" onclick="resetGame()">إعادة اللعبة 🔄</button>
   </div>
 </div>
 
@@ -107,12 +154,17 @@ const db = firebase.database();
 const wordsDatabase = {
   players: ["محمد صلاح", "كريستيانو رونالدو", "ليونيل ميسي", "مبابي", "بنزيما", "هالانج", "شيكابالا", "معلول", "فينيسيوس", "مودريتش"],
   food: ["بيتزا", "كشري", "برجر", "ملوخية", "شاورما", "فول وطعمية", "مانجو", "حواوشي", "ورق عنب"],
-  places: ["الأهرامات", "المتحف المصري", "برج القاهرة", "مكتبة الإسكندرية", "شرم الشيخ", "خان الخليلي", "الأقصر"]
+  places: ["الأهرامات", "المتحف المصري", "برج القاهرة", "مكتبة الإسكندرية", "شرم الشيخ", "خان الخليلي", "الأقصر"],
+  movies: ["الفيل الأزرق", "ولاد رزق", "صعيدي في الجامعة الأمريكية", "كازابلانكا", "إكس لارج"],
+  countries: ["مصر", "السعودية", "اليابان", "البرازيل", "ألمانيا", "فرنسا", "إيطاليا"],
+  brands: ["نايكي", "أديداس", "أبل", "سامسونج", "تويوتا", "مرسيدس", "بيبسـي"],
+  anime: ["ون بيس", "ناروتو", "هجوم العمالقة", "دراجون بول", "قاتل الشياطين", "المحقق كونان"]
 };
 
 let currentRoom = null;
 let myName = "";
 let isHost = false;
+let timerInterval = null;
 
 function createRoom() {
   myName = document.getElementById('playerName').value.trim();
@@ -127,7 +179,9 @@ function createRoom() {
     spies: [],
     word: '',
     votes: {},
-    eliminated: {}
+    eliminated: {},
+    messages: {},
+    timer: 120
   });
 
   joinRoomProcess();
@@ -169,7 +223,6 @@ function joinRoomProcess() {
     const players = data.players ? Object.values(data.players) : [];
     document.getElementById('playerCount').innerText = players.length;
     
-    // عرض قائمة اللاعبين في اللوبي
     document.getElementById('playersContainer').innerHTML = players.map(p => 
       `<div class="player-item">👤 ${p.name}</div>`
     ).join('');
@@ -177,6 +230,8 @@ function joinRoomProcess() {
     if(data.status === 'playing') {
       showGameScreen(data);
     }
+
+    updateChat(data.messages);
   });
 }
 
@@ -191,10 +246,9 @@ function startGame() {
     const playerNames = Object.values(playersObj).map(p => p.name);
 
     if(playerNames.length <= numSpies) {
-      return alert("عدد الجواسيس لازم يكون أقل من عدد اللعيبة المتواجدين!");
+      return alert("عدد الجواسيس لازم يكون أقل من اللعيبة!");
     }
 
-    // اختيار الجواسيس عشوائياً
     let spies = [];
     while(spies.length < numSpies) {
       let randName = playerNames[Math.floor(Math.random() * playerNames.length)];
@@ -207,8 +261,11 @@ function startGame() {
       spies: spies,
       category: category,
       votes: {},
-      eliminated: {}
+      eliminated: {},
+      timer: 120
     });
+
+    startTimer();
   });
 }
 
@@ -221,18 +278,78 @@ function showGameScreen(data) {
   const isEliminated = data.eliminated && data.eliminated[myName];
 
   if(isEliminated) {
-    roleDisplay.innerText = "❌ تم إقصاؤك! أنت الآن في وضع المشاهدة.";
+    roleDisplay.innerText = "❌ تم إقصاؤك! تشاهد اللعبة الان.";
     roleDisplay.className = "word-box spy-box";
+    document.getElementById('spyGuessArea').classList.add('hidden');
   } else if(isSpy) {
-    roleDisplay.innerText = `🕵️ أنت جاسوس!\nالفئة هي: (${data.category === 'players' ? 'اعيبين' : data.category === 'food' ? 'أكلات' : 'أماكن'})`;
+    roleDisplay.innerText = `🕵️ أنت جاسوس!\nالفئة: (${getCategoryName(data.category)})`;
     roleDisplay.className = "word-box spy-box";
+    document.getElementById('spyGuessArea').classList.remove('hidden');
   } else {
     roleDisplay.innerText = `الكلمة هي:\n${data.word}`;
     roleDisplay.className = "word-box";
+    document.getElementById('spyGuessArea').classList.add('hidden');
   }
 
   renderVotingSection(data);
   checkWinConditions(data);
+}
+
+function getCategoryName(cat) {
+  const names = { players: 'اعيبين', food: 'أكلات', places: 'أماكن', movies: 'أفلام', countries: 'دول', brands: 'ماركات', anime: 'أنمي' };
+  return names[cat] || cat;
+}
+
+function startTimer() {
+  if(timerInterval) clearInterval(timerInterval);
+  let timeLeft = 120;
+  
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    let min = Math.floor(timeLeft / 60);
+    let sec = timeLeft % 60;
+    document.getElementById('timerDisplay').innerText = `⏳ الوقت المتبقي: 0${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+    if(timeLeft <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById('timerDisplay').innerText = "⌛ انتهى الوقت! وقت التصويت!";
+    }
+  }, 1000);
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+
+  db.ref(`spy_rooms/${currentRoom}/messages`).push({
+    sender: myName,
+    text: msg
+  });
+  input.value = '';
+}
+
+function updateChat(messages) {
+  const chatMessages = document.getElementById('chatMessages');
+  if(!messages) return;
+  chatMessages.innerHTML = Object.values(messages).map(m => 
+    `<div class="chat-msg"><span>${m.sender}:</span> ${m.text}</div>`
+  ).join('');
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function guessWord() {
+  const guess = document.getElementById('spyGuessInput').value.trim();
+  if(!guess) return alert("اكتب الكلمة الأولى!");
+
+  db.ref('spy_rooms/' + currentRoom).once('value', snapshot => {
+    const data = snapshot.val();
+    if(guess === data.word) {
+      db.ref('spy_rooms/' + currentRoom).update({ winner: 'spies_guess' });
+    } else {
+      alert("تخمين خاطئ! حاول مرة أخرى.");
+    }
+  });
 }
 
 function renderVotingSection(data) {
@@ -243,17 +360,14 @@ function renderVotingSection(data) {
   const eliminated = data.eliminated || {};
   const votes = data.votes || {};
 
-  if(eliminated[myName]) {
-    voteContainer.innerHTML = "<p style='color:#fca5a5;'>لا يمكنك التصويت لأنك مقتول/مقصى.</p>";
-    return;
-  }
+  if(eliminated[myName]) return;
 
   players.forEach(p => {
     if(!eliminated[p.name] && p.name !== myName) {
       const voteCount = Object.values(votes).filter(v => v === p.name).length;
       voteContainer.innerHTML += `
         <button class="vote-btn" onclick="castVote('${p.name}')">
-          تصويت ضد: ${p.name} (أصوات: ${voteCount})
+          تصويت ضد: ${p.name} (${voteCount} أصوات)
         </button><br>
       `;
     }
@@ -272,31 +386,21 @@ function evaluateVotes() {
     const votes = data.votes || {};
     const players = Object.values(data.players || {});
     const eliminated = data.eliminated || {};
-    
     const activePlayers = players.filter(p => !eliminated[p.name]);
-    
-    // لو كل اللعيبة الأحياء صوتوا
-    if(Object.keys(votes).length >= activePlayers.length && activePlayers.length > 0) {
-      // حصر الأصوات
-      let counts = {};
-      Object.values(votes).forEach(target => {
-        counts[target] = (counts[target] || 0) + 1;
-      });
 
-      // معرفة من حصل على أعلى أصوات
-      let maxVotes = 0;
-      let eliminatedPlayer = null;
+    if(Object.keys(votes).length >= activePlayers.length && activePlayers.length > 0) {
+      let counts = {};
+      Object.values(votes).forEach(target => counts[target] = (counts[target] || 0) + 1);
+
+      let maxVotes = 0, eliminatedPlayer = null;
       for(let p in counts) {
-        if(counts[p] > maxVotes) {
-          maxVotes = counts[p];
-          eliminatedPlayer = p;
-        }
+        if(counts[p] > maxVotes) { maxVotes = counts[p]; eliminatedPlayer = p; }
       }
 
       if(eliminatedPlayer) {
-        alert(`تم إقصاء اللاعب: ${eliminatedPlayer} بأعلى نسبة تصويت!`);
+        alert(`تم إقصاء اللاعب: ${eliminatedPlayer}!`);
         db.ref(`spy_rooms/${currentRoom}/eliminated/${eliminatedPlayer}`).set(true);
-        db.ref(`spy_rooms/${currentRoom}/votes`).remove(); // إعادة ضبط الأصوات للجولة التالية
+        db.ref(`spy_rooms/${currentRoom}/votes`).remove();
       }
     }
   });
@@ -313,27 +417,29 @@ function checkWinConditions(data) {
 
   const resultDiv = document.getElementById('gameResult');
 
-  // فوز المواطنين: تم إقصاء جميع الجواسيس
-  if(activeSpies.length === 0 && spies.length > 0) {
-    resultDiv.innerHTML = "<span style='color:#10b981;'>🎉 فاز المواطنون! تم كشف جميع الجواسيس!</span>";
+  if(data.winner === 'spies_guess') {
+    resultDiv.innerHTML = `<span style='color:#ef4444;'>🎉 خمن الجاسوس الكلمة الصحيحة وفاز بالجولة!</span>`;
     if(isHost) document.getElementById('resetBtn').classList.remove('hidden');
-  } 
-  // فوز الجواسيس: عدد الجواسيس أصبح أسطوريًا أو مساوياً للمواطنين
-  else if(activeSpies.length >= activeCitizens.length && activeCitizens.length > 0) {
-    resultDiv.innerHTML = `<span style='color:#ef4444;'>🕵️ فاز الجواسيس! سطروا على المدينة! الجواسيس هم: ${spies.join(', ')}</span>`;
+  } else if(activeSpies.length === 0 && spies.length > 0) {
+    resultDiv.innerHTML = "<span style='color:#10b981;'>🎉 فاز المواطنون! تم طرد كل الجواسيس!</span>";
+    if(isHost) document.getElementById('resetBtn').classList.remove('hidden');
+  } else if(activeSpies.length >= activeCitizens.length && activeCitizens.length > 0) {
+    resultDiv.innerHTML = `<span style='color:#ef4444;'>🕵️ فاز الجواسيس! الجواسيس هما: ${spies.join(', ')}</span>`;
     if(isHost) document.getElementById('resetBtn').classList.remove('hidden');
   } else {
-    resultDiv.innerHTML = `<span style='color:#38bdf8;'>المتبقين أحياء: ${activePlayers.length} (جواسيس متبقيين: ${activeSpies.length})</span>`;
+    resultDiv.innerHTML = `<span style='color:#38bdf8;'>المتبقين أحياء: ${activePlayers.length}</span>`;
   }
 }
 
 function resetGame() {
+  if(timerInterval) clearInterval(timerInterval);
   db.ref('spy_rooms/' + currentRoom).update({
     status: 'waiting',
     spies: [],
     word: '',
     votes: {},
-    eliminated: {}
+    eliminated: {},
+    winner: null
   });
   document.getElementById('game-screen').classList.add('hidden');
   document.getElementById('lobby-screen').classList.remove('hidden');
