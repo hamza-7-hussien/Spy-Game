@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPY STATION 🚀</title>
 
-<!-- Web App Manifest for Home Screen Installation -->
-<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22SPY%20STATION%22%2C%22short_name%22%3A%22SpyStation%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23030712%22%2C%22theme_color%22%3A%22%2338bdf8%22%7D">
+<!-- Web App Manifest for Native Google/Mobile App Installation -->
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22SPY%20STATION%22%2C%22short_name%22%3A%22SpyStation%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23030712%22%2C%22theme_color%22%3A%22%2338bdf8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fbottts%2Fpng%3Fseed%3Dspystation%26size%3D192%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fbottts%2Fpng%3Fseed%3Dspystation%26size%3D512%22%2C%22sizes%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
@@ -43,6 +43,7 @@
     max-width: 600px; 
     text-align: center; 
     box-shadow: 0 0 50px rgba(56, 189, 248, 0.15);
+    position: relative;
     animation: fadeIn 0.4s ease-in-out;
   }
 
@@ -59,6 +60,25 @@
     -webkit-text-fill-color: transparent;
     letter-spacing: 2px;
   }
+
+  /* Back Arrow Style */
+  .back-arrow-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1f2937;
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .back-arrow-btn:hover { background: var(--accent-blue); color: #030712; }
 
   input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; border: none; font-size: 14px; text-align: center; outline: none; }
   input, select { background: #0b0f19; color: white; border: 1px solid #1f2937; }
@@ -86,9 +106,6 @@
 
   .hidden { display: none !important; }
 
-  /* Install PWA Banner */
-  #pwa-banner { background: linear-gradient(90deg, #1e1b4b, #312e81); border: 1px solid var(--accent-blue); border-radius: 14px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
-
   /* Toast Notification */
   #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
   .toast { background: #111827; border-left: 4px solid var(--accent-blue); color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -99,12 +116,6 @@
 <div id="toast-container"></div>
 
 <div class="card">
-  <!-- PWA Install Banner -->
-  <div id="pwa-banner">
-    <span style="font-size:12px;" data-key="pwaText">Install SPY STATION on Mobile!</span>
-    <button onclick="installPWA()" style="width:auto; padding:5px 12px; font-size:11px; margin:0;" data-key="pwaBtn">Install 📲</button>
-  </div>
-
   <div class="logo-container" style="margin-bottom:15px;">
     <div class="logo-title">🛸 SPY STATION</div>
     <div style="font-size: 10px; color: #94a3b8; letter-spacing: 3px;">MULTIPLAYER SPACE EDITION</div>
@@ -137,7 +148,6 @@
 
     <p style="font-size:12px; color:#94a3b8; text-align:left;" data-key="chooseCategory">Choose Category to Create Room:</p>
     
-    <!-- Category Cards -->
     <div class="category-grid">
       <div class="category-card" onclick="openCreateRoomModal('players')">
         <span class="icon">⚽</span>
@@ -161,6 +171,7 @@
 
   <!-- CREATE / UPDATE ROOM MODAL -->
   <div id="create-room-screen" class="hidden">
+    <div class="back-arrow-btn" onclick="backToMenu()">➔</div>
     <h3 data-key="roomSettingsTitle">Room Settings ⚙️</h3>
     
     <label style="font-size:11px; color:#94a3b8;" data-key="lblCategory">Category:</label>
@@ -170,7 +181,6 @@
       <option value="places">🗺️ Famous Places</option>
     </select>
     
-    <!-- Dropdown for Spies (1 to 8) -->
     <label style="font-size:11px; color:#94a3b8;" data-key="lblSpies">Spies / Imposters:</label>
     <select id="spyCountSelect">
       <option value="1">1 Spy 🕵️</option>
@@ -187,12 +197,12 @@
     <input type="number" id="roundTimerSelect" value="180">
 
     <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom">Launch Room 🚀</button>
-    <button class="btn-secondary" onclick="backToMenu()" data-key="btnCancel">Cancel</button>
   </div>
 
   <!-- SETTINGS MODAL -->
   <div id="settings-screen" class="hidden">
-    <h3 data-key="settingsTitle">Profile & Settings ⚙️</h3>
+    <div class="back-arrow-btn" onclick="backToMenu()">➔</div>
+    <h3 data-key="settingsTitle" style="margin-bottom:15px;">Profile & Settings ⚙️</h3>
     <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
     
     <label style="font-size:11px; color:#94a3b8;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
@@ -201,7 +211,6 @@
     
     <input type="text" id="settingUsername" placeholder="Change Username">
     
-    <!-- Sound Controls -->
     <label style="font-size:11px; color:#94a3b8;" data-key="lblSound">Sound Volume 🔊:</label>
     <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
 
@@ -212,8 +221,7 @@
     </select>
 
     <button onclick="saveSettings()" data-key="btnSaveSettings">Save Changes 💾</button>
-    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
-    <button class="btn-secondary" onclick="backToMenu()" data-key="btnBack">Back</button>
+    <button class="btn-danger" style="margin-top:15px;" onclick="logout()" data-key="logout">Logout 🚪</button>
   </div>
 
   <!-- LOBBY SCREEN -->
@@ -268,10 +276,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Persistent Session Setup
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-// Sound System Setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundVol = 0.5;
 
@@ -295,25 +301,24 @@ function updateVolume() {
   playSound(520, 'sine', 0.1);
 }
 
-// Full Dictionary
 const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
     settingsBtn: "Settings ⚙️", chooseCategory: "Choose Category to Create Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
     joinRoom: "Join Room 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters:",
-    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Room 🚀", btnCancel: "Cancel", settingsTitle: "Profile & Settings ⚙️",
-    lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾", btnBack: "Back",
+    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Room 🚀", settingsTitle: "Profile & Settings ⚙️",
+    lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
     stationCode: "Station Code:", btnEditRoom: "Change Room Settings ⚙️", btnStartGame: "Start Game 🚀 (Min 3 Players)", txtAstronauts: "Astronauts",
-    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Vote to Eject Imposter", btnReturnLobby: "Return to Lobby 🔄", pwaText: "Install SPY STATION on Mobile!", pwaBtn: "Install 📲"
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Vote to Eject Imposter", btnReturnLobby: "Return to Lobby 🔄"
   },
   ar: {
     googleAuth: "الدخول السريع بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
     settingsBtn: "الإعدادات ⚙️", chooseCategory: "اختر الفئة لإنشاء الغرفة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
     joinRoom: "دخول الغرفة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
-    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق الغرفة 🚀", btnCancel: "إلغاء", settingsTitle: "الملف الشخصي والإعدادات ⚙️",
-    lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾", btnBack: "رجوع",
+    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق الغرفة 🚀", settingsTitle: "الملف الشخصي والإعدادات ⚙️",
+    lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
     stationCode: "كود المحطة:", btnEditRoom: "تعديل إعدادات الغرفة ⚙️", btnStartGame: "بدء الجولة 🚀 (أقل عدد 3)", txtAstronauts: "رواد الفضاء",
-    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "تصويت لطرد الجاسوس", btnReturnLobby: "العودة للانتظار 🔄", pwaText: "نزل تطبيق اللعبة على الشاشة الرئيسية!", pwaBtn: "تثبيت 📲"
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "تصويت لطرد الجاسوس", btnReturnLobby: "العودة للانتظار 🔄"
   }
 };
 
@@ -324,37 +329,21 @@ function changeLanguage(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
+  document.querySelectorAll('.back-arrow-btn').forEach(el => el.innerText = lang === 'ar' ? '➔' : '↩');
+
   document.querySelectorAll('[data-key]').forEach(el => {
     const key = el.getAttribute('data-key');
     if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
   });
 }
 
-// Global Variables
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
-let deferredPrompt;
 
 const wordsDB = {
   players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar"],
   food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma"],
   places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo"]
 };
-
-// PWA Installation Setup
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('pwa-banner').style.display = 'flex';
-});
-
-function installPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      document.getElementById('pwa-banner').style.display = 'none';
-    });
-  }
-}
 
 function showToast(msg) {
   playSound(600, 'triangle', 0.1);
@@ -366,7 +355,6 @@ function showToast(msg) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// Auth Logic
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(err => showToast(err.message));
@@ -412,7 +400,6 @@ function initUser(user) {
 
 function logout() { auth.signOut().then(() => location.reload()); }
 
-// File Upload Handler
 function handleFileUpload(e) {
   const file = e.target.files[0];
   if(file) {
@@ -427,7 +414,6 @@ function handleFileUpload(e) {
 
 function updateAvatarPreview() { document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value; }
 
-// Modals Navigation
 function openCreateRoomModal(cat) {
   playSound(350, 'sine', 0.1);
   document.getElementById('categorySelect').value = cat;
@@ -467,7 +453,6 @@ function saveSettings() {
   });
 }
 
-// Room Management
 function confirmCreateOrUpdateRoom() {
   const cat = document.getElementById('categorySelect').value;
   const spies = parseInt(document.getElementById('spyCountSelect').value);
