@@ -599,7 +599,8 @@ function changeLanguage(lang) {
   localStorage.setItem('spy_station_lang', lang);
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  document.getElementById('languageSelect').value = lang;
+  const langSel = document.getElementById('languageSelect');
+  if(langSel) langSel.value = lang;
 
   document.querySelectorAll('[data-key]').forEach(el => {
     const key = el.getAttribute('data-key');
@@ -610,6 +611,16 @@ function changeLanguage(lang) {
     const key = el.getAttribute('data-key-placeholder');
     if (dictionary[lang][key]) el.placeholder = dictionary[lang][key];
   });
+
+  if (currentRoom) {
+    db.ref(`spy_rooms/${currentRoom}/category`).once('value', snap => {
+      const cat = snap.val();
+      if(cat && categoryNamesMap[cat]) {
+        const catObj = categoryNamesMap[cat];
+        document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catObj[currentLang] || catObj.en}`;
+      }
+    });
+  }
 }
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
@@ -708,6 +719,7 @@ function handleAuth() {
       if(snap.exists()) return showToast("اسم المستخدم مأخوذ بالفعل!", 'danger');
       auth.createUserWithEmailAndPassword(email, password).then(res => {
         const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+        db.ref('usernames/' + username.toLowerCase()).set(true);
         res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
       }).catch(err => showToast(err.message, 'danger'));
     });
@@ -741,27 +753,8 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  checkActiveRoomOnStart(user.uid);
   listenToPublicRooms();
-}
-
-function checkActiveRoomOnStart(uid) {
-  db.ref('spy_rooms').once('value', snap => {
-    const rooms = snap.val() || {};
-    let foundRoom = null;
-    for(let code in rooms) {
-      if(rooms[code].players && rooms[code].players[uid]) {
-        foundRoom = code;
-        break;
-      }
-    }
-    if(foundRoom) {
-      currentRoom = foundRoom;
-      joinRoomProcess(true);
-    } else {
-      switchTab('tab-home');
-    }
-  });
+  switchTab('tab-home');
 }
 
 function listenToPublicRooms() {
@@ -863,7 +856,7 @@ async function confirmCreateOrUpdateRoom() {
   } else {
     await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, roundTimer: timer, visibility: visibility });
   }
-  joinRoomProcess(false);
+  joinRoomProcess();
 }
 
 function joinRoomByInput() {
@@ -883,7 +876,7 @@ function joinDirectRoom(code) {
           return showToast("Station is full!", 'danger');
         }
       }
-      joinRoomProcess(false);
+      joinRoomProcess();
     } else {
       showToast("Station does not exist!", 'danger');
     }
@@ -910,7 +903,7 @@ function leaveRoom(manual = false) {
   if(manual) showToast("Left station successfully");
 }
 
-function joinRoomProcess(isRestoring = false) {
+function joinRoomProcess() {
   toggleBottomNav(false);
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
