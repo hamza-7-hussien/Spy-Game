@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPY STATION 🚀</title>
+<title>Spy Station 🚀</title>
 
 <!-- Web App Manifest & PWA Meta Tags -->
 <link rel="manifest" href="manifest.json">
@@ -12,7 +12,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spy Station">
-<link rel="apple-touch-icon" href="https://i.postimg.cc/MTs324rX/IMG-20260317-190541.png">
+
+<!-- صورة أيقونة اللعبة الجديدة -->
+<link rel="apple-touch-icon" href="https://img.icons8.com/3d-fluency/512/astronaut-helmet.png">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
@@ -22,21 +24,35 @@
     --accent-blue: #38bdf8;
     --accent-purple: #818cf8;
     --danger-red: #ef4444;
-    --card-bg: rgba(17, 24, 39, 0.9);
+    --card-bg: rgba(17, 24, 39, 0.95);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Orbitron', 'Cairo', sans-serif; transition: all 0.3s ease; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Orbitron', 'Cairo', sans-serif; transition: all 0.2s ease; }
   
   body { 
     background: var(--bg-primary); 
     color: #f3f4f6; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
     min-height: 100vh; 
-    padding: 15px; 
+    width: 100vw;
     overflow-x: hidden;
     background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #030712 100%);
+    position: relative;
+  }
+
+  /* نظام الصفحات المستقلة */
+  .page-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 70px 20px 30px 20px;
+    background: var(--bg-primary);
+    z-index: 10;
   }
 
   .card { 
@@ -46,20 +62,15 @@
     border-radius: 24px; 
     padding: 24px; 
     width: 100%; 
-    max-width: 650px; 
+    max-width: 550px; 
     text-align: center; 
-    box-shadow: 0 0 50px rgba(56, 189, 248, 0.15);
+    box-shadow: 0 0 40px rgba(56, 189, 248, 0.15);
     position: relative;
-    animation: fadeIn 0.4s ease-in-out;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    margin: auto 0;
   }
 
   .logo-title {
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 900;
     background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
     -webkit-background-clip: text;
@@ -67,21 +78,23 @@
     letter-spacing: 2px;
   }
 
+  /* تصحيح مكان سهم الرجوع في الأعلى جهة اليسار بعيداً عن النصوص */
   .back-arrow-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 36px;
-    height: 36px;
+    top: 15px;
+    left: 15px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #1f2937;
     color: var(--accent-blue);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
     border: 1px solid rgba(255,255,255,0.1);
+    z-index: 20;
   }
   .back-arrow-btn:hover { background: var(--accent-blue); color: #030712; }
 
@@ -107,7 +120,6 @@
   .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 180px; overflow-y: auto; background: #0b0f19; padding: 10px; border-radius: 12px; }
   .player-item { background: #111827; padding: 8px 12px; border-radius: 12px; border: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
-  /* Public Rooms Grid */
   .public-rooms-container { max-height: 150px; overflow-y: auto; background: #0b0f19; border: 1px solid #1f2937; border-radius: 12px; padding: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
   .public-room-card { background: #111827; border: 1px solid #1f2937; padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
 
@@ -118,22 +130,49 @@
 
   .hidden { display: none !important; }
 
-  #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-  .toast { background: #111827; border-left: 4px solid var(--accent-blue); color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  /* مكان الإشعارات في أسفل الشاشة ومنع تكدسها */
+  #toast-container { 
+    position: fixed; 
+    bottom: 20px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    z-index: 9999; 
+    max-height: 120px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 6px;
+    pointer-events: none;
+  }
+  .toast { 
+    background: #111827; 
+    border: 1px solid var(--accent-blue); 
+    color: white; 
+    padding: 10px 18px; 
+    border-radius: 20px; 
+    font-size: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+    animation: popUp 0.3s ease-out;
+  }
+  @keyframes popUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
 <body>
 
 <div id="toast-container"></div>
 
-<div class="card">
-  <div class="logo-container" style="margin-bottom:15px;">
-    <div class="logo-title">🛸 SPY STATION</div>
-    <div style="font-size: 10px; color: #94a3b8; letter-spacing: 3px;">MULTIPLAYER SPACE EDITION</div>
-  </div>
-
-  <!-- AUTH SCREEN -->
-  <div id="auth-screen">
+<!-- 1. AUTH SCREEN -->
+<div id="auth-screen" class="page-screen">
+  <div class="card">
+    <div class="logo-container" style="margin-bottom:15px;">
+      <div class="logo-title">🛸 SPY STATION</div>
+      <div style="font-size: 10px; color: #94a3b8; letter-spacing: 3px;">MULTIPLAYER SPACE EDITION</div>
+    </div>
+    
     <button class="btn-google" onclick="signInWithGoogle()" style="margin-bottom:12px;">
       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/></svg>
       <span data-key="googleAuth">Sign in with Google 🚀</span>
@@ -146,13 +185,15 @@
     <button onclick="handleAuth()" id="btn-auth" data-key="loginBtn">Login 🚀</button>
     <div onclick="toggleAuthMode()" style="color: var(--accent-blue); cursor: pointer; font-size: 12px; margin-top: 8px;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
   </div>
+</div>
 
-  <!-- MAIN MENU -->
-  <div id="main-menu" class="hidden">
+<!-- 2. MAIN MENU SCREEN -->
+<div id="main-menu" class="page-screen hidden">
+  <div class="card">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
       <div style="display:flex; align-items:center; gap:10px;">
         <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
-        <div>
+        <div style="text-align:left;">
           <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block;">Player</span>
           <span id="userScoreDisplay" style="font-size:11px; color:#94a3b8;">Score: 0 pts</span>
         </div>
@@ -160,8 +201,7 @@
       <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="showSettings()" data-key="settingsBtn">Settings ⚙️</button>
     </div>
 
-    <!-- PUBLIC ROOMS SECTION -->
-    <p style="font-size:12px; color:#94a3b8; text-align:left; margin-bottom:5px;">🌐 Public Rooms (Join Anyone):</p>
+    <p style="font-size:12px; color:#94a3b8; text-align:left; margin-bottom:5px;">🌐 Public Stations:</p>
     <div id="publicRoomsList" class="public-rooms-container">
       <div style="font-size:12px; color:#64748b; padding:10px;">Searching for public stations...</div>
     </div>
@@ -188,67 +228,73 @@
     <input type="text" id="roomCodeInput" placeholder="Room Code (For Private Rooms)">
     <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Private Room 🛰️</button>
   </div>
+</div>
 
-  <!-- CREATE ROOM MODAL -->
-  <div id="create-room-screen" class="hidden">
-    <div class="back-arrow-btn" onclick="backToMenu()">➔</div>
-    <h3 data-key="roomSettingsTitle">Room Settings ⚙️</h3>
+<!-- 3. CREATE ROOM SCREEN -->
+<div id="create-room-screen" class="page-screen hidden">
+  <div class="card">
+    <div class="back-arrow-btn" onclick="backToMenu()">←</div>
+    <h3 data-key="roomSettingsTitle" style="margin-bottom:15px;">Room Settings ⚙️</h3>
     
-    <label style="font-size:11px; color:#94a3b8;">Room Access Visibility 👁️:</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;">Room Visibility 👁️:</label>
     <select id="roomVisibilitySelect">
       <option value="public">🌐 Public (Anyone can join)</option>
       <option value="private">🔒 Private (Friends with Code only)</option>
     </select>
 
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblCategory">Category:</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblCategory">Category:</label>
     <select id="categorySelect">
       <option value="players">⚽ Football Players</option>
       <option value="food">🍕 Food & Drinks</option>
       <option value="places">🗺️ Famous Places</option>
     </select>
     
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblSpies">Spies / Imposters:</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblSpies">Spies / Imposters:</label>
     <select id="spyCountSelect">
       <option value="1">1 Spy 🕵️</option>
       <option value="2">2 Spies 🕵️🕵️</option>
       <option value="3">3 Spies 🕵️🕵️🕵️</option>
     </select>
     
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblRoundTimer">Round Time (Seconds):</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblRoundTimer">Round Time (Seconds):</label>
     <input type="number" id="roundTimerSelect" value="180">
 
-    <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom">Launch Room 🚀</button>
+    <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Room 🚀</button>
   </div>
+</div>
 
-  <!-- SETTINGS MODAL -->
-  <div id="settings-screen" class="hidden">
-    <div class="back-arrow-btn" onclick="backToMenu()">➔</div>
+<!-- 4. SETTINGS SCREEN -->
+<div id="settings-screen" class="page-screen hidden">
+  <div class="card">
+    <div class="back-arrow-btn" onclick="backToMenu()">←</div>
     <h3 data-key="settingsTitle" style="margin-bottom:15px;">Profile & Settings ⚙️</h3>
     <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
     
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
     <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
     <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
     
     <input type="text" id="settingUsername" placeholder="Change Username">
     
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblSound">Sound Volume 🔊:</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblSound">Sound Volume 🔊:</label>
     <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
 
-    <label style="font-size:11px; color:#94a3b8;" data-key="lblLang">Language / اللغة:</label>
+    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblLang">Language / اللغة:</label>
     <select id="languageSelect" onchange="changeLanguage(this.value)">
       <option value="en">English</option>
       <option value="ar">العربية</option>
     </select>
 
-    <button onclick="saveSettings()" data-key="btnSaveSettings">Save Changes 💾</button>
-    <button class="btn-danger" style="margin-top:15px;" onclick="logout()" data-key="logout">Logout 🚪</button>
+    <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:10px;">Save Changes 💾</button>
+    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
   </div>
+</div>
 
-  <!-- LOBBY SCREEN -->
-  <div id="lobby-screen" class="hidden">
+<!-- 5. LOBBY SCREEN -->
+<div id="lobby-screen" class="page-screen hidden">
+  <div class="card">
     <p data-key="stationCode">Station Code:</p>
-    <div id="roomCodeDisplay" style="font-size:24px; color:var(--accent-blue); font-weight:bold; margin:6px 0;">----</div>
+    <div id="roomCodeDisplay" style="font-size:26px; color:var(--accent-blue); font-weight:bold; margin:6px 0;">----</div>
     
     <div id="host-controls" class="hidden">
       <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:6px;" data-key="btnEditRoom">Change Room Settings ⚙️</button>
@@ -260,7 +306,6 @@
       <div id="playersContainer" class="player-grid"></div>
     </div>
 
-    <!-- CHAT BOX -->
     <div class="chat-container">
       <div id="chatMessagesLobby" class="chat-messages"></div>
       <div style="display:flex; gap:6px;">
@@ -269,22 +314,22 @@
       </div>
     </div>
   </div>
+</div>
 
-  <!-- GAME SCREEN -->
-  <div id="game-screen" class="hidden">
+<!-- 6. GAME SCREEN -->
+<div id="game-screen" class="page-screen hidden">
+  <div class="card">
     <div id="timerDisplay" style="font-size:18px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
     <div id="roleDisplay" style="font-size:20px; font-weight:bold; margin:15px 0; background:#0b0f19; padding:15px; border-radius:12px; border: 1px solid rgba(56, 189, 248, 0.2);">...</div>
 
     <button class="btn-danger" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
-    <!-- VOTING MODAL -->
     <div id="voteModal" class="hidden" style="margin-top:15px; background:#0b0f19; padding:15px; border-radius:12px;">
       <h4 data-key="voteTitle">Vote to Eject Imposter</h4>
       <div id="voteContainer" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;"></div>
       <div id="votingResultsDisplay" style="margin-top:10px; font-weight:bold; color:var(--accent-blue);"></div>
     </div>
 
-    <!-- GAME CHAT -->
     <div class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
       <div style="display:flex; gap:6px;">
@@ -370,7 +415,7 @@ function changeLanguage(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-  document.querySelectorAll('.back-arrow-btn').forEach(el => el.innerText = lang === 'ar' ? '➔' : '↩');
+  document.querySelectorAll('.back-arrow-btn').forEach(el => el.innerText = lang === 'ar' ? '→' : '←');
 
   document.querySelectorAll('[data-key]').forEach(el => {
     const key = el.getAttribute('data-key');
@@ -394,7 +439,7 @@ function showToast(msg) {
   toast.className = 'toast';
   toast.innerText = msg;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => toast.remove(), 2500);
 }
 
 function signInWithGoogle() {
@@ -432,6 +477,11 @@ function handleAuth() {
 
 auth.onAuthStateChanged(user => { if(user) initUser(user); });
 
+function switchPage(pageId) {
+  document.querySelectorAll('.page-screen').forEach(el => el.classList.add('hidden'));
+  document.getElementById(pageId).classList.remove('hidden');
+}
+
 function initUser(user) {
   currentUser = user;
   document.getElementById('userDisplay').innerText = user.displayName || user.email.split('@')[0];
@@ -442,9 +492,7 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  document.getElementById('auth-screen').classList.add('hidden');
-  document.getElementById('main-menu').classList.remove('hidden');
-
+  switchPage('main-menu');
   listenToPublicRooms();
 }
 
@@ -494,26 +542,19 @@ function updateAvatarPreview() { document.getElementById('settingAvatarPreview')
 function openCreateRoomModal(cat) {
   playSound(350, 'sine', 0.1);
   document.getElementById('categorySelect').value = cat;
-  document.getElementById('main-menu').classList.add('hidden');
-  document.getElementById('create-room-screen').classList.remove('hidden');
+  switchPage('create-room-screen');
 }
 
-function openRoomEditModal() {
-  document.getElementById('lobby-screen').classList.add('hidden');
-  document.getElementById('create-room-screen').classList.remove('hidden');
-}
+function openRoomEditModal() { switchPage('create-room-screen'); }
 
 function backToMenu() {
-  document.getElementById('create-room-screen').classList.add('hidden');
-  document.getElementById('settings-screen').classList.remove('hidden');
-  if(currentRoom) document.getElementById('lobby-screen').classList.remove('hidden');
-  else document.getElementById('main-menu').classList.remove('hidden');
+  if(currentRoom) switchPage('lobby-screen');
+  else switchPage('main-menu');
 }
 
 function showSettings() {
   playSound(400, 'sine', 0.1);
-  document.getElementById('main-menu').classList.add('hidden');
-  document.getElementById('settings-screen').classList.remove('hidden');
+  switchPage('settings-screen');
   document.getElementById('settingUsername').value = currentUser.displayName || '';
   document.getElementById('settingAvatarUrl').value = currentUser.photoURL || '';
   document.getElementById('settingAvatarPreview').src = currentUser.photoURL || '';
@@ -563,9 +604,7 @@ function joinDirectRoom(code) {
 }
 
 function joinRoomProcess() {
-  document.getElementById('main-menu').classList.add('hidden');
-  document.getElementById('create-room-screen').classList.add('hidden');
-  document.getElementById('lobby-screen').classList.remove('hidden');
+  switchPage('lobby-screen');
   document.getElementById('roomCodeDisplay').innerText = currentRoom;
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
@@ -596,7 +635,7 @@ function joinRoomProcess() {
     `).join('');
 
     if(data.status === 'playing') showGameScreen(data);
-    if(data.status === 'waiting') showLobbyScreen();
+    if(data.status === 'waiting') switchPage('lobby-screen');
   });
 }
 
@@ -677,8 +716,7 @@ function startTimerSync() {
 }
 
 function showGameScreen(data) {
-  document.getElementById('lobby-screen').classList.add('hidden');
-  document.getElementById('game-screen').classList.remove('hidden');
+  switchPage('game-screen');
   const isSpy = data.spies && data.spies.includes(currentUser.displayName);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
   document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
@@ -734,14 +772,8 @@ function resetGameToLobby() {
   clearInterval(gameInterval);
   db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' }); 
 }
-
-function showLobbyScreen() { 
-  document.getElementById('game-screen').classList.add('hidden'); 
-  document.getElementById('lobby-screen').classList.remove('hidden'); 
-}
 </script>
 
-<!-- PWA Service Worker Registration & Installation Prompt Script -->
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -756,7 +788,6 @@ function showLobbyScreen() {
     e.preventDefault();
     deferredPrompt = e;
     
-    // إظهار نافذة التثبيت تلقائيًا بعد ثانيتين من فتح اللعبة
     setTimeout(() => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
