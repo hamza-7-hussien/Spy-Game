@@ -388,9 +388,13 @@
     <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
     <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">Category: --</div>
     
+    <div id="missionInProgressBanner" class="hidden" style="background:rgba(239,68,68,0.15); border:1px solid var(--danger-red); color:#fecaca; padding:10px 14px; border-radius:12px; font-size:12px; font-weight:bold; margin-bottom:10px; text-align:center;">
+      🔴 <span>Mission still in progress — spies remain among the crew!</span>
+    </div>
+
     <div id="host-controls" class="hidden">
       <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
-      <button onclick="startGame()" data-key="btnStartGame">Start Mission 🚀</button>
+      <button id="btnStartOrResume" onclick="startOrResumeGame()">Start Mission 🚀</button>
     </div>
 
     <div style="margin-top:15px; text-align:start;">
@@ -558,7 +562,7 @@ const dictionary = {
     joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
     lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
-    stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀", txtAstronauts: "Crew Members",
+    stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀", btnResumeGame: "Resume Mission 🚀", missionInProgress: "Mission still in progress — spies remain among the crew!", txtAstronauts: "Crew Members",
     btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL",
     lblJoinTitle: "Join via 6-Digit Code:", lblJoinPlaceholder: "Enter Station Code (e.g. X8K9P2)",
     activeStationsTitle: "🌐 Active Public Stations", searchingStations: "Searching for public stations...",
@@ -577,7 +581,7 @@ const dictionary = {
     joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
-    stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀", txtAstronauts: "أفراد الطاقم",
+    stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀", btnResumeGame: "استكمال المهمة 🚀", missionInProgress: "المهمة لسه شغالة — لسه فيه جاسوس بين الطاقم!", txtAstronauts: "أفراد الطاقم",
     btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ",
     lblJoinTitle: "الانضمام عبر كود مكون من 6 أرقام:", lblJoinPlaceholder: "أدخل كود المحطة (مثل X8K9P2)",
     activeStationsTitle: "🌐 المحطات العامة النشطة", searchingStations: "جاري البحث عن المحطات العامة...",
@@ -619,6 +623,15 @@ function changeLanguage(lang) {
         const catObj = categoryNamesMap[cat];
         document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catObj[currentLang] || catObj.en}`;
       }
+    });
+
+    db.ref(`spy_rooms/${currentRoom}/spies`).once('value', snap => {
+      const spies = snap.val();
+      const missionOngoing = !!(spies && spies.length > 0);
+      const banner = document.getElementById('missionInProgressBanner');
+      if(banner) banner.querySelector('span').innerText = dictionary[currentLang].missionInProgress;
+      const btn = document.getElementById('btnStartOrResume');
+      if (btn) btn.innerText = missionOngoing ? dictionary[currentLang].btnResumeGame : dictionary[currentLang].btnStartGame;
     });
   }
 }
@@ -754,7 +767,22 @@ function initUser(user) {
   });
 
   listenToPublicRooms();
-  switchTab('tab-home');
+
+  const savedRoom = localStorage.getItem('spy_station_room');
+  if(savedRoom) {
+    currentRoom = savedRoom.toUpperCase();
+    db.ref('spy_rooms/' + currentRoom).once('value', snap => {
+      if(snap.exists()) {
+        joinRoomProcess();
+      } else {
+        currentRoom = null;
+        localStorage.removeItem('spy_station_room');
+        switchTab('tab-home');
+      }
+    });
+  } else {
+    switchTab('tab-home');
+  }
 }
 
 function listenToPublicRooms() {
@@ -884,6 +912,7 @@ function joinDirectRoom(code) {
 }
 
 function leaveRoom(manual = false) {
+  localStorage.removeItem('spy_station_room');
   if(currentRoom && currentUser) {
     const rCode = currentRoom;
     if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
@@ -905,6 +934,7 @@ function leaveRoom(manual = false) {
 
 function joinRoomProcess() {
   toggleBottomNav(false);
+  localStorage.setItem('spy_station_room', currentRoom);
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
   playerRef.once('value', snap => {
@@ -972,6 +1002,17 @@ function joinRoomProcess() {
       clearInterval(voteInterval);
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
+
+      // If spies are still assigned, this "waiting" state is a pause mid-mission
+      // (e.g. an innocent was voted out, or one of several spies was caught but
+      // more remain) - not a fresh lobby. Show that clearly and let the host
+      // resume the SAME round instead of accidentally starting a brand new one.
+      const missionOngoing = !!(data.spies && data.spies.length > 0);
+      document.getElementById('missionInProgressBanner').classList.toggle('hidden', !missionOngoing);
+      const btnStartOrResume = document.getElementById('btnStartOrResume');
+      if(btnStartOrResume) {
+        btnStartOrResume.innerText = missionOngoing ? dictionary[currentLang].btnResumeGame : dictionary[currentLang].btnStartGame;
+      }
     } else if(data.status === 'playing') {
       showGameScreen(data);
     } else if(data.status === 'voting') {
@@ -1005,15 +1046,29 @@ function broadcastAnnouncement(msg, type = 'normal') {
 
 function handleHostAssignment(data) {
   const playersObj = data.players || {};
-  
-  if(!playersObj[data.hostUid]) {
-    const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-    if(sorted.length > 0) {
-      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
-    }
+  const hostStillPresent = data.hostUid && playersObj[data.hostUid];
+
+  if(!hostStillPresent && Object.keys(playersObj).length > 0) {
+    // ANY remaining client can trigger this - it does not depend on the
+    // elected player's browser being the one to notice. Firebase transactions
+    // run on the server against the live data and guarantee that even if
+    // several clients fire this at the same instant, only one write wins and
+    // everyone converges on the same new host. This fires the moment the
+    // room data changes (host left / disconnected / was kicked) - no click,
+    // no refresh, no re-entering the room required.
+    db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
+      if(!room || !room.players) return room;
+      const stillMissing = !room.hostUid || !room.players[room.hostUid];
+      if(!stillMissing) return room; // someone else already fixed it
+      const sorted = Object.values(room.players).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+      if(sorted.length > 0) {
+        room.hostUid = sorted[0].uid;
+      }
+      return room;
+    });
   }
 
-  isHost = (data.hostUid === currentUser.uid);
+  isHost = !!(data.hostUid && data.hostUid === currentUser.uid);
   document.getElementById('host-controls').classList.toggle('hidden', !isHost);
 }
 
@@ -1053,6 +1108,25 @@ function listenToChat() {
     
     document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
     document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
+  });
+}
+
+function startOrResumeGame() {
+  db.ref('spy_rooms/' + currentRoom).once('value', snap => {
+    const data = snap.val();
+    if(data && data.spies && data.spies.length > 0) {
+      // Resume the same round: keep the same secret word and the same
+      // remaining spies, just give the crew a fresh discussion timer.
+      db.ref(`spy_rooms/${currentRoom}`).update({
+        status: 'playing',
+        timeLeft: data.roundTimer,
+        votes: null
+      });
+      broadcastAnnouncement("🚀 Mission resumed! Keep hunting the remaining spy!", "normal");
+      startTimerSync();
+    } else {
+      startGame();
+    }
   });
 }
 
