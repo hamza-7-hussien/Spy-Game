@@ -70,19 +70,12 @@
 
   @keyframes shine { to { background-position: 200% center; } }
 
-  /* 🛸 تصميم واجهة تسجيل الدخول المحدثة بالكامل */
   .auth-card-container {
     background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.75));
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(24px); border-radius: 28px; padding: 30px 24px;
     width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), var(--neon-glow);
     text-align: center; position: relative; overflow: hidden;
-  }
-
-  .auth-card-container::before {
-    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
-    pointer-events: none;
   }
 
   .cyber-logo-badge {
@@ -136,7 +129,6 @@
   .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.15); }
   .auth-divider span { padding: 0 10px; }
 
-  /* الشاشات الأخرى والمقاسات القديمة */
   .container-box { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     backdrop-filter: blur(16px); border-radius: 20px; padding: 20px; 
@@ -209,7 +201,7 @@
 <div class="stars-overlay"></div>
 <div id="toast-container"></div>
 
-<!-- 1. AUTH SCREEN (المحدثة بالكامل 🛸) -->
+<!-- 1. AUTH SCREEN -->
 <div id="auth-screen" class="page-screen" style="justify-content:center;">
   <div class="auth-card-container">
     
@@ -881,7 +873,8 @@ function listenToSystemAnnouncements() {
   annListener = db.ref(`spy_rooms/${currentRoom}/announcement`).on('value', snap => {
     const ann = snap.val();
     if(ann && ann.msg && ann.timestamp) {
-      if(Date.now() - ann.timestamp < 4000) {
+      // تم تعديل وقت مقارنة الإعلان لمنع تكراره على الأجهزة المختلفة
+      if(Date.now() - ann.timestamp < 3000) {
         showToast(ann.msg, ann.type);
       }
     }
@@ -1002,6 +995,9 @@ function startTimerSync() {
       const room = snap.val();
       if(!room) return;
 
+      // 🛑 تم التعديل: إذا كانت الغرفة في حالة تصويت، لا تقم بتشغيل تايمر اللعب أو إعادة ضبطه لمنع رجوع الشاشة!
+      if(room.status === 'voting') return;
+
       checkSpiesAndPlayersStatus(room);
 
       if(room.status === 'playing') {
@@ -1043,7 +1039,7 @@ function startVoteTimerSync() {
 }
 
 function checkSpiesAndPlayersStatus(room) {
-  if(room.status === 'playing' || room.status === 'voting') {
+  if(room.status === 'playing') {
     checkWinConditions(room);
   }
 }
@@ -1067,6 +1063,7 @@ function showGameScreen(data) {
 }
 
 function triggerVotingPhase() {
+  // تحديث حالة الغرفة مباشرة إلى voting مع إيقاف أي تداخل محتمل
   db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
   broadcastAnnouncement("🚨 تم تفعيل التصويت الطارئ!", "danger");
   if(isHost) startVoteTimerSync();
@@ -1184,7 +1181,7 @@ function checkWinConditions(room) {
     clearInterval(gameInterval);
     clearInterval(voteInterval);
     db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-    broadcastAnnouncement("🎉 تم طرد جميع الجواسبس! فوز الطاقم!", "success");
+    broadcastAnnouncement("🎉 تم طرد جميع الجواسيس! فوز الطاقم!", "success");
     return true;
   }
 
