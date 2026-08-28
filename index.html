@@ -185,32 +185,14 @@
   .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
 
   #top-notification {
-    position: fixed;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 99999;
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid var(--accent-blue);
-    color: #f8fafc;
-    padding: 12px 24px;
-    border-radius: 16px;
-    font-size: 14px;
-    font-weight: 700;
-    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35);
-    backdrop-filter: blur(16px);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    max-width: 90%;
-    text-align: center;
+    position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 99999;
+    background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); color: #f8fafc;
+    padding: 12px 24px; border-radius: 16px; font-size: 14px; font-weight: 700;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35); backdrop-filter: blur(16px);
+    display: flex; align-items: center; gap: 12px; transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 90%; text-align: center;
   }
-  #top-notification.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-50%) translateY(-20px);
-  }
+  #top-notification.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(-20px); }
   #top-notification.toast-danger { border-color: var(--danger-red); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45); }
   #top-notification.toast-success { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45); }
 
@@ -219,8 +201,14 @@
   .vote-card:hover { border-color: var(--accent-purple); }
   .vote-card.disabled { pointer-events: none; opacity: 0.6; }
 
-  .voters-overlay { display: flex; align-items: center; }
-  .voter-mini-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent-purple); margin-left: -8px; box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; }
+  .voters-overlay { display: flex; align-items: center; gap: 3px; }
+  /* تم تعديل الأفاتار الصغيرة لكي تكون غير مائلة ومظبوطة تماماً */
+  .voter-mini-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-purple); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; transform: none !important; }
+
+  .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: right; }
+  .team-members-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .team-member-chip { display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.9); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); font-size: 12px; }
+  .team-member-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
 </style>
 </head>
 <body>
@@ -398,7 +386,8 @@
 <div id="lobby-screen" class="page-screen hidden" style="z-index:20;">
   <div class="container-box" style="text-align:center;">
     <p data-key="stationCode">Station Frequency Code:</p>
-    <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:10px 0;">------</div>
+    <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
+    <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">فئة الروم: --</div>
     
     <div id="host-controls" class="hidden">
       <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
@@ -450,6 +439,28 @@
 
     <div style="margin-top:15px;">
       <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')">⏩ Skip Vote</button>
+    </div>
+  </div>
+</div>
+
+<!-- 9. GAME OVER / RESULTS SCREEN -->
+<div id="gameover-screen" class="page-screen hidden" style="z-index:40; background:rgba(3,7,18,0.95);">
+  <div class="container-box" style="text-align:center;">
+    <h2 id="winnerTitle" style="color:var(--accent-blue); font-size:24px; margin-bottom:15px;">نتيجة المهمة</h2>
+    
+    <div class="team-section">
+      <b style="color:var(--danger-red);">🕵️ فريق الجواسيس:</b>
+      <div id="spiesTeamList" class="team-members-row"></div>
+    </div>
+
+    <div class="team-section">
+      <b style="color:var(--accent-blue);">🚀 فريق الطاقم:</b>
+      <div id="crewTeamList" class="team-members-row"></div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button onclick="returnToLobbyFromResults()" style="flex:1;" class="btn-secondary">العودة للوبي 🔄</button>
+      <button onclick="leaveRoom(true)" style="flex:1;" class="btn-danger">مغادرة المحطة 🚪</button>
     </div>
   </div>
 </div>
@@ -579,6 +590,15 @@ let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false
 let gameInterval = null, voteInterval = null;
 let roomListener = null, annListener = null;
 
+const categoryNamesMap = {
+  players: "⚽ كرة القدم",
+  food: "🍕 أكلات ومشروبات",
+  places: "🗺️ أماكن ومعالم",
+  movies: "🎬 أفلام ومسلسلات",
+  games: "🎮 ألعاب فيديو",
+  animals: "🦁 حيوانات"
+};
+
 const wordsDB = {
   players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne", "Benzema", "Vinicius"],
   food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream", "Koshary", "Crepe"],
@@ -670,7 +690,15 @@ function handleAuth() {
   }
 }
 
-auth.onAuthStateChanged(user => { if(user) initUser(user); });
+auth.onAuthStateChanged(user => { 
+  if(user) {
+    initUser(user);
+  } else {
+    document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+    document.getElementById('auth-screen').classList.remove('hidden');
+    toggleBottomNav(false);
+  }
+});
 
 function initUser(user) {
   currentUser = user;
@@ -686,8 +714,28 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  switchTab('tab-home');
+  // فحص إذا كان المستخدم منضم لغرفة مسبقاً لاسترجاعه عند الـ Refresh
+  checkActiveRoomOnStart(user.uid);
   listenToPublicRooms();
+}
+
+function checkActiveRoomOnStart(uid) {
+  db.ref('spy_rooms').once('value', snap => {
+    const rooms = snap.val() || {};
+    let foundRoom = null;
+    for(let code in rooms) {
+      if(rooms[code].players && rooms[code].players[uid]) {
+        foundRoom = code;
+        break;
+      }
+    }
+    if(foundRoom) {
+      currentRoom = foundRoom;
+      joinRoomProcess(true);
+    } else {
+      switchTab('tab-home');
+    }
+  });
 }
 
 function listenToPublicRooms() {
@@ -711,7 +759,7 @@ function listenToPublicRooms() {
           <div class="public-room-card">
             <div style="text-align:right;">
               <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
-              <span style="font-size:11px; color:#94a3b8;">(${room.category ? room.category.toUpperCase() : 'GENERAL'})</span>
+              <span style="font-size:11px; color:#94a3b8;">(${categoryNamesMap[room.category] || 'عام'})</span>
               <div style="font-size:11px; color:#64748b; margin-top:2px;">اللاعبين: ${pCount}/${room.maxPlayers || 20} | الـ Host: ${hostName}</div>
             </div>
             <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">انضمام 🚀</button>
@@ -788,7 +836,7 @@ async function confirmCreateOrUpdateRoom() {
   } else {
     await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, roundTimer: timer, visibility: visibility });
   }
-  joinRoomProcess();
+  joinRoomProcess(false);
 }
 
 function joinRoomByInput() {
@@ -803,10 +851,12 @@ function joinDirectRoom(code) {
     if(snap.exists()) {
       const room = snap.val();
       const playersCount = room.players ? Object.keys(room.players).length : 0;
-      if(playersCount >= (room.maxPlayers || 20)) {
-        return showToast("المحطة ممتلئة بالكامل!", 'danger');
+      if(!room.players || !room.players[currentUser.uid]) {
+        if(playersCount >= (room.maxPlayers || 20)) {
+          return showToast("المحطة ممتلئة بالكامل!", 'danger');
+        }
       }
-      joinRoomProcess();
+      joinRoomProcess(false);
     } else {
       showToast("الغرفة غير موجودة!", 'danger');
     }
@@ -833,30 +883,22 @@ function leaveRoom(manual = false) {
   if(manual) showToast("تم مغادرة المحطة");
 }
 
-function joinRoomProcess() {
+function joinRoomProcess(isRestoring = false) {
   toggleBottomNav(false);
 
-  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-  document.getElementById('lobby-screen').classList.remove('hidden');
-  document.getElementById('roomCodeDisplay').innerText = currentRoom;
-
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
-  playerRef.set({ 
-    uid: currentUser.uid,
-    name: currentUser.displayName, 
-    avatar: currentUser.photoURL, 
-    joinedAt: firebase.database.ServerValue.TIMESTAMP 
-  });
-
-  playerRef.onDisconnect().remove().then(() => {
-    if(currentRoom) {
-      db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
-        if(!snap.exists() || !snap.val()) {
-          db.ref(`spy_rooms/${currentRoom}`).remove();
-        }
+  playerRef.once('value', snap => {
+    if(!snap.exists()) {
+      playerRef.set({ 
+        uid: currentUser.uid,
+        name: currentUser.displayName, 
+        avatar: currentUser.photoURL, 
+        joinedAt: firebase.database.ServerValue.TIMESTAMP 
       });
     }
   });
+
+  playerRef.onDisconnect().remove();
 
   listenToChat();
   listenToSystemAnnouncements();
@@ -884,6 +926,7 @@ function joinRoomProcess() {
 
     document.getElementById('playerCount').innerText = playersArr.length;
     document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+    document.getElementById('roomCategoryDisplay').innerText = `فئة الروم: ${categoryNamesMap[data.category] || data.category}`;
 
     document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
       <div class="player-item">
@@ -909,6 +952,8 @@ function joinRoomProcess() {
       showGameScreen(data);
     } else if(data.status === 'voting') {
       showVotingScreen(data);
+    } else if(data.status === 'gameover') {
+      showGameOverScreen(data);
     }
   });
 }
@@ -1037,8 +1082,6 @@ function startTimerSync() {
 
       if(room.status === 'voting') return;
 
-      checkSpiesAndPlayersStatus(room);
-
       if(room.status === 'playing') {
         if(room.timeLeft <= 1) {
           db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
@@ -1075,12 +1118,6 @@ function startVoteTimerSync() {
       }
     });
   }, 1000);
-}
-
-function checkSpiesAndPlayersStatus(room) {
-  if(room.status === 'playing') {
-    checkWinConditions(room);
-  }
 }
 
 function showGameScreen(data) {
@@ -1158,11 +1195,10 @@ function showVotingScreen(data) {
 
 function castVote(targetUid) {
   db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
-    if(snap.exists()) return; // منع تغيير التصويت إذا كان قد صوت مسبقاً
+    if(snap.exists()) return;
     db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
       showToast("تم تسجيل صوتك!", 'success');
       
-      // فحص فوري لو الكل صوت علشان نتأكد إن النتيجة تظهر فوراً
       db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
         const room = roomSnap.val();
         if(room && room.players && room.votes) {
@@ -1206,25 +1242,55 @@ function processVoteResults(room) {
     if(currentSpies.includes(ejectedUid)) {
       const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
       
-      db.ref(`spy_rooms/${currentRoom}`).update({ 
-        spies: updatedSpies, 
-        votes: null 
-      }).then(() => {
-        checkWinConditions({ ...room, spies: updatedSpies });
-      });
+      // التحقق من فوز الطاقم بالكامل (لو خلصت كل الجواسيس)
+      const currentPlayers = Object.keys(playersObj);
+      const remainingCrew = currentPlayers.filter(uid => !updatedSpies.includes(uid));
 
-      broadcastAnnouncement("🕵️ تم طرد الجاسوس بنجاح!", "normal");
-      return;
+      if(updatedSpies.length === 0) {
+        db.ref(`spy_rooms/${currentRoom}`).update({ 
+          status: 'gameover', 
+          winnerTeam: 'crew',
+          finalSpies: room.spies,
+          finalPlayers: playersObj,
+          votes: null 
+        });
+        broadcastAnnouncement("🎉 تم طرد جميع الجواسيس! فوز الطاقم!", "success");
+        return;
+      } else {
+        // لسه في جواسيس تانيين، يرجعوا للوبي وتظهر حالتهم IN GAME
+        db.ref(`spy_rooms/${currentRoom}`).update({ 
+          spies: updatedSpies, 
+          status: 'waiting',
+          votes: null 
+        });
+        broadcastAnnouncement("🕵️ تم طرد أحد الجواسيس، ولكن هناك جواسيس آخرون متبقون! عودة للوبي...", "danger");
+        return;
+      }
     } else {
-      delete playersObj[ejectedUid];
-      
-      db.ref(`spy_rooms/${currentRoom}/players/${ejectedUid}`).remove();
-      db.ref(`spy_rooms/${currentRoom}`).update({ votes: null }).then(() => {
-        checkWinConditions({ ...room, players: playersObj });
-      });
+      // طرد بريء
+      const currentPlayers = Object.keys(playersObj);
+      const currentSpiesCount = currentSpies.filter(uid => currentPlayers.includes(uid)).length;
+      const remainingCrewCount = currentPlayers.filter(uid => !currentSpies.includes(uid) && uid !== ejectedUid).length;
 
-      broadcastAnnouncement("❌ تم طرد بريء عن طريق الخطأ!", "danger");
-      return;
+      if(currentSpiesCount >= remainingCrewCount) {
+        db.ref(`spy_rooms/${currentRoom}`).update({ 
+          status: 'gameover', 
+          winnerTeam: 'spies',
+          finalSpies: room.spies,
+          finalPlayers: playersObj,
+          votes: null 
+        });
+        broadcastAnnouncement("🕵️ سيطر الجواسيس على المحطة! فوز الجواسيس!", "danger");
+        return;
+      } else {
+        // طرد بريء بس الجيم مخلصش -> رجوع للوبي مع حالة IN GAME للباقيين
+        db.ref(`spy_rooms/${currentRoom}`).update({ 
+          status: 'waiting',
+          votes: null 
+        });
+        broadcastAnnouncement("❌ تم طرد بريء عن طريق الخطأ! عودة للوبي...", "danger");
+        return;
+      }
     }
   }
 
@@ -1235,29 +1301,48 @@ function processVoteResults(room) {
   broadcastAnnouncement("⚖️ لم يتم طرد أحد! تستمر المهمة...", "normal");
 }
 
-function checkWinConditions(room) {
-  const currentPlayers = room.players ? Object.keys(room.players) : [];
-  const currentSpies = room.spies ? room.spies.filter(uid => currentPlayers.includes(uid)) : [];
-  const currentCrew = currentPlayers.filter(uid => !currentSpies.includes(uid));
+function showGameOverScreen(data) {
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('gameover-screen').classList.remove('hidden');
 
-  if(currentSpies.length === 0) {
-    clearInterval(gameInterval);
-    clearInterval(voteInterval);
-    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-    broadcastAnnouncement("🎉 تم طرد جميع الجواسيس! فوز الطاقم!", "success");
-    return true;
+  const winner = data.winnerTeam;
+  document.getElementById('winnerTitle').innerText = winner === 'crew' ? "🎉 فوز فريق الطاقم! 🎉" : "🕵️ فوز فريق الجواسيس! 🕵️";
+
+  const allPlayers = data.finalPlayers || data.players || {};
+  const spyUids = data.finalSpies || data.spies || [];
+
+  let spiesHTML = '';
+  let crewHTML = '';
+
+  for(let uid in allPlayers) {
+    const p = allPlayers[uid];
+    const chip = `
+      <div class="team-member-chip">
+        <img src="${p.avatar}" alt="img">
+        <span>${p.name}</span>
+      </div>
+    `;
+    if(spyUids.includes(uid)) {
+      spiesHTML += chip;
+    } else {
+      crewHTML += chip;
+    }
   }
 
-  if(currentSpies.length >= currentCrew.length) {
-    clearInterval(gameInterval);
-    clearInterval(voteInterval);
-    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-    broadcastAnnouncement("🕵️ سيطر الجواسيس على المحطة! فوز الجواسيس!", "danger");
-    return true;
-  }
+  document.getElementById('spiesTeamList').innerHTML = spiesHTML || '<span style="font-size:12px; color:#64748b;">لا يوجد</span>';
+  document.getElementById('crewTeamList').innerHTML = crewHTML || '<span style="font-size:12px; color:#64748b;">لا يوجد</span>';
+}
 
-  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing' });
-  return false;
+function returnToLobbyFromResults() {
+  if(isHost) {
+    db.ref(`spy_rooms/${currentRoom}`).update({
+      status: 'waiting',
+      winnerTeam: null,
+      votes: null,
+      spies: null,
+      word: null
+    });
+  }
 }
 </script>
 
