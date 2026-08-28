@@ -13,26 +13,27 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spy Station">
 
-<!-- صورة أيقونة اللعبة الجديدة للأجهزة -->
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
 
   :root {
     --bg-primary: #030712;
     --accent-blue: #38bdf8;
-    --accent-purple: #818cf8;
+    --accent-purple: #a855f7;
+    --neon-glow: 0 0 20px rgba(56, 189, 248, 0.4);
     --danger-red: #ef4444;
-    --card-bg: rgba(17, 24, 39, 0.95);
+    --glass-bg: rgba(15, 23, 42, 0.75);
+    --glass-border: rgba(56, 189, 248, 0.2);
   }
 
   * { 
     box-sizing: border-box; 
     margin: 0; 
     padding: 0; 
-    font-family: 'Orbitron', 'Cairo', sans-serif; 
-    transition: all 0.2s ease; 
+    font-family: 'Exo 2', 'Cairo', sans-serif; 
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
   }
   
   body { 
@@ -41,340 +42,434 @@
     min-height: 100vh; 
     width: 100vw;
     overflow-x: hidden;
-    background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #030712 100%);
+    position: relative;
   }
 
-  /* نظام الفصل الكامل بين الشاشات لمنع التداخل */
+  /* خلفية النجوم المتحركة Spacewalk Background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at bottom, #1e1b4b 0%, #030712 100%);
+    z-index: -2;
+  }
+  
+  .stars-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 160px 120px, #a855f7, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    opacity: 0.6;
+    animation: starsAnimation 100s linear infinite;
+    z-index: -1;
+  }
+
+  @keyframes starsAnimation {
+    from { background-position: 0 0; }
+    to { background-position: 1000px 1000px; }
+  }
+
   .page-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 75px);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: var(--bg-primary);
+    justify-content: flex-start;
+    padding: 20px 15px;
     z-index: 10;
     overflow-y: auto;
   }
 
-  .hidden { 
-    display: none !important; 
-  }
+  .hidden { display: none !important; }
 
-  .card { 
-    background: var(--card-bg); 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(16px);
-    border-radius: 24px; 
-    padding: 24px; 
-    width: 100%; 
-    max-width: 500px; 
-    text-align: center; 
-    box-shadow: 0 0 40px rgba(56, 189, 248, 0.15);
-    position: relative;
-    margin: auto;
+  /* العناوين بالخط الفضائي */
+  h1, h2, h3, .logo-title {
+    font-family: 'Chakra Petch', 'Cairo', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
   }
 
   .logo-title {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 900;
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    background: linear-gradient(90deg, #38bdf8, #a855f7, #38bdf8);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: 2px;
+    animation: shine 4s linear infinite;
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
   }
 
-  /* تعديل سهم الرجوع في أعلى اليسار بعيداً عن العنوان */
-  .back-arrow-btn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #1f2937;
-    color: var(--accent-blue);
+  @keyframes shine {
+    to { background-position: 200% center; }
+  }
+
+  .container-box { 
+    background: var(--glass-bg); 
+    border: 1px solid var(--glass-border); 
+    backdrop-filter: blur(16px);
+    border-radius: 20px; 
+    padding: 20px; 
+    width: 100%; 
+    max-width: 600px; 
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+  }
+
+  /* الهيدر العلوي للملف الشخصي */
+  .header-profile-bar {
+    width: 100%;
+    max-width: 600px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.1);
-    z-index: 30;
+    justify-content: space-between;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    padding: 12px 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
   }
-  .back-arrow-btn:hover { 
-    background: var(--accent-blue); 
-    color: #030712; 
+
+  .avatar-img { 
+    width: 48px; 
+    height: 48px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 2px solid var(--accent-blue);
+    box-shadow: var(--neon-glow);
+  }
+
+  .avatar-preview { 
+    width: 90px; 
+    height: 90px; 
+    border-radius: 50%; 
+    margin: 15px auto; 
+    border: 2px dashed var(--accent-purple); 
+    display: block; 
+    object-fit: cover;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
   }
 
   input, select, button { 
     width: 100%; 
-    padding: 12px; 
-    margin: 6px 0; 
-    border-radius: 12px; 
+    padding: 14px; 
+    margin: 8px 0; 
+    border-radius: 14px; 
     border: none; 
     font-size: 14px; 
-    text-align: center; 
     outline: none; 
   }
+
   input, select { 
-    background: #0b0f19; 
+    background: rgba(3, 7, 18, 0.8); 
     color: white; 
-    border: 1px solid #1f2937; 
+    border: 1px solid var(--glass-border); 
+    text-align: center;
   }
   input:focus, select:focus { 
-    border-color: var(--accent-blue); 
+    border-color: var(--accent-blue);
+    box-shadow: var(--neon-glow);
   }
 
   button { 
-    background: linear-gradient(135deg, var(--accent-blue), #3b82f6); 
+    background: linear-gradient(135deg, var(--accent-blue), #2563eb); 
     color: #030712; 
-    font-weight: 700; 
+    font-weight: 800; 
     cursor: pointer; 
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
   }
   button:hover { 
     transform: translateY(-2px); 
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
   }
 
-  .btn-google { 
-    background: #ffffff; 
-    color: #1f2937; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 8px; 
-    font-weight: bold; 
+  .btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+  .btn-danger { background: linear-gradient(135deg, var(--danger-red), #991b1b); color: white; }
+
+  /* كروت الفئات الفضائية */
+  .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
+  .category-card { 
+    background: rgba(15, 23, 42, 0.5); 
+    border: 1px solid var(--glass-border); 
+    padding: 18px 10px; 
+    border-radius: 16px; 
+    cursor: pointer; 
+    text-align: center; 
   }
-  .btn-secondary { background: #1f2937; color: white; }
-  .btn-danger { background: linear-gradient(135deg, var(--danger-red), #dc2626); color: white; }
+  .category-card:hover { 
+    border-color: var(--accent-purple); 
+    background: rgba(168, 85, 247, 0.15); 
+    transform: translateY(-3px);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  }
+  .category-card .icon { font-size: 32px; display: block; margin-bottom: 6px; }
 
-  .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-  .category-card { background: #111827; border: 1px solid #1f2937; padding: 15px 5px; border-radius: 16px; cursor: pointer; text-align: center; }
-  .category-card:hover { border-color: var(--accent-blue); background: #1e1b4b; }
-  .category-card .icon { font-size: 28px; display: block; margin-bottom: 5px; }
+  /* الشريط السفلي للتنقل (Bottom Navigation Bar) */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 70px;
+    background: rgba(3, 7, 18, 0.9);
+    border-top: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 999;
+  }
 
-  .avatar-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
-  .avatar-preview { width: 80px; height: 80px; border-radius: 50%; margin: 10px auto; border: 2px dashed var(--accent-blue); display: block; object-fit: cover; }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    width: 33.3%;
+    height: 100%;
+  }
 
-  .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 180px; overflow-y: auto; background: #0b0f19; padding: 10px; border-radius: 12px; }
-  .player-item { background: #111827; padding: 8px 12px; border-radius: 12px; border: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nav-item .nav-icon { font-size: 20px; }
+  .nav-item.active { color: var(--accent-blue); }
+  .nav-item.active .nav-icon { 
+    transform: scale(1.1); 
+    text-shadow: 0 0 10px var(--accent-blue);
+  }
 
-  .public-rooms-container { max-height: 140px; overflow-y: auto; background: #0b0f19; border: 1px solid #1f2937; border-radius: 12px; padding: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-  .public-room-card { background: #111827; border: 1px solid #1f2937; padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 200px; overflow-y: auto; }
+  .player-item { background: rgba(3, 7, 18, 0.6); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 8px; }
 
-  .chat-container { background: #0b0f19; border: 1px solid #1f2937; border-radius: 12px; padding: 10px; margin-top: 15px; text-align: left; }
-  .chat-messages { height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; font-size: 13px; }
-  .chat-msg { background: #111827; padding: 6px 10px; border-radius: 8px; max-width: 85%; }
+  .public-rooms-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .public-room-card { background: rgba(3, 7, 18, 0.6); border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+
+  .chat-container { background: rgba(3, 7, 18, 0.8); border: 1px solid var(--glass-border); border-radius: 14px; padding: 12px; margin-top: 15px; text-align: left; }
+  .chat-messages { height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .chat-msg { background: rgba(15, 23, 42, 0.8); padding: 8px 12px; border-radius: 10px; }
   .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
 
-  /* الإشعارات ثابتة بأسفل المنتصف ومحدودة الارتفاع لمنع التكدس */
   #toast-container { 
-    position: fixed; 
-    bottom: 25px; 
-    left: 50%; 
-    transform: translateX(-50%);
-    z-index: 99999; 
-    max-height: 100px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 6px;
-    pointer-events: none;
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; 
+    pointer-events: none; display: flex; flex-direction: column; gap: 6px;
   }
   .toast { 
-    background: #111827; 
-    border: 1px solid var(--accent-blue); 
-    color: white; 
-    padding: 8px 16px; 
-    border-radius: 20px; 
-    font-size: 12px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+    background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); 
+    color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; box-shadow: var(--neon-glow); 
   }
 </style>
 </head>
 <body>
 
+<div class="stars-overlay"></div>
 <div id="toast-container"></div>
 
 <!-- 1. AUTH SCREEN -->
-<div id="auth-screen" class="page-screen">
-  <div class="card">
-    <div style="margin-bottom:15px;">
-      <div class="logo-title">🛸 SPY STATION</div>
-      <div style="font-size: 10px; color: #94a3b8; letter-spacing: 3px;">MULTIPLAYER SPACE EDITION</div>
+<div id="auth-screen" class="page-screen" style="height:100vh; justify-content:center;">
+  <div class="container-box" style="text-align:center;">
+    <div style="margin-bottom:20px;">
+      <div class="logo-title" style="font-size:32px;">🛸 SPY STATION</div>
+      <div style="font-size: 11px; color: #94a3b8; letter-spacing: 3px; margin-top:5px;">DEEP SPACE TACTICS</div>
     </div>
     
-    <button class="btn-google" onclick="signInWithGoogle()" style="margin-bottom:12px;">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/></svg>
-      <span data-key="googleAuth">Sign in with Google 🚀</span>
+    <button class="btn-secondary" onclick="signInWithGoogle()" style="margin-bottom:15px; background:white; color:#0f172a; font-weight:bold;">
+      <span>Sign in with Google 🚀</span>
     </button>
 
-    <h3 id="auth-title" data-key="login">Login</h3>
+    <h3 id="auth-title" data-key="login" style="margin-bottom:10px;">Login</h3>
     <input type="email" id="authEmail" placeholder="Email">
     <input type="password" id="authPassword" placeholder="Password">
     <input type="text" id="authUsername" placeholder="Unique Username" class="hidden">
     <button onclick="handleAuth()" id="btn-auth" data-key="loginBtn">Login 🚀</button>
-    <div onclick="toggleAuthMode()" style="color: var(--accent-blue); cursor: pointer; font-size: 12px; margin-top: 8px;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
+    <div onclick="toggleAuthMode()" style="color: var(--accent-blue); cursor: pointer; font-size: 13px; margin-top: 12px;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
   </div>
 </div>
 
-<!-- 2. MAIN MENU SCREEN -->
-<div id="main-menu" class="page-screen hidden">
-  <div class="card">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
-        <div style="text-align:left;">
-          <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block;">Player</span>
-          <span id="userScoreDisplay" style="font-size:11px; color:#94a3b8;">Score: 0 pts</span>
-        </div>
+<!-- 2. HOME TAB / MAIN MENU -->
+<div id="tab-home" class="page-screen hidden">
+  <div class="header-profile-bar">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
+      <div>
+        <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block; font-size:16px;">Player</span>
+        <span id="userScoreDisplay" style="font-size:12px; color:#94a3b8;">Score: 0 pts</span>
       </div>
-      <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="showSettings()" data-key="settingsBtn">Settings ⚙️</button>
     </div>
+    <div class="logo-title" style="font-size: 18px;">SPY STATION</div>
+  </div>
 
-    <p style="font-size:12px; color:#94a3b8; text-align:left; margin-bottom:5px;">🌐 Public Stations:</p>
-    <div id="publicRoomsList" class="public-rooms-container">
-      <div style="font-size:12px; color:#64748b; padding:10px;">Searching for public stations...</div>
-    </div>
-
-    <p style="font-size:12px; color:#94a3b8; text-align:left;" data-key="chooseCategory">Or Create Your Own Station:</p>
-    
+  <div class="container-box">
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="chooseCategory">Create Station Room:</h3>
     <div class="category-grid">
       <div class="category-card" onclick="openCreateRoomModal('players')">
         <span class="icon">⚽</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span>
+        <span style="font-size:13px; font-weight:bold;" data-key="catFootball">Football</span>
       </div>
       <div class="category-card" onclick="openCreateRoomModal('food')">
         <span class="icon">🍕</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span>
+        <span style="font-size:13px; font-weight:bold;" data-key="catFood">Food</span>
       </div>
       <div class="category-card" onclick="openCreateRoomModal('places')">
         <span class="icon">🗺️</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span>
+        <span style="font-size:13px; font-weight:bold;" data-key="catPlaces">Places</span>
       </div>
     </div>
 
-    <hr style="margin:15px 0; border-color:#1f2937;">
+    <hr style="margin:20px 0; border-color:var(--glass-border);">
 
-    <input type="text" id="roomCodeInput" placeholder="Room Code (For Private Rooms)">
-    <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Private Room 🛰️</button>
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;">Join via Code:</h3>
+    <input type="text" id="roomCodeInput" placeholder="Enter Station Code (e.g. 58392)">
+    <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Station 🛰️</button>
   </div>
 </div>
 
-<!-- 3. CREATE ROOM SCREEN -->
-<div id="create-room-screen" class="page-screen hidden">
-  <div class="back-arrow-btn" onclick="backToMenu()">←</div>
-  <div class="card">
-    <h3 data-key="roomSettingsTitle" style="margin-bottom:15px;">Room Settings ⚙️</h3>
+<!-- 3. STATIONS TAB / PUBLIC ROOMS -->
+<div id="tab-stations" class="page-screen hidden">
+  <div class="container-box">
+    <h3 style="margin-bottom:15px; color:var(--accent-blue);">🌐 Active Public Stations</h3>
+    <div id="publicRoomsList" class="public-rooms-container">
+      <div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">Searching for public stations...</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. SETTINGS TAB -->
+<div id="tab-settings" class="page-screen hidden">
+  <div class="container-box">
+    <h3 data-key="settingsTitle" style="margin-bottom:15px; text-align:center;">Profile & System Settings ⚙️</h3>
+    <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
     
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;">Room Visibility 👁️:</label>
-    <select id="roomVisibilitySelect">
-      <option value="public">🌐 Public (Anyone can join)</option>
-      <option value="private">🔒 Private (Friends with Code only)</option>
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
+    <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
+    <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
+    
+    <input type="text" id="settingUsername" placeholder="Change Username">
+    
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblSound">Sound Volume 🔊:</label>
+    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblLang">Language / اللغة:</label>
+    <select id="languageSelect" onchange="changeLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="ar">العربية</option>
     </select>
 
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblCategory">Category:</label>
+    <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:15px;">Save Changes 💾</button>
+    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
+  </div>
+</div>
+
+<!-- 5. CREATE / EDIT ROOM SCREEN -->
+<div id="create-room-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box">
+    <h3 data-key="roomSettingsTitle" style="margin-bottom:15px; text-align:center;">Station Configuration ⚙️</h3>
+    
+    <label style="font-size:12px; color:#94a3b8; display:block;">Room Visibility 👁️:</label>
+    <select id="roomVisibilitySelect">
+      <option value="public">🌐 Public (Visible to everyone)</option>
+      <option value="private">🔒 Private (Code only)</option>
+    </select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblCategory">Category:</label>
     <select id="categorySelect">
       <option value="players">⚽ Football Players</option>
       <option value="food">🍕 Food & Drinks</option>
       <option value="places">🗺️ Famous Places</option>
     </select>
     
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblSpies">Spies / Imposters:</label>
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count:</label>
     <select id="spyCountSelect">
       <option value="1">1 Spy 🕵️</option>
       <option value="2">2 Spies 🕵️🕵️</option>
-      <option value="3">3 Spies 🕵️🕵️🕵️</option>
     </select>
     
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblRoundTimer">Round Time (Seconds):</label>
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblRoundTimer">Round Time (Seconds):</label>
     <input type="number" id="roundTimerSelect" value="180">
 
-    <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Room 🚀</button>
+    <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Station 🚀</button>
+    <button class="btn-secondary" onclick="switchTab('tab-home')">Cancel</button>
   </div>
 </div>
 
-<!-- 4. SETTINGS SCREEN -->
-<div id="settings-screen" class="page-screen hidden">
-  <div class="back-arrow-btn" onclick="backToMenu()">←</div>
-  <div class="card">
-    <h3 data-key="settingsTitle" style="margin-bottom:15px;">Profile & Settings ⚙️</h3>
-    <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
-    
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
-    <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
-    <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
-    
-    <input type="text" id="settingUsername" placeholder="Change Username">
-    
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblSound">Sound Volume 🔊:</label>
-    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
-
-    <label style="font-size:11px; color:#94a3b8; display:block; text-align:left;" data-key="lblLang">Language / اللغة:</label>
-    <select id="languageSelect" onchange="changeLanguage(this.value)">
-      <option value="en">English</option>
-      <option value="ar">العربية</option>
-    </select>
-
-    <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:10px;">Save Changes 💾</button>
-    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
-  </div>
-</div>
-
-<!-- 5. LOBBY SCREEN -->
-<div id="lobby-screen" class="page-screen hidden">
-  <div class="card">
-    <p data-key="stationCode">Station Code:</p>
-    <div id="roomCodeDisplay" style="font-size:26px; color:var(--accent-blue); font-weight:bold; margin:6px 0;">----</div>
+<!-- 6. LOBBY SCREEN -->
+<div id="lobby-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box" style="text-align:center;">
+    <p data-key="stationCode">Station Frequency Code:</p>
+    <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:10px 0;">----</div>
     
     <div id="host-controls" class="hidden">
-      <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:6px;" data-key="btnEditRoom">Change Room Settings ⚙️</button>
-      <button onclick="startGame()" data-key="btnStartGame">Start Game 🚀 (Min 3 Players)</button>
+      <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
+      <button onclick="startGame()" data-key="btnStartGame">Start Mission 🚀 (Min 3 Players)</button>
     </div>
 
-    <div style="margin-top:12px;">
-      <b><span data-key="txtAstronauts">Astronauts</span> (<span id="playerCount">0</span>):</b>
+    <div style="margin-top:15px; text-align:left;">
+      <b><span data-key="txtAstronauts">Crew Members</span> (<span id="playerCount">0</span>):</b>
       <div id="playersContainer" class="player-grid"></div>
     </div>
 
     <div class="chat-container">
       <div id="chatMessagesLobby" class="chat-messages"></div>
-      <div style="display:flex; gap:6px;">
-        <input type="text" id="chatInputLobby" placeholder="Send a message..." style="margin:0;">
-        <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 15px;">💬</button>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputLobby" placeholder="Send transmission..." style="margin:0;">
+        <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 6. GAME SCREEN -->
-<div id="game-screen" class="page-screen hidden">
-  <div class="card">
-    <div id="timerDisplay" style="font-size:18px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
-    <div id="roleDisplay" style="font-size:20px; font-weight:bold; margin:15px 0; background:#0b0f19; padding:15px; border-radius:12px; border: 1px solid rgba(56, 189, 248, 0.2);">...</div>
+<!-- 7. GAME SCREEN -->
+<div id="game-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box" style="text-align:center;">
+    <div id="timerDisplay" style="font-size:20px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
+    <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:20px 0; background:rgba(3,7,18,0.8); padding:20px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
 
     <button class="btn-danger" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
-    <div id="voteModal" class="hidden" style="margin-top:15px; background:#0b0f19; padding:15px; border-radius:12px;">
-      <h4 data-key="voteTitle">Vote to Eject Imposter</h4>
+    <div id="voteModal" class="hidden" style="margin-top:15px; background:rgba(3,7,18,0.9); padding:15px; border-radius:14px; border:1px solid var(--danger-red);">
+      <h4 data-key="voteTitle">Ejection Protocol</h4>
       <div id="voteContainer" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;"></div>
       <div id="votingResultsDisplay" style="margin-top:10px; font-weight:bold; color:var(--accent-blue);"></div>
     </div>
 
     <div class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
-      <div style="display:flex; gap:6px;">
-        <input type="text" id="chatInputGame" placeholder="Discuss or bluff..." style="margin:0;">
-        <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 15px;">💬</button>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputGame" placeholder="Discuss transmission..." style="margin:0;">
+        <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
 
     <button id="resetBtn" class="hidden btn-secondary" style="margin-top:15px;" onclick="resetGameToLobby()" data-key="btnReturnLobby">Return to Lobby 🔄</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAVIGATION BAR -->
+<div id="main-bottom-nav" class="bottom-nav hidden">
+  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
+    <span class="nav-icon">🚀</span>
+    <span>Home</span>
+  </div>
+  <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
+    <span class="nav-icon">🌐</span>
+    <span>Stations</span>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
+    <span class="nav-icon">⚙️</span>
+    <span>Settings</span>
   </div>
 </div>
 
@@ -384,7 +479,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
 <script>
-// إعدادات Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAmOPqQ1AV9YEJ4wU7jjW9_kIy4Gbby8Zs",
   authDomain: "spy-game-4f727.firebaseapp.com",
@@ -401,7 +495,6 @@ const db = firebase.database();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-// الصوتيات
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundVol = 0.5;
 
@@ -425,25 +518,24 @@ function updateVolume() {
   playSound(520, 'sine', 0.1);
 }
 
-// القاموس وتغيير اللغات
 const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
-    settingsBtn: "Settings ⚙️", chooseCategory: "Choose Category to Create Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
-    joinRoom: "Join Private Room 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters:",
-    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Room 🚀", settingsTitle: "Profile & Settings ⚙️",
+    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
+    joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
+    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
-    stationCode: "Station Code:", btnEditRoom: "Change Room Settings ⚙️", btnStartGame: "Start Game 🚀 (Min 3 Players)", txtAstronauts: "Astronauts",
-    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Vote to Eject Imposter", btnReturnLobby: "Return to Lobby 🔄"
+    stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀 (Min 3 Players)", txtAstronauts: "Crew Members",
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Ejection Protocol", btnReturnLobby: "Return to Lobby 🔄"
   },
   ar: {
-    googleAuth: "الدخول السريع بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
-    settingsBtn: "الإعدادات ⚙️", chooseCategory: "اختر الفئة لإنشاء الغرفة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
-    joinRoom: "دخول غرفة خاصة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
-    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق الغرفة 🚀", settingsTitle: "الملف الشخصي والإعدادات ⚙️",
+googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
+    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
+    joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسبس:",
+    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
-    stationCode: "كود المحطة:", btnEditRoom: "تعديل إعدادات الغرفة ⚙️", btnStartGame: "بدء الجولة 🚀 (أقل عدد 3)", txtAstronauts: "رواد الفضاء",
-    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "تصويت لطرد الجاسوس", btnReturnLobby: "العودة للانتظار 🔄"
+    stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀 (أقل عدد 3)", txtAstronauts: "أفراد الطاقم",
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "بروتوكول الطرد", btnReturnLobby: "العودة للانتظار 🔄"
   }
 };
 
@@ -454,15 +546,12 @@ function changeLanguage(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-  document.querySelectorAll('.back-arrow-btn').forEach(el => el.innerText = lang === 'ar' ? '→' : '←');
-
   document.querySelectorAll('[data-key]').forEach(el => {
     const key = el.getAttribute('data-key');
     if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
   });
 }
 
-// متغيرات حالة اللعبة
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 let gameInterval = null;
 
@@ -472,15 +561,20 @@ const wordsDB = {
   places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome"]
 };
 
-// التنقل بين الشاشات المستقلة
-function switchPage(pageId) {
+// التنقل بين الـ Tabs السفلي
+function switchTab(tabId) {
+  playSound(400, 'sine', 0.08);
   document.querySelectorAll('.page-screen').forEach(screen => {
     screen.classList.add('hidden');
   });
-  const targetPage = document.getElementById(pageId);
-  if (targetPage) {
-    targetPage.classList.remove('hidden');
-  }
+  
+  document.getElementById(tabId).classList.remove('hidden');
+  
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  
+  if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
+  if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
+  if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
 }
 
 function showToast(msg) {
@@ -533,12 +627,17 @@ function initUser(user) {
   document.getElementById('userDisplay').innerText = user.displayName || user.email.split('@')[0];
   document.getElementById('userAvatarDisplay').src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=astro`;
   
+  document.getElementById('settingUsername').value = currentUser.displayName || '';
+  document.getElementById('settingAvatarUrl').value = currentUser.photoURL || '';
+  document.getElementById('settingAvatarPreview').src = currentUser.photoURL || '';
+
   db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
     const score = snap.val() || 0;
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  switchPage('main-menu');
+  document.getElementById('main-bottom-nav').classList.remove('hidden');
+  switchTab('tab-home');
   listenToPublicRooms();
 }
 
@@ -557,15 +656,15 @@ function listenToPublicRooms() {
             <div style="text-align:left;">
               <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
               <span style="font-size:11px; color:#94a3b8;">(${room.category.toUpperCase()})</span>
-              <div style="font-size:10px; color:#64748b;">Host: ${room.host} | Players: ${pCount}</div>
+              <div style="font-size:11px; color:#64748b; margin-top:2px;">Host: ${room.host} | Players: ${pCount}</div>
             </div>
-            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:6px 14px; font-size:12px;">Join 🚀</button>
+            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">Join 🚀</button>
           </div>
         `;
       }
     }
 
-    listContainer.innerHTML = publicRoomsHTML || '<div style="font-size:12px; color:#64748b; padding:10px;">No public stations open. Create one!</div>';
+    listContainer.innerHTML = publicRoomsHTML || '<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">No public stations open. Create one!</div>';
   });
 }
 
@@ -588,22 +687,13 @@ function updateAvatarPreview() { document.getElementById('settingAvatarPreview')
 function openCreateRoomModal(cat) {
   playSound(350, 'sine', 0.1);
   document.getElementById('categorySelect').value = cat;
-  switchPage('create-room-screen');
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('create-room-screen').classList.remove('hidden');
 }
 
-function openRoomEditModal() { switchPage('create-room-screen'); }
-
-function backToMenu() {
-  if(currentRoom) switchPage('lobby-screen');
-  else switchPage('main-menu');
-}
-
-function showSettings() {
-  playSound(400, 'sine', 0.1);
-  switchPage('settings-screen');
-  document.getElementById('settingUsername').value = currentUser ? (currentUser.displayName || '') : '';
-  document.getElementById('settingAvatarUrl').value = currentUser ? (currentUser.photoURL || '') : '';
-  document.getElementById('settingAvatarPreview').src = currentUser ? (currentUser.photoURL || '') : '';
+function openRoomEditModal() {
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('create-room-screen').classList.remove('hidden');
 }
 
 function saveSettings() {
@@ -613,7 +703,6 @@ function saveSettings() {
   currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
     initUser(currentUser);
     showToast("Profile Updated!");
-    backToMenu();
   });
 }
 
@@ -650,7 +739,8 @@ function joinDirectRoom(code) {
 }
 
 function joinRoomProcess() {
-  switchPage('lobby-screen');
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('lobby-screen').classList.remove('hidden');
   document.getElementById('roomCodeDisplay').innerText = currentRoom;
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
@@ -673,15 +763,16 @@ function joinRoomProcess() {
     document.getElementById('playerCount').innerText = players.length;
     document.getElementById('playersContainer').innerHTML = players.map(p => `
       <div class="player-item">
-        <div style="display:flex; align-items:center; gap:6px;">
-          <img class="avatar-img" style="width:28px; height:28px;" src="${p.avatar}" alt="a">
-          <span>${p.name} ${p.isHost ? '👑' : ''}</span>
-        </div>
+        <img class="avatar-img" style="width:30px; height:30px;" src="${p.avatar}" alt="a">
+        <span style="font-size:13px;">${p.name} ${p.isHost ? '👑' : ''}</span>
       </div>
     `).join('');
 
     if(data.status === 'playing') showGameScreen(data);
-    if(data.status === 'waiting') switchPage('lobby-screen');
+    if(data.status === 'waiting') {
+      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+      document.getElementById('lobby-screen').classList.remove('hidden');
+    }
   });
 }
 
@@ -762,7 +853,9 @@ function startTimerSync() {
 }
 
 function showGameScreen(data) {
-  switchPage('game-screen');
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('game-screen').classList.remove('hidden');
+  
   const isSpy = data.spies && data.spies.includes(currentUser.displayName);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
   document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
@@ -818,31 +911,6 @@ function resetGameToLobby() {
   clearInterval(gameInterval);
   db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' }); 
 }
-</script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker Registered'))
-        .catch(err => console.log('Service Worker Error:', err));
-    });
-  }
-
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    setTimeout(() => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          deferredPrompt = null;
-        });
-      }
-    }, 2000);
-  });
 </script>
 
 </body>
