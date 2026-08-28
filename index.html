@@ -308,7 +308,7 @@
       </div>
     </div>
 
-    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom()">Leave Station 🚪</button>
+    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom(true)">Leave Station 🚪</button>
   </div>
 </div>
 
@@ -579,14 +579,8 @@ function listenToPublicRooms() {
     for(let code in rooms) {
       const room = rooms[code];
       const pCount = room.players ? Object.keys(room.players).length : 0;
-      
-      // إذا كانت الروم بدون أفراد حذفها تلقائياً لتنظيف القائمة
-      if (pCount === 0) {
-        db.ref(`spy_rooms/${code}`).remove();
-        continue;
-      }
 
-      if(room.visibility === 'public' && room.status === 'waiting') {
+      if(room.visibility === 'public' && room.status === 'waiting' && pCount > 0) {
         publicRoomsHTML += `
           <div class="public-room-card">
             <div style="text-align:left;">
@@ -644,7 +638,7 @@ function saveSettings() {
   });
 }
 
-function confirmCreateOrUpdateRoom() {
+async function confirmCreateOrUpdateRoom() {
   const cat = document.getElementById('categorySelect').value;
   const spies = parseInt(document.getElementById('spyCountSelect').value);
   const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
@@ -654,7 +648,7 @@ function confirmCreateOrUpdateRoom() {
   if(!currentRoom) {
     currentRoom = generate6DigitCode();
     isHost = true;
-    db.ref('spy_rooms/' + currentRoom).set({
+    await db.ref('spy_rooms/' + currentRoom).set({
       status: 'waiting', 
       originalHostUid: currentUser.uid,
       hostUid: currentUser.uid, 
@@ -662,10 +656,11 @@ function confirmCreateOrUpdateRoom() {
       spyCount: spies, 
       maxPlayers: maxPlayers,
       roundTimer: timer, 
-      visibility: visibility
+      visibility: visibility,
+      createdAt: firebase.database.ServerValue.TIMESTAMP
     });
   } else {
-    db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, roundTimer: timer, visibility: visibility });
+    await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, roundTimer: timer, visibility: visibility });
   }
   joinRoomProcess();
 }
@@ -692,23 +687,24 @@ function joinDirectRoom(code) {
   });
 }
 
-function leaveRoom() {
+function leaveRoom(manual = false) {
   if(currentRoom && currentUser) {
-    const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
-    playerRef.remove().then(() => {
-      db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
+    const rCode = currentRoom;
+    if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
+    if (annListener) db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener);
+    currentRoom = null;
+
+    db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove().then(() => {
+      db.ref(`spy_rooms/${rCode}/players`).once('value', snap => {
         if(!snap.exists() || !snap.val()) {
-          db.ref(`spy_rooms/${currentRoom}`).remove();
+          db.ref(`spy_rooms/${rCode}`).remove();
         }
       });
     });
-
-    if(roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
-    if(annListener) db.ref(`spy_rooms/${currentRoom}/announcement`).off('value', annListener);
-    currentRoom = null;
   }
+
   switchTab('tab-home');
-  showToast("Left the station");
+  if(manual) showToast("Left the station");
 }
 
 function joinRoomProcess() {
@@ -727,11 +723,13 @@ function joinRoomProcess() {
   });
 
   playerRef.onDisconnect().remove().then(() => {
-    db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
-      if(!snap.exists() || !snap.val()) {
-        db.ref(`spy_rooms/${currentRoom}`).remove();
-      }
-    });
+    if(currentRoom) {
+      db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
+        if(!snap.exists() || !snap.val()) {
+          db.ref(`spy_rooms/${currentRoom}`).remove();
+        }
+      });
+    }
   });
 
   listenToChat();
@@ -741,8 +739,9 @@ function joinRoomProcess() {
 
   roomListener = db.ref('spy_rooms/' + currentRoom).on('value', snap => {
     const data = snap.val();
+
     if(!data) {
-      leaveRoom();
+      if(currentRoom) leaveRoom(false);
       return;
     }
 
@@ -750,6 +749,13 @@ function joinRoomProcess() {
 
     const playersObj = data.players || {};
     const playersArr = Object.values(playersObj);
+
+    if(!playersObj[currentUser.uid]) {
+      showToast("You were removed from the station", 'danger');
+      leaveRoom(false);
+      return;
+    }
+
     document.getElementById('playerCount').innerText = playersArr.length;
     document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
 
@@ -767,12 +773,6 @@ function joinRoomProcess() {
         ` : ''}
       </div>
     `).join('');
-
-    if(!playersObj[currentUser.uid]) {
-      showToast("You were removed from the station", 'danger');
-      leaveRoom();
-      return;
-    }
 
     if(data.status === 'waiting') {
       clearInterval(gameInterval);
