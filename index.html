@@ -955,15 +955,8 @@ function startVoteTimerSync() {
 }
 
 function checkSpiesAndPlayersStatus(room) {
-  const currentPlayers = room.players ? Object.keys(room.players) : [];
-  const currentSpies = room.spies ? room.spies.filter(uid => currentPlayers.includes(uid)) : [];
-
-  if(currentSpies.length === 0 && room.spies && room.spies.length > 0 && room.status !== 'waiting') {
-    clearInterval(gameInterval);
-    clearInterval(voteInterval);
-    
-    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-    broadcastAnnouncement("🎉 All Spies Left/Ejected! Astronauts Win!", "success");
+  if(room.status === 'playing' || room.status === 'voting') {
+    checkWinConditions(room);
   }
 }
 
@@ -1046,30 +1039,77 @@ function processVoteResults(room) {
   });
 
   let maxVotes = 0;
-  let ejectedUid = null;
-  
+  let topCandidates = [];
+
   for(let uid in counts) {
     if(counts[uid] > maxVotes) {
       maxVotes = counts[uid];
-      ejectedUid = uid;
+      topCandidates = [uid];
+    } else if(counts[uid] === maxVotes && maxVotes > 0) {
+      topCandidates.push(uid);
     }
   }
 
-  const spies = room.spies || [];
+  let ejectedUid = (topCandidates.length === 1) ? topCandidates[0] : null;
+  const currentSpies = room.spies || [];
+  const playersObj = room.players || {};
 
-  if(ejectedUid && spies.includes(ejectedUid)) {
-    const updatedSpies = spies.filter(s => s !== ejectedUid);
-    if(updatedSpies.length === 0) {
-      db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-      broadcastAnnouncement("🎉 Imposter Ejected! Astronauts Win!", "success");
+  if(ejectedUid) {
+    if(currentSpies.includes(ejectedUid)) {
+      const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
+      
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        spies: updatedSpies, 
+        votes: null 
+      }).then(() => {
+        checkWinConditions({ ...room, spies: updatedSpies });
+      });
+
+      broadcastAnnouncement("🕵️ Imposter Ejected!", "normal");
+      return;
     } else {
-      db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing', spies: updatedSpies, timeLeft: room.initialTimer, votes: null });
-      broadcastAnnouncement("🕵️ Imposter Ejected! Remaining spies are still active!", "normal");
+      delete playersObj[ejectedUid];
+      
+      db.ref(`spy_rooms/${currentRoom}/players/${ejectedUid}`).remove();
+      db.ref(`spy_rooms/${currentRoom}`).update({ votes: null }).then(() => {
+        checkWinConditions({ ...room, players: playersObj });
+      });
+
+      broadcastAnnouncement("❌ Crew member ejected by mistake!", "danger");
+      return;
     }
-  } else {
-    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing', timeLeft: room.initialTimer, votes: null });
-    broadcastAnnouncement("❌ Mission Continues! No imposter was ejected.", "danger");
   }
+
+  db.ref(`spy_rooms/${currentRoom}`).update({ 
+    status: 'playing', 
+    votes: null 
+  });
+  broadcastAnnouncement("⚖️ No one ejected! Station match continues...", "normal");
+}
+
+function checkWinConditions(room) {
+  const currentPlayers = room.players ? Object.keys(room.players) : [];
+  const currentSpies = room.spies ? room.spies.filter(uid => currentPlayers.includes(uid)) : [];
+  const currentCrew = currentPlayers.filter(uid => !currentSpies.includes(uid));
+
+  if(currentSpies.length === 0) {
+    clearInterval(gameInterval);
+    clearInterval(voteInterval);
+    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
+    broadcastAnnouncement("🎉 All Spies Ejected! Crew Wins!", "success");
+    return true;
+  }
+
+  if(currentSpies.length >= currentCrew.length) {
+    clearInterval(gameInterval);
+    clearInterval(voteInterval);
+    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
+    broadcastAnnouncement("🕵️ Spies Dominated the Station! Spies Win!", "danger");
+    return true;
+  }
+
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing' });
+  return false;
 }
 </script>
 
