@@ -459,12 +459,12 @@ const db = firebase.database();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundVol = 0.5;
 
 function playSound(freq = 440, type = 'sine', duration = 0.15) {
   if (soundVol <= 0) return;
   try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = type;
@@ -557,11 +557,11 @@ function changeLanguage(lang) {
     if (dictionary[lang][key]) el.placeholder = dictionary[lang][key];
   });
   
-  document.getElementById('languageSelect').value = lang;
+  const langSelect = document.getElementById('languageSelect');
+  if (langSelect) langSelect.value = lang;
 }
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
-let gameInterval = null, voteInterval = null;
 let roomListener = null, annListener = null;
 
 const categoryNamesMap = {
@@ -611,6 +611,8 @@ function showToast(msg, type = 'normal') {
   const notifyText = document.getElementById('notification-text');
   const notifyIcon = document.getElementById('notification-icon');
 
+  if (!notifyBox || !notifyText || !notifyIcon) return;
+
   notifyText.innerText = msg;
   notifyBox.className = '';
   if (type === 'danger') {
@@ -653,6 +655,7 @@ function handleAuth() {
       if(snap.exists()) return showToast(currentLang === 'ar' ? "اسم المستخدم مأخوذ بالفعل!" : "Username already taken!", 'danger');
       auth.createUserWithEmailAndPassword(email, password).then(res => {
         const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+        db.ref('usernames/' + username.toLowerCase()).set(true);
         res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
       }).catch(err => showToast(err.message, 'danger'));
     });
@@ -923,8 +926,6 @@ function joinRoomProcess(isRestoring = false) {
     `).join('');
 
     if(data.status === 'waiting') {
-      clearInterval(gameInterval);
-      clearInterval(voteInterval);
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
     } else if(data.status === 'playing') {
@@ -960,13 +961,18 @@ function handleHostAssignment(data) {
   
   if(!playersObj[data.hostUid]) {
     const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-    if(sorted.length > 0) {
+    if(sorted.length > 0 && isHostCheckRequired(data.hostUid)) {
       db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
     }
   }
 
   isHost = (data.hostUid === currentUser.uid);
-  document.getElementById('host-controls').classList.toggle('hidden', !isHost);
+  const hostCtrl = document.getElementById('host-controls');
+  if(hostCtrl) hostCtrl.classList.toggle('hidden', !isHost);
+}
+
+function isHostCheckRequired(oldHostUid) {
+  return true;
 }
 
 function kickPlayer(uid) { db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove(); }
@@ -974,6 +980,7 @@ function makeHost(uid) { db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid); }
 
 function sendChatMessage(screen) {
   const input = document.getElementById(`chatInput${screen}`);
+  if(!input) return;
   const msg = input.value.trim();
   if(!msg) return;
   db.ref(`spy_rooms/${currentRoom}/chat`).push({ sender: currentUser.displayName, text: msg });
@@ -987,10 +994,10 @@ function listenToChat() {
     const msgs = Object.values(data);
     const html = msgs.map(m => `<div class="chat-msg"><span class="sender">${m.sender}:</span><span>${m.text}</span></div>`).join('');
 
-    document.getElementById('chatMessagesLobby').innerHTML = html;
-    document.getElementById('chatMessagesGame').innerHTML = html;
-    document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
-    document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
+    const chatLobby = document.getElementById('chatMessagesLobby');
+    const chatGame = document.getElementById('chatMessagesGame');
+    if(chatLobby) { chatLobby.innerHTML = html; chatLobby.scrollTop = chatLobby.scrollHeight; }
+    if(chatGame) { chatGame.innerHTML = html; chatGame.scrollTop = chatGame.scrollHeight; }
   });
 }
 
@@ -1028,56 +1035,8 @@ function startGame() {
       });
 
       broadcastAnnouncement(currentLang === 'ar' ? "🚀 بدأت المهمة! استعدوا لاكتشاف الجاسوس بينكم!" : "🚀 Mission started! Find the spy!", "normal");
-      startTimerSync();
     });
   });
-}
-
-function startTimerSync() {
-  if(!isHost) return;
-  clearInterval(gameInterval);
-  
-  gameInterval = setInterval(() => {
-    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-      const room = snap.val();
-      if(!room || room.status !== 'playing') return;
-
-      const timeLeft = room.roundEndTime ? Math.max(0, Math.floor((room.roundEndTime - Date.now()) / 1000)) : 0;
-
-      if(timeLeft <= 0) {
-        clearInterval(gameInterval);
-        const voteDuration = 80;
-        const voteEndTime = Date.now() + (voteDuration * 1000);
-        db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteEndTime: voteEndTime, votes: null });
-        broadcastAnnouncement(currentLang === 'ar' ? "🚨 انتهى الوقت! بدء مرحلة التصويت!" : "🚨 Time's up! Voting phase initiated!", "danger");
-        startVoteTimerSync();
-      }
-    });
-  }, 1000);
-}
-
-function startVoteTimerSync() {
-  if(!isHost) return;
-  clearInterval(voteInterval);
-
-  voteInterval = setInterval(() => {
-    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-      const room = snap.val();
-      if(!room || room.status !== 'voting') {
-        clearInterval(voteInterval);
-        return;
-      }
-
-      const playersCount = room.players ? Object.keys(room.players).length : 0;
-      const votesCount = room.votes ? Object.keys(room.votes).length : 0;
-      const timeLeft = room.voteEndTime ? Math.max(0, Math.floor((room.voteEndTime - Date.now()) / 1000)) : 0;
-
-      if(timeLeft <= 0 || votesCount >= playersCount) {
-        clearInterval(voteInterval);
-        processVoteResults(room);
-      }
-    });
-  }, 1000);
 }
 
 function showGameScreen(data) {
@@ -1098,6 +1057,10 @@ function showGameScreen(data) {
   } else {
     btnEmergency.classList.add('hidden');
   }
+
+  if (isHost && timeLeft <= 0 && data.status === 'playing') {
+    triggerVotingPhase();
+  }
 }
 
 function triggerVotingPhase() {
@@ -1105,7 +1068,6 @@ function triggerVotingPhase() {
   const voteEndTime = Date.now() + (voteDuration * 1000);
   db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteEndTime: voteEndTime, votes: null });
   broadcastAnnouncement(currentLang === 'ar' ? "🚨 تم تفعيل التصويت الطارئ!" : "🚨 Emergency vote triggered!", "danger");
-  if(isHost) startVoteTimerSync();
 }
 
 function showVotingScreen(data) {
@@ -1114,6 +1076,10 @@ function showVotingScreen(data) {
 
   const timeLeft = data.voteEndTime ? Math.max(0, Math.floor((data.voteEndTime - Date.now()) / 1000)) : 80;
   document.getElementById('voteTimerDisplay').innerText = (currentLang === 'ar' ? `⏳ وقت التصويت: ${timeLeft}ث` : `⏳ Vote Time: ${timeLeft}s`);
+
+  if (isHost && timeLeft <= 0 && data.status === 'voting') {
+    processVoteResults(data);
+  }
 
   const players = data.players ? Object.values(data.players) : [];
   const votes = data.votes || {};
@@ -1203,12 +1169,12 @@ function processVoteResults(room) {
         return;
       } else {
         db.ref(`spy_rooms/${currentRoom}`).update({ spies: updatedSpies, status: 'waiting', votes: null });
-        broadcastAnnouncement(currentLang === 'ar' ? "🕵️ تم طرد أحد الجواسيس، ولكن هناك جواسيس آخرون متبقون! عودة للوبي لاستكمال المعركة..." : "🕵️ A spy was ejected, but others remain! Back to lobby...", "danger");
+        broadcastAnnouncement(currentLang === 'ar' ? "🕵️ تم طرد أحد الجواسيس، ولكن هناك جواسيس آخرون متبقون! عودة للوبي..." : "🕵️ A spy was ejected, but others remain! Back to lobby...", "danger");
         return;
       }
     } else {
       db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting', votes: null });
-      broadcastAnnouncement(currentLang === 'ar' ? "❌ تم طرد شخص بريء! تستمر اللعبة والبحث عن الجاسوس في اللوبي..." : "❌ An innocent player was ejected! Back to lobby...", "danger");
+      broadcastAnnouncement(currentLang === 'ar' ? "❌ تم طرد شخص بريء! عودة للوبي..." : "❌ An innocent player was ejected! Back to lobby...", "danger");
       return;
     }
   }
