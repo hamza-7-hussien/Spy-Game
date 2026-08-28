@@ -15,50 +15,69 @@
             --danger-color: #f85149;
             --success-color: #238636;
             --text-color: #c9d1d9;
+            --border-color: #30363d;
         }
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: Tahoma, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            box-sizing: border-box;
         }
         .container {
             background-color: var(--panel-bg);
             padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
             text-align: center;
+            border: 1px solid var(--border-color);
         }
-        input, button {
+        h1 { margin-top: 0; color: var(--accent-color); font-size: 26px; }
+        input, select, button {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
-            border-radius: 6px;
-            border: 1px solid #30363d;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
             background: #0d1117;
             color: white;
             font-size: 16px;
             box-sizing: border-box;
+            outline: none;
         }
+        input:focus, select:focus { border-color: var(--accent-color); }
         button {
             background-color: var(--accent-color);
             cursor: pointer;
             font-weight: bold;
             border: none;
+            transition: opacity 0.2s;
         }
         button.danger { background-color: var(--danger-color); }
         button.success { background-color: var(--success-color); }
-        button:hover { opacity: 0.9; }
+        button:hover { opacity: 0.85; }
         .hidden { display: none !important; }
-        .player-list { text-align: right; margin: 15px 0; max-height: 150px; overflow-y: auto; }
-        .player-item { padding: 5px; border-bottom: 1px solid #30363d; }
+        .player-list { 
+            text-align: right; 
+            margin: 15px 0; 
+            max-height: 180px; 
+            overflow-y: auto; 
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 5px;
+        }
+        .player-item { padding: 8px 10px; border-bottom: 1px solid var(--border-color); font-size: 14px; display: flex; justify-content: space-between;}
+        .player-item:last-child { border-bottom: none; }
+        .timer-box { font-size: 22px; margin: 15px 0; font-weight: bold; color: var(--accent-color); }
+        .badge { background: #30363d; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -66,40 +85,61 @@
 <div class="container">
     <h1>Spy Station 🚀</h1>
 
-    <!-- شاشة تسجيل الدخول -->
+    <!-- 1. شاشة تسجيل الدخول -->
     <div id="login-screen">
+        <p style="color: #8b949e; margin-bottom: 20px;">ادخل اسمك للانضمام إلى المحطة الفضائية</p>
         <input type="text" id="username" placeholder="اكتب اسمك المستعار..." maxlength="15">
-        <button onclick="joinGame()">دخول اللعبة</button>
+        <button onclick="loginUser()">دخول المحطة</button>
     </div>
 
-    <!-- شاشة اللوبي (Lobby) -->
+    <!-- 2. شاشة القائمة الرئيسية (إنشاء أو انضمام) -->
+    <div id="menu-screen" class="hidden">
+        <h3 id="welcome-user" style="color: var(--accent-color);">أهلاً بك</h3>
+        <button class="success" onclick="createRoom()">إنشاء غرفة جديدة</button>
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
+        <input type="text" id="room-code-input" placeholder="أدخل كود الغرفة (مثال: AB12)..." style="text-transform: uppercase;">
+        <button onclick="joinRoomBtn()">انضمام لغرفة</button>
+    </div>
+
+    <!-- 3. شاشة اللوبي (Lobby) -->
     <div id="lobby-screen" class="hidden">
-        <h3 id="room-title">الغرفة الرئيسية</h3>
+        <h3 id="room-id-display">كود الغرفة: ---</h3>
+        <p style="font-size: 13px; color: #8b949e;">اللاعبون المتواجدون في الغرفة:</p>
         <div class="player-list" id="players-list-container"></div>
+        
         <div id="host-controls" class="hidden">
-            <button class="success" onclick="startGame()">بدء الجولة</button>
+            <label style="font-size: 13px; display: block; text-align: right; margin-top: 10px;">اختر فئة الكلمات:</label>
+            <select id="category-select">
+                <option value="general">أماكن عامة</option>
+                <option value="football">كرة القدم</option>
+                <option value="food">أطعمة ومأكولات</option>
+            </select>
+            <button class="success" onclick="startGame()">بدء الجولة الآن</button>
         </div>
-        <p id="waiting-text">انتظار باقي اللاعبين انضمامهم وبدء الهوست...</p>
+        <p id="waiting-text" style="color: #f85149; font-size: 14px;">في انتظار الهوست لبدء الجولة...</p>
     </div>
 
-    <!-- شاشة اللعب والمهام -->
+    <!-- 4. شاشة اللعب والمهام -->
     <div id="game-screen" class="hidden">
-        <h2 id="role-display">دورك: جاري التحميل...</h2>
-        <p>مكان المهمة/الكلمة: <span id="secret-word" style="color: var(--accent-color); font-weight: bold;">---</span></p>
-        <div style="font-size: 20px; margin: 15px 0;">الوقت المتبقي: <span id="timer-display">--</span> ثانية</div>
-        <button id="emergency-btn" class="danger hidden" onclick="triggerEmergency()">🚨 تصويت طارئ</button>
+        <h2 id="role-display" style="margin-bottom: 5px;">جاري تحميل دورك...</h2>
+        <p style="font-size: 14px; color: #8b949e;">الكلمة أو المكان السري:</p>
+        <div id="secret-word" style="font-size: 20px; font-weight: bold; background: #0d1117; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">---</div>
+        
+        <div class="timer-box">الوقت المتبقي: <span id="timer-display">45</span> ثانية</div>
+        <button id="emergency-btn" class="danger hidden" onclick="triggerEmergency()">🚨 طلب تصويت طارئ</button>
     </div>
 
-    <!-- شاشة التصويت -->
+    <!-- 5. شاشة التصويت -->
     <div id="vote-screen" class="hidden">
-        <h2>وقت التصويت! من هو الجاسوس؟</h2>
+        <h2 style="color: var(--danger-color);">وقت التصويت! ⚖️</h2>
+        <p style="font-size: 13px; color: #8b949e;">من تشك أنه الجاسوس؟ اختر بعناية:</p>
         <div class="player-list" id="vote-list-container"></div>
-        <p>ينتهي التصويت خلال: <span id="vote-timer">--</span> ثانية</p>
+        <div class="timer-box" style="font-size: 16px;">ينتهي التصويت خلال: <span id="vote-timer">15</span> ث</div>
     </div>
 </div>
 
 <script>
-    // إعدادات Firebase (استبدل القيم ببيانات مشروعك الفعلي)
+    // ضع بيانات مشروعك هنا تماماً
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
@@ -115,84 +155,144 @@
 
     let myName = "";
     let myId = "user_" + Math.random().toString(36).substr(2, 9);
-    let currentRoomId = "main_room";
+    let currentRoomId = "";
     let isHost = false;
     let timerInterval = null;
 
-    function joinGame() {
+    // قوائم الكلمات الخاصة باللعبة
+    const wordCategories = {
+        general: ["المحطة الفضائية", "المطار", "المستشفى", "السينما", "المدرسة", "الشاطئ"],
+        football: ["ملعب الكامب نو", "غرفة الملابس", "منطقة الجزاء", "منصة التتويج", "دكة البدلاء"],
+        food: ["مطعم بيتزا", "سوق الفواكه", "مصنع الشوكولاتة", "المخبز", "مطبخ طائرة"]
+    };
+
+    function loginUser() {
         const nameInput = document.getElementById("username").value.trim();
         if (!nameInput) {
-            alert("برجاء إدخال اسم صحيح!");
+            alert("من فضلك اكتب اسمك المستعار أولاً!");
             return;
         }
         myName = nameInput;
+        document.getElementById("welcome-user").innerText = `أهلاً بك يا ${myName}`;
         document.getElementById("login-screen").classList.add("hidden");
-        document.getElementById("lobby-screen").classList.remove("hidden");
-
-        const playerRef = db.ref(`rooms/${currentRoomId}/players/${myId}`);
-        playerRef.set({ name: myName, joinedAt: firebase.database.ServerValue.TIMESTAMP, isAlive: true });
-        playerRef.onDisconnect().remove();
-
-        listenToRoom();
+        document.getElementById("menu-screen").classList.remove("hidden");
     }
 
-    function listenToRoom() {
+    function createRoom() {
+        // توليد كود غرفة عشوائي مكون من 4 حروف/أرقام
+        currentRoomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+        setupRoomListeners();
+    }
+
+    function joinRoomBtn() {
+        const codeInput = document.getElementById("room-code-input").value.trim().toUpperCase();
+        if (!codeInput) {
+            alert("من فضلك أدخل كود الغرفة!");
+            return;
+        }
+        currentRoomId = codeInput;
+        setupRoomListeners();
+    }
+
+    function setupRoomListeners() {
+        const playerRef = db.ref(`rooms/${currentRoomId}/players/${myId}`);
+        
+        // التحقق من وجود الغرفة أو إنشائها
+        db.ref(`rooms/${currentRoomId}`).once("value", (snapshot) => {
+            if (!snapshot.exists()) {
+                // إذا لم تكن موجودة، ننشئها ونعتبر هذا اللاعب هو الهوست
+                db.ref(`rooms/${currentRoomId}`).set({
+                    gameState: "lobby",
+                    hostId: myId
+                });
+            }
+            
+            playerRef.set({
+                name: myName,
+                joinedAt: firebase.database.ServerValue.TIMESTAMP,
+                isAlive: true,
+                hasVoted: false
+            });
+            playerRef.onDisconnect().remove();
+
+            // الانتقال لشاشة اللوبي
+            document.getElementById("menu-screen").classList.add("hidden");
+            document.getElementById("lobby-screen").classList.remove("hidden");
+            document.getElementById("room-id-display").innerText = `كود الغرفة: ${currentRoomId}`;
+
+            listenToRoomUpdates();
+        });
+    }
+
+    function listenToRoomUpdates() {
         db.ref(`rooms/${currentRoomId}`).on("value", (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
-            // 1. التحقق من الهوست والتوليد التلقائي عند خروج الهوست
             const players = data.players || {};
+            
+            // 1. نظام تعيين ونقل الهوست التلقائي في حال خروجه
             const playerIds = Object.keys(players);
             if (playerIds.length > 0) {
-                const firstPlayerId = playerIds.sort((a, b) => players[a].joinedAt - players[b].joinedAt)[0];
-                if (firstPlayerId === myId) {
-                    if (!isHost) {
-                        isHost = true;
-                        document.getElementById("host-controls").classList.remove("hidden");
-                        document.getElementById("waiting-text").classList.add("hidden");
-                    }
+                // ترتيب اللاعبين حسب وقت الانضمام الأقدم
+                const sortedPlayers = playerIds.sort((a, b) => players[a].joinedAt - players[b].joinedAt);
+                const trueHostId = data.hostId && players[data.hostId] ? data.hostId : sortedPlayers[0];
+
+                // لو الهوست الحالي غير مسجل بالسيرفر، نحدثه تلقائياً
+                if (trueHostId !== data.hostId && trueHostId === myId) {
+                    db.ref(`rooms/${currentRoomId}`).update({ hostId: myId });
+                }
+
+                isHost = (trueHostId === myId);
+                if (isHost) {
+                    document.getElementById("host-controls").classList.remove("hidden");
+                    document.getElementById("waiting-text").classList.add("hidden");
                 } else {
-                    isHost = false;
                     document.getElementById("host-controls").classList.add("hidden");
                     document.getElementById("waiting-text").classList.remove("hidden");
                 }
+
+                // عرض قائمة اللاعبين في اللوبي
+                let htmlList = "";
+                for (let id of sortedPlayers) {
+                    let isThisHost = (id === trueHostId);
+                    htmlList += `<div class="player-item">
+                        <span>${players[id].name} ${!players[id].isAlive ? '(مطرود ❌)' : ''}</span>
+                        <span>${isThisHost ? '<span class="badge">هوست</span>' : ''}</span>
+                    </div>`;
+                }
+                document.getElementById("players-list-container").innerHTML = htmlList;
             }
 
-            // عرض قائمة اللاعبين
-            let htmlList = "";
-            for (let id in players) {
-                htmlList += `<div class="player-item">${players[id].name} ${id === firstPlayerId ? '(هوست)' : ''}</div>`;
-            }
-            document.getElementById("players-list-container").innerHTML = htmlList;
-
-            // 2. إدارة شاشات اللعب بناءً على حالة اللعبة في السيرفر
+            // 2. إدارة حالات اللعبة (Lobby -> Playing -> Voting)
             if (data.gameState === "playing") {
                 document.getElementById("lobby-screen").classList.add("hidden");
                 document.getElementById("vote-screen").classList.add("hidden");
                 document.getElementById("game-screen").classList.remove("hidden");
 
-                // عرض الدور والكلمة السرية
                 const myData = players[myId];
                 if (myData) {
                     if (myData.isSpy) {
                         document.getElementById("role-display").innerText = "دورك: 🕵️‍♂️ أنت الجاسوس!";
-                        document.getElementById("secret-word").innerText = "اكتشف المكان من حديث الآخرين!";
+                        document.getElementById("secret-word").innerText = "اكتشف المكان السري من كلام زملائك بدون أن يتم كشفك!";
                     } else {
                         document.getElementById("role-display").innerText = "دورك: 🛡️ عضو في الطاقم";
                         document.getElementById("secret-word").innerText = data.secretWord || "---";
                     }
                 }
 
-                // إدارة العداد الزمني الموحد وتفعيل زر الطوارئ بعد نصف الوقت
+                // مزامنة العداد الزمني للجولة (45 ثانية)
                 syncTimer(data.roundEndTime, () => {
                     if (isHost) {
-                        db.ref(`rooms/${currentRoomId}`).update({ gameState: "voting", voteEndTime: Date.now() + 15000 });
+                        db.ref(`rooms/${currentRoomId}`).update({ 
+                            gameState: "voting", 
+                            voteEndTime: Date.now() + 15000 
+                        });
                     }
-                }, (timeLeft, totalTime) => {
+                }, (timeLeft) => {
                     document.getElementById("timer-display").innerText = timeLeft;
-                    // زر الطوارئ يظهر بعد مرور نصف الوقت
-                    if (timeLeft <= totalTime / 2) {
+                    // زر الطوارئ يظهر بعد مرور نصف الوقت (أقل من 22 ثانية)
+                    if (timeLeft <= 22) {
                         document.getElementById("emergency-btn").classList.remove("hidden");
                     }
                 });
@@ -203,15 +303,16 @@
                 document.getElementById("vote-screen").classList.remove("hidden");
                 document.getElementById("emergency-btn").classList.add("hidden");
 
-                // عرض قائمة التصويت
+                // عرض قائمة التصويت (فقط للأحياء)
                 let voteHtml = "";
                 for (let id in players) {
                     if (players[id].isAlive && id !== myId) {
-                        voteHtml += `<button onclick="castVote('${id}')">تصويت ضد ${players[id].name}</button>`;
+                        voteHtml += `<button onclick="castVote('${id}')">تصويت ضد: ${players[id].name}</button>`;
                     }
                 }
-                document.getElementById("vote-list-container").innerHTML = voteHtml;
+                document.getElementById("vote-list-container").innerHTML = voteHtml || "<p>لا يوجد أشخاص للتصويت ضدهم أو انتهى دورك.</p>";
 
+                // مزامنة عداد التصويت (15 ثانية)
                 syncTimer(data.voteEndTime, () => {
                     if (isHost) processVoteResults(data);
                 }, (timeLeft) => {
@@ -219,7 +320,7 @@
                 });
 
             } else {
-                // العودة للوبي
+                // العودة للوبي الرئيسي
                 document.getElementById("game-screen").classList.add("hidden");
                 document.getElementById("vote-screen").classList.add("hidden");
                 document.getElementById("lobby-screen").classList.remove("hidden");
@@ -227,13 +328,14 @@
         });
     }
 
-    // دالة بدء اللعبة (للهوست فقط)
+    // بدء اللعبة بواسطة الهوست
     function startGame() {
         db.ref(`rooms/${currentRoomId}/players`).once("value", (snapshot) => {
             const players = snapshot.val();
-            const pIds = Object.keys(players);
+            const pIds = Object.keys(players).filter(id => players[id].isAlive);
+            
             if (pIds.length < 3) {
-                alert("يجب وجود 3 لاعبين على الأقل لبدء اللعبة!");
+                alert("تحتاج إلى 3 لاعبين أحياء على الأقل لبدء الجولة!");
                 return;
             }
 
@@ -246,16 +348,20 @@
                 updates[`players/${id}/hasVoted`] = false;
             }
 
-            const words = ["المحطة الفضائية", "ملعب كرة القدم", "المطعم", "المركبة الفضائية"];
-            updates["secretWord"] = words[Math.floor(Math.random() * words.length)];
+            const catKey = document.getElementById("category-select").value;
+            const categoryWords = wordCategories[catKey];
+            const selectedWord = categoryWords[Math.floor(Math.random() * categoryWords.length)];
+
+            updates["secretWord"] = selectedWord;
             updates["gameState"] = "playing";
             updates["roundEndTime"] = Date.now() + 45000; // 45 ثانية للجولة
+            updates["votes"] = null; // تفريغ أصوات الجولة السابقة
 
             db.ref(`rooms/${currentRoomId}`).update(updates);
         });
     }
 
-    // تفعيل التصويت الطارئ
+    // تفعيل الطوارئ أثناء الجولة
     function triggerEmergency() {
         document.getElementById("emergency-btn").classList.add("hidden");
         db.ref(`rooms/${currentRoomId}`).update({
@@ -264,17 +370,17 @@
         });
     }
 
-    // تسجيل التصويت
+    // تسجيل التصويت ضد لاعب
     function castVote(targetId) {
         db.ref(`rooms/${currentRoomId}/players/${myId}/hasVoted`).set(true);
         db.ref(`rooms/${currentRoomId}/votes/${targetId}`).transaction((currentVotes) => {
             return (currentVotes || 0) + 1;
         });
         document.getElementById("vote-screen").classList.add("hidden");
-        alert("تم تسجيل صوتك بنجاح!");
+        alert("تم إرسال صوتك بنجاح! في انتظار باقي اللاعبين...");
     }
 
-    // معالجة نتائج التصويت (للهوست بدقة)
+    // معالجة نتائج التصويت بدقة (للهوست فقط)
     function processVoteResults(data) {
         const votes = data.votes || {};
         const players = data.players || {};
@@ -293,28 +399,28 @@
 
         if (exiledId && players[exiledId]) {
             if (players[exiledId].isSpy) {
-                alert(`لقد تم طرد الجاسوس ${players[exiledId].name}! الطاقم يفوز! 🎉`);
+                alert(`كفووو! تم كشف وطرد الجاسوس (${players[exiledId].name})! الطاقم يفوز 🎉`);
                 updates["gameState"] = "lobby";
             } else {
-                alert(`تم طرد ${players[exiledId].name} ولكنه لم يكن الجاسوس! (شخص بريء) ❌. تستمر اللعبة!`);
+                alert(`للأسف، تم طرد (${players[exiledId].name}) وهو بريء! ❌ تستمر اللعبة والبحث عن الجاسوس.`);
                 updates[`players/${exiledId}/isAlive`] = false;
                 updates["gameState"] = "lobby";
             }
         } else {
-            alert("انتهى الوقت ولم يتم طرد أحد لتعادل الأصوات.");
+            alert("انتهى وقت التصويت بالتعادل ولم يتم طرد أحد.");
             updates["gameState"] = "lobby";
         }
 
         db.ref(`rooms/${currentRoomId}`).update(updates);
     }
 
-    // توحيد المزامنة للعدادات الزمنية
+    // دالة موحدة لدقة العدادات عبر السيرفر
     function syncTimer(endTime, onFinish, onTick) {
         if (timerInterval) clearInterval(timerInterval);
         
         timerInterval = setInterval(() => {
             const timeLeft = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
-            onTick(timeLeft, 45); // 45 مثالاً لإجمالي وقت الجولة
+            onTick(timeLeft);
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
