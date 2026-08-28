@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spy Station 🚀</title>
 
+<!-- Web App Manifest & PWA Meta Tags -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#38bdf8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spy Station">
 
+<!-- صورة أيقونة اللعبة الجديدة للأجهزة -->
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
 
 <style>
@@ -24,7 +27,13 @@
     --card-bg: rgba(17, 24, 39, 0.95);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Orbitron', 'Cairo', sans-serif; transition: all 0.2s ease; }
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Orbitron', 'Cairo', sans-serif; 
+    transition: all 0.2s ease; 
+  }
   
   body { 
     background: var(--bg-primary); 
@@ -35,7 +44,7 @@
     background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #030712 100%);
   }
 
-  /* نظام الفصل الكامل بين الشاشات */
+  /* نظام الفصل الكامل بين الشاشات لمنع التداخل */
   .page-screen {
     position: fixed;
     top: 0;
@@ -52,7 +61,6 @@
     overflow-y: auto;
   }
 
-  /* الإخفاء التام لمنع التداخل */
   .hidden { 
     display: none !important; 
   }
@@ -68,6 +76,7 @@
     text-align: center; 
     box-shadow: 0 0 40px rgba(56, 189, 248, 0.15);
     position: relative;
+    margin: auto;
   }
 
   .logo-title {
@@ -79,7 +88,7 @@
     letter-spacing: 2px;
   }
 
-  /* تحديد موقع سهم الرجوع في أعلى اليسار */
+  /* تعديل سهم الرجوع في أعلى اليسار بعيداً عن العنوان */
   .back-arrow-btn {
     position: absolute;
     top: 20px;
@@ -97,16 +106,49 @@
     border: 1px solid rgba(255,255,255,0.1);
     z-index: 30;
   }
-  .back-arrow-btn:hover { background: var(--accent-blue); color: #030712; }
+  .back-arrow-btn:hover { 
+    background: var(--accent-blue); 
+    color: #030712; 
+  }
 
-  input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; border: none; font-size: 14px; text-align: center; outline: none; }
-  input, select { background: #0b0f19; color: white; border: 1px solid #1f2937; }
-  input:focus, select:focus { border-color: var(--accent-blue); }
+  input, select, button { 
+    width: 100%; 
+    padding: 12px; 
+    margin: 6px 0; 
+    border-radius: 12px; 
+    border: none; 
+    font-size: 14px; 
+    text-align: center; 
+    outline: none; 
+  }
+  input, select { 
+    background: #0b0f19; 
+    color: white; 
+    border: 1px solid #1f2937; 
+  }
+  input:focus, select:focus { 
+    border-color: var(--accent-blue); 
+  }
 
-  button { background: linear-gradient(135deg, var(--accent-blue), #3b82f6); color: #030712; font-weight: 700; cursor: pointer; }
-  button:hover { transform: translateY(-2px); }
+  button { 
+    background: linear-gradient(135deg, var(--accent-blue), #3b82f6); 
+    color: #030712; 
+    font-weight: 700; 
+    cursor: pointer; 
+  }
+  button:hover { 
+    transform: translateY(-2px); 
+  }
 
-  .btn-google { background: #ffffff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; }
+  .btn-google { 
+    background: #ffffff; 
+    color: #1f2937; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
+    font-weight: bold; 
+  }
   .btn-secondary { background: #1f2937; color: white; }
   .btn-danger { background: linear-gradient(135deg, var(--danger-red), #dc2626); color: white; }
 
@@ -129,7 +171,7 @@
   .chat-msg { background: #111827; padding: 6px 10px; border-radius: 8px; max-width: 85%; }
   .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
 
-  /* الإشعارات ثابتة بأسفل المنتصف بمساحة محددة */
+  /* الإشعارات ثابتة بأسفل المنتصف ومحدودة الارتفاع لمنع التكدس */
   #toast-container { 
     position: fixed; 
     bottom: 25px; 
@@ -336,11 +378,13 @@
   </div>
 </div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
 <script>
+// إعدادات Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAmOPqQ1AV9YEJ4wU7jjW9_kIy4Gbby8Zs",
   authDomain: "spy-game-4f727.firebaseapp.com",
@@ -357,7 +401,78 @@ const db = firebase.database();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-/* التحكم بالسند والشاشات المستقلة */
+// الصوتيات
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let soundVol = 0.5;
+
+function playSound(freq = 440, type = 'sine', duration = 0.15) {
+  if (soundVol <= 0) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = soundVol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e){}
+}
+
+function updateVolume() {
+  soundVol = parseFloat(document.getElementById('soundVolume').value);
+  playSound(520, 'sine', 0.1);
+}
+
+// القاموس وتغيير اللغات
+const dictionary = {
+  en: {
+    googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
+    settingsBtn: "Settings ⚙️", chooseCategory: "Choose Category to Create Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
+    joinRoom: "Join Private Room 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters:",
+    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Room 🚀", settingsTitle: "Profile & Settings ⚙️",
+    lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
+    stationCode: "Station Code:", btnEditRoom: "Change Room Settings ⚙️", btnStartGame: "Start Game 🚀 (Min 3 Players)", txtAstronauts: "Astronauts",
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Vote to Eject Imposter", btnReturnLobby: "Return to Lobby 🔄"
+  },
+  ar: {
+    googleAuth: "الدخول السريع بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
+    settingsBtn: "الإعدادات ⚙️", chooseCategory: "اختر الفئة لإنشاء الغرفة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
+    joinRoom: "دخول غرفة خاصة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
+    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق الغرفة 🚀", settingsTitle: "الملف الشخصي والإعدادات ⚙️",
+    lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
+    stationCode: "كود المحطة:", btnEditRoom: "تعديل إعدادات الغرفة ⚙️", btnStartGame: "بدء الجولة 🚀 (أقل عدد 3)", txtAstronauts: "رواد الفضاء",
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "تصويت لطرد الجاسوس", btnReturnLobby: "العودة للانتظار 🔄"
+  }
+};
+
+let currentLang = 'en';
+
+function changeLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  document.querySelectorAll('.back-arrow-btn').forEach(el => el.innerText = lang === 'ar' ? '→' : '←');
+
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.getAttribute('data-key');
+    if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
+  });
+}
+
+// متغيرات حالة اللعبة
+let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
+let gameInterval = null;
+
+const wordsDB = {
+  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne"],
+  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream"],
+  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome"]
+};
+
+// التنقل بين الشاشات المستقلة
 function switchPage(pageId) {
   document.querySelectorAll('.page-screen').forEach(screen => {
     screen.classList.add('hidden');
@@ -369,6 +484,7 @@ function switchPage(pageId) {
 }
 
 function showToast(msg) {
+  playSound(600, 'triangle', 0.1);
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = 'toast';
@@ -376,6 +492,41 @@ function showToast(msg) {
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 2500);
 }
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(err => showToast(err.message));
+}
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  changeLanguage(currentLang);
+  document.getElementById('auth-title').innerText = isSignUpMode ? dictionary[currentLang].signup : dictionary[currentLang].login;
+  document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
+}
+
+function handleAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+  const username = document.getElementById('authUsername').value.trim();
+
+  if(!email || !password) return showToast("Fill all fields!");
+
+  if(isSignUpMode) {
+    if(!username) return showToast("Username is required!");
+    db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
+      if(snap.exists()) return showToast("Username already exists!");
+      auth.createUserWithEmailAndPassword(email, password).then(res => {
+        const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+        res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
+      }).catch(err => showToast(err.message));
+    });
+  } else {
+    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(err.message));
+  }
+}
+
+auth.onAuthStateChanged(user => { if(user) initUser(user); });
 
 function initUser(user) {
   currentUser = user;
@@ -391,22 +542,308 @@ function initUser(user) {
   listenToPublicRooms();
 }
 
+function listenToPublicRooms() {
+  db.ref('spy_rooms').on('value', snap => {
+    const rooms = snap.val() || {};
+    const listContainer = document.getElementById('publicRoomsList');
+    let publicRoomsHTML = '';
+
+    for(let code in rooms) {
+      const room = rooms[code];
+      if(room.visibility === 'public' && room.status === 'waiting') {
+        const pCount = room.players ? Object.keys(room.players).length : 0;
+        publicRoomsHTML += `
+          <div class="public-room-card">
+            <div style="text-align:left;">
+              <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
+              <span style="font-size:11px; color:#94a3b8;">(${room.category.toUpperCase()})</span>
+              <div style="font-size:10px; color:#64748b;">Host: ${room.host} | Players: ${pCount}</div>
+            </div>
+            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:6px 14px; font-size:12px;">Join 🚀</button>
+          </div>
+        `;
+      }
+    }
+
+    listContainer.innerHTML = publicRoomsHTML || '<div style="font-size:12px; color:#64748b; padding:10px;">No public stations open. Create one!</div>';
+  });
+}
+
+function logout() { auth.signOut().then(() => location.reload()); }
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if(file) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      document.getElementById('settingAvatarUrl').value = evt.target.result;
+      document.getElementById('settingAvatarPreview').src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function updateAvatarPreview() { document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value; }
+
+function openCreateRoomModal(cat) {
+  playSound(350, 'sine', 0.1);
+  document.getElementById('categorySelect').value = cat;
+  switchPage('create-room-screen');
+}
+
+function openRoomEditModal() { switchPage('create-room-screen'); }
+
 function backToMenu() {
   if(currentRoom) switchPage('lobby-screen');
   else switchPage('main-menu');
 }
 
-function openCreateRoomModal(cat) {
-  document.getElementById('categorySelect').value = cat;
-  switchPage('create-room-screen');
-}
-
 function showSettings() {
+  playSound(400, 'sine', 0.1);
   switchPage('settings-screen');
   document.getElementById('settingUsername').value = currentUser ? (currentUser.displayName || '') : '';
+  document.getElementById('settingAvatarUrl').value = currentUser ? (currentUser.photoURL || '') : '';
+  document.getElementById('settingAvatarPreview').src = currentUser ? (currentUser.photoURL || '') : '';
 }
 
-auth.onAuthStateChanged(user => { if(user) initUser(user); });
+function saveSettings() {
+  const newName = document.getElementById('settingUsername').value.trim();
+  const newAvatar = document.getElementById('settingAvatarUrl').value.trim();
+
+  currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
+    initUser(currentUser);
+    showToast("Profile Updated!");
+    backToMenu();
+  });
+}
+
+function confirmCreateOrUpdateRoom() {
+  const cat = document.getElementById('categorySelect').value;
+  const spies = parseInt(document.getElementById('spyCountSelect').value);
+  const timer = parseInt(document.getElementById('roundTimerSelect').value);
+  const visibility = document.getElementById('roomVisibilitySelect').value;
+
+  if(!currentRoom) {
+    currentRoom = Math.floor(10000 + Math.random() * 90000).toString();
+    isHost = true;
+    db.ref('spy_rooms/' + currentRoom).set({
+      status: 'waiting', host: currentUser.displayName, category: cat, spyCount: spies, roundTimer: timer, visibility: visibility
+    });
+  } else {
+    db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, roundTimer: timer, visibility: visibility });
+  }
+  joinRoomProcess();
+}
+
+function joinRoomByInput() {
+  const code = document.getElementById('roomCodeInput').value.trim();
+  if(!code) return showToast("Enter Room Code!");
+  joinDirectRoom(code);
+}
+
+function joinDirectRoom(code) {
+  currentRoom = code;
+  db.ref('spy_rooms/' + currentRoom).once('value', snap => {
+    if(snap.exists()) joinRoomProcess();
+    else showToast("Room not found!");
+  });
+}
+
+function joinRoomProcess() {
+  switchPage('lobby-screen');
+  document.getElementById('roomCodeDisplay').innerText = currentRoom;
+
+  const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
+  playerRef.set({ name: currentUser.displayName, avatar: currentUser.photoURL, isHost: isHost });
+  playerRef.onDisconnect().remove();
+
+  listenToChat();
+
+  db.ref('spy_rooms/' + currentRoom).on('value', snap => {
+    const data = snap.val();
+    if(!data) return;
+
+    if(data.host === currentUser.displayName) {
+      isHost = true;
+      document.getElementById('host-controls').classList.remove('hidden');
+      document.getElementById('resetBtn').classList.remove('hidden');
+    }
+
+    const players = data.players ? Object.values(data.players) : [];
+    document.getElementById('playerCount').innerText = players.length;
+    document.getElementById('playersContainer').innerHTML = players.map(p => `
+      <div class="player-item">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <img class="avatar-img" style="width:28px; height:28px;" src="${p.avatar}" alt="a">
+          <span>${p.name} ${p.isHost ? '👑' : ''}</span>
+        </div>
+      </div>
+    `).join('');
+
+    if(data.status === 'playing') showGameScreen(data);
+    if(data.status === 'waiting') switchPage('lobby-screen');
+  });
+}
+
+function sendChatMessage(screen) {
+  const input = document.getElementById(`chatInput${screen}`);
+  const msg = input.value.trim();
+  if(!msg) return;
+  
+  db.ref(`spy_rooms/${currentRoom}/chat`).push({
+    sender: currentUser.displayName,
+    text: msg
+  });
+  input.value = '';
+}
+
+function listenToChat() {
+  db.ref(`spy_rooms/${currentRoom}/chat`).on('value', snap => {
+    const data = snap.val();
+    if(!data) return;
+    const msgs = Object.values(data);
+    const html = msgs.map(m => `
+      <div class="chat-msg">
+        <span class="sender">${m.sender}:</span><span>${m.text}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('chatMessagesLobby').innerHTML = html;
+    document.getElementById('chatMessagesGame').innerHTML = html;
+    
+    document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
+    document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
+  });
+}
+
+function startGame() {
+  db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
+    const playersArr = Object.values(snap.val());
+    if(playersArr.length < 3) return showToast("Minimum 3 players required!");
+
+    db.ref('spy_rooms/' + currentRoom).once('value', roomSnap => {
+      const data = roomSnap.val();
+      const wordList = wordsDB[data.category];
+      const selectedWord = wordList[Math.floor(Math.random() * wordList.length)];
+      
+      let spies = [];
+      while(spies.length < Math.min(data.spyCount, playersArr.length - 1)) {
+        let randPlayer = playersArr[Math.floor(Math.random() * playersArr.length)].name;
+        if(!spies.includes(randPlayer)) spies.push(randPlayer);
+      }
+
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'playing', 
+        word: selectedWord, 
+        spies: spies,
+        timeLeft: data.roundTimer,
+        votes: null,
+        ejected: null
+      });
+
+      startTimerSync();
+    });
+  });
+}
+
+function startTimerSync() {
+  if(isHost) {
+    clearInterval(gameInterval);
+    gameInterval = setInterval(() => {
+      db.ref(`spy_rooms/${currentRoom}/timeLeft`).transaction(t => {
+        if (t <= 1) {
+          clearInterval(gameInterval);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  }
+}
+
+function showGameScreen(data) {
+  switchPage('game-screen');
+  const isSpy = data.spies && data.spies.includes(currentUser.displayName);
+  document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
+  document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
+
+  if(data.votes) renderVotes(data.votes, data.spies);
+}
+
+function triggerVotingPhase() {
+  document.getElementById('voteModal').classList.remove('hidden');
+  db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
+    const players = Object.values(snap.val());
+    document.getElementById('voteContainer').innerHTML = players.map(p => `
+      <button class="btn-secondary" onclick="castVote('${p.name}')">🎯 ${p.name}</button>
+    `).join('');
+  });
+}
+
+function castVote(target) {
+  document.getElementById('voteModal').classList.add('hidden');
+  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.displayName}`).set(target);
+  showToast("Vote Submitted!");
+}
+
+function renderVotes(votes, spies) {
+  document.getElementById('voteModal').classList.remove('hidden');
+  const counts = {};
+  Object.values(votes).forEach(t => counts[t] = (counts[t] || 0) + 1);
+
+  let resultHtml = 'Votes Count:<br>';
+  for(let player in counts) {
+    resultHtml += `${player}: ${counts[player]} votes<br>`;
+  }
+  
+  document.getElementById('votingResultsDisplay').innerHTML = resultHtml;
+  
+  const mostVoted = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, null);
+  if(mostVoted && spies.includes(mostVoted)) {
+    document.getElementById('votingResultsDisplay').innerHTML += `<br>🎉 Imposter ${mostVoted} Ejected! Astronauts Win!`;
+    if(!spies.includes(currentUser.displayName)) addScore(10);
+  } else if(mostVoted) {
+    document.getElementById('votingResultsDisplay').innerHTML += `<br>❌ ${mostVoted} was NOT the Imposter!`;
+    if(spies.includes(currentUser.displayName)) addScore(15);
+  }
+}
+
+function addScore(pts) {
+  if(currentUser && currentUser.uid) {
+    db.ref(`users/${currentUser.uid}/score`).transaction(s => (s || 0) + pts);
+  }
+}
+
+function resetGameToLobby() { 
+  clearInterval(gameInterval);
+  db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' }); 
+}
 </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker Registered'))
+        .catch(err => console.log('Service Worker Error:', err));
+    });
+  }
+
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    setTimeout(() => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          deferredPrompt = null;
+        });
+      }
+    }, 2000);
+  });
+</script>
+
 </body>
 </html>
