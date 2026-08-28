@@ -555,6 +555,18 @@ function generate6DigitCode() {
   return code;
 }
 
+// Generates a room code and guarantees it isn't already used by an active room,
+// so creating a new station never silently overwrites/kicks another room.
+async function generateUniqueRoomCode() {
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const code = generate6DigitCode();
+    const snap = await db.ref('spy_rooms/' + code).once('value');
+    if (!snap.exists()) return code;
+  }
+  // Extremely unlikely fallback: widen with a timestamp fragment
+  return generate6DigitCode() + (Date.now() % 10);
+}
+
 const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Enter Station 🚀", toggleAuth: "Don't have an account? Sign Up",
@@ -637,8 +649,78 @@ function changeLanguage(lang) {
 }
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
-let gameInterval = null, voteInterval = null;
 let roomListener = null, annListener = null;
+
+// --- Server-synced timing -------------------------------------------------
+// The round/vote timers used to be decremented once a second by whichever
+// client happened to be "host", writing the new value to the database.
+// That's fragile on mobile: if the host's tab is backgrounded (switching
+// apps, locking the phone) browsers throttle/stop JS timers, so the clock
+// froze for everyone and votes were never resolved.
+// Instead we store an absolute end timestamp (server-time based) once, and
+// every connected client independently computes "time left" locally and can
+// trigger the phase transition. Firebase transactions make sure that even if
+// several clients notice the timeout at once, the transition only happens once.
+let serverTimeOffset = 0;
+db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
+function serverNow() { return Date.now() + serverTimeOffset; }
+
+let latestRoomData = null;
+let playingTransitionLock = false;
+let votingTransitionLock = false;
+
+setInterval(() => {
+  if (!currentRoom || !latestRoomData) return;
+  const data = latestRoomData;
+
+  if (data.status === 'playing' && data.phaseEndTime) {
+    const remaining = Math.max(0, Math.round((data.phaseEndTime - serverNow()) / 1000));
+    updateGameTimerUI(data, remaining);
+
+    if (remaining <= 0 && !playingTransitionLock) {
+      playingTransitionLock = true;
+      db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
+        if (!room || room.status !== 'playing') return room; // already handled by another client
+        room.status = 'voting';
+        room.phaseEndTime = serverNow() + 80000;
+        room.votes = null;
+        return room;
+      }, (err, committed) => {
+        playingTransitionLock = false;
+        if (committed) broadcastAnnouncement("🚨 Time's up! Voting phase started!", "danger");
+      });
+    }
+  } else {
+    playingTransitionLock = false;
+  }
+
+  if ((data.status === 'voting' || data.status === 'resolving') && data.phaseEndTime) {
+    const remaining = Math.max(0, Math.round((data.phaseEndTime - serverNow()) / 1000));
+    const voteTimerEl = document.getElementById('voteTimerDisplay');
+    if (voteTimerEl) voteTimerEl.innerText = `⏳ Vote Time: ${remaining}s`;
+
+    if (data.status === 'voting' && remaining <= 0 && !votingTransitionLock) {
+      votingTransitionLock = true;
+      attemptProcessVoteResults(() => { votingTransitionLock = false; });
+    }
+  } else {
+    votingTransitionLock = false;
+  }
+}, 1000);
+
+function updateGameTimerUI(data, remainingOverride) {
+  const timerEl = document.getElementById('timerDisplay');
+  if (!timerEl) return;
+  const remaining = (remainingOverride !== undefined) ? remainingOverride
+    : Math.max(0, Math.round(((data.phaseEndTime || 0) - serverNow()) / 1000));
+  timerEl.innerText = `⏳ Time left: ${remaining}s`;
+
+  const btnEmergency = document.getElementById('btnEmergencyVote');
+  if (btnEmergency) {
+    const initial = data.initialTimer || data.roundTimer || 180;
+    btnEmergency.classList.toggle('hidden', remaining > initial / 2);
+  }
+}
 
 const categoryNamesMap = {
   players: { en: "⚽ Football Players", ar: "⚽ كرة القدم" },
@@ -868,7 +950,7 @@ async function confirmCreateOrUpdateRoom() {
   const visibility = document.getElementById('roomVisibilitySelect').value;
 
   if(!currentRoom) {
-    currentRoom = generate6DigitCode();
+    currentRoom = await generateUniqueRoomCode();
     isHost = true;
     await db.ref('spy_rooms/' + currentRoom).set({
       status: 'waiting', 
@@ -918,6 +1000,7 @@ function leaveRoom(manual = false) {
     if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
     if (annListener) db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener);
     currentRoom = null;
+    latestRoomData = null;
 
     db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove().then(() => {
       db.ref(`spy_rooms/${rCode}/players`).once('value', snap => {
@@ -959,9 +1042,12 @@ function joinRoomProcess() {
     const data = snap.val();
 
     if(!data) {
+      latestRoomData = null;
       if(currentRoom) leaveRoom(false);
       return;
     }
+
+    latestRoomData = data;
 
     handleHostAssignment(data);
 
@@ -998,8 +1084,6 @@ function joinRoomProcess() {
     `).join('');
 
     if(data.status === 'waiting') {
-      clearInterval(gameInterval);
-      clearInterval(voteInterval);
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
 
@@ -1015,7 +1099,7 @@ function joinRoomProcess() {
       }
     } else if(data.status === 'playing') {
       showGameScreen(data);
-    } else if(data.status === 'voting') {
+    } else if(data.status === 'voting' || data.status === 'resolving') {
       showVotingScreen(data);
     } else if(data.status === 'gameover') {
       showGameOverScreen(data);
@@ -1119,11 +1203,10 @@ function startOrResumeGame() {
       // remaining spies, just give the crew a fresh discussion timer.
       db.ref(`spy_rooms/${currentRoom}`).update({
         status: 'playing',
-        timeLeft: data.roundTimer,
+        phaseEndTime: serverNow() + ((data.roundTimer || 180) * 1000),
         votes: null
       });
       broadcastAnnouncement("🚀 Mission resumed! Keep hunting the remaining spy!", "normal");
-      startTimerSync();
     } else {
       startGame();
     }
@@ -1155,65 +1238,14 @@ function startGame() {
         status: 'playing', 
         word: selectedWord, 
         spies: spies,
-        timeLeft: data.roundTimer,
         initialTimer: data.roundTimer,
-        votes: null,
-        voteTimeLeft: 80
+        phaseEndTime: serverNow() + ((data.roundTimer || 180) * 1000),
+        votes: null
       });
 
       broadcastAnnouncement("🚀 Mission started! Find the spy!", "normal");
-      startTimerSync();
     });
   });
-}
-
-function startTimerSync() {
-  if(!isHost) return;
-  clearInterval(gameInterval);
-  
-  gameInterval = setInterval(() => {
-    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-      const room = snap.val();
-      if(!room) return;
-
-      if(room.status === 'voting') return;
-
-      if(room.status === 'playing') {
-        if(room.timeLeft <= 1) {
-          db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
-          broadcastAnnouncement("🚨 Time's up! Voting phase started!", "danger");
-          startVoteTimerSync();
-        } else {
-          db.ref(`spy_rooms/${currentRoom}/timeLeft`).set(room.timeLeft - 1);
-        }
-      }
-    });
-  }, 1000);
-}
-
-function startVoteTimerSync() {
-  if(!isHost) return;
-  clearInterval(voteInterval);
-
-  voteInterval = setInterval(() => {
-    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-      const room = snap.val();
-      if(!room || room.status !== 'voting') {
-        clearInterval(voteInterval);
-        return;
-      }
-
-      const playersCount = room.players ? Object.keys(room.players).length : 0;
-      const votesCount = room.votes ? Object.keys(room.votes).length : 0;
-
-      if(room.voteTimeLeft <= 1 || votesCount >= playersCount) {
-        clearInterval(voteInterval);
-        processVoteResults(room);
-      } else {
-        db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
-      }
-    });
-  }, 1000);
 }
 
 function showGameScreen(data) {
@@ -1222,34 +1254,28 @@ function showGameScreen(data) {
   
   const isSpy = data.spies && data.spies.includes(currentUser.uid);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ You are the Spy!" : `The word is: ${data.word}`;
-  document.getElementById('timerDisplay').innerText = `⏳ Time left: ${data.timeLeft || 0}s`;
 
-  const btnEmergency = document.getElementById('btnEmergencyVote');
-  const initial = data.initialTimer || 180;
-  const current = data.timeLeft || 180;
-
-  if (current <= initial / 2) {
-    btnEmergency.classList.remove('hidden');
-  } else {
-    btnEmergency.classList.add('hidden');
-  }
+  updateGameTimerUI(data);
 }
 
 function triggerVotingPhase() {
-  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', phaseEndTime: serverNow() + 80000, votes: null });
   broadcastAnnouncement("🚨 Emergency vote triggered!", "danger");
-  if(isHost) startVoteTimerSync();
 }
 
 function showVotingScreen(data) {
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('voting-screen').classList.remove('hidden');
 
-  document.getElementById('voteTimerDisplay').innerText = `⏳ Vote Time: ${data.voteTimeLeft || 80}s`;
+  const remaining = Math.max(0, Math.round(((data.phaseEndTime || 0) - serverNow()) / 1000));
+  document.getElementById('voteTimerDisplay').innerText = `⏳ Vote Time: ${remaining}s`;
 
   const players = data.players ? Object.values(data.players) : [];
   const votes = data.votes || {};
-  const hasVoted = !!votes[currentUser.uid];
+  // While a client is finalizing the result ('resolving'), lock voting for everyone
+  // so no stray vote sneaks in after the outcome was already computed.
+  const votingLocked = data.status === 'resolving';
+  const hasVoted = votingLocked || !!votes[currentUser.uid];
 
   let voteHTML = '';
 
@@ -1288,27 +1314,53 @@ function showVotingScreen(data) {
 }
 
 function castVote(targetUid) {
-  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
-    if(snap.exists()) return;
-    db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
-      showToast("Vote recorded!", 'success');
-      
-      db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
-        const room = roomSnap.val();
-        if(room && room.players && room.votes) {
-          const pCount = Object.keys(room.players).length;
-          const vCount = Object.keys(room.votes).length;
-          if(vCount >= pCount && isHost) {
-            processVoteResults(room);
+  db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
+    const room = roomSnap.val();
+    if(!room || room.status !== 'voting') return; // voting already closed/resolving
+
+    db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
+      if(snap.exists()) return;
+      db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
+        showToast("Vote recorded!", 'success');
+
+        db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap2 => {
+          const room2 = roomSnap2.val();
+          if(room2 && room2.players && room2.votes && room2.status === 'voting') {
+            const pCount = Object.keys(room2.players).length;
+            const vCount = Object.keys(room2.votes).length;
+            // Everyone has voted - resolve immediately instead of waiting for the
+            // timer to run out. Works no matter who casts the last vote (not just
+            // the host), so results are never stuck waiting on one specific client.
+            if(vCount >= pCount) {
+              attemptProcessVoteResults();
+            }
           }
-        }
+        });
       });
     });
   });
 }
 
+// Claims the right to resolve the vote using a transaction, so that no matter
+// which client (host or not, foregrounded or not) notices the vote is complete
+// first, exactly one of them actually computes and writes the outcome.
+function attemptProcessVoteResults(callback) {
+  db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
+    if (!room || room.status !== 'voting') return room; // nothing to resolve / already resolved
+    room.status = 'resolving';
+    return room;
+  }, (error, committed, snapshot) => {
+    if (callback) callback();
+    if (committed && snapshot) {
+      const room = snapshot.val();
+      if (room && room.status === 'resolving') {
+        processVoteResults(room);
+      }
+    }
+  });
+}
+
 function processVoteResults(room) {
-  if(!isHost) return;
   const votes = room.votes || {};
   const counts = {};
 
@@ -1344,7 +1396,7 @@ function processVoteResults(room) {
           finalPlayers: playersObj,
           votes: null 
         });
-        broadcastAnnouncement("🎉 All spies caught! Crew wins!", "success");
+        broadcastAnnouncement("🎉 Spy caught! All spies are out - Crew wins!", "success");
         return;
       } else {
         db.ref(`spy_rooms/${currentRoom}`).update({ 
@@ -1352,7 +1404,7 @@ function processVoteResults(room) {
           status: 'waiting',
           votes: null 
         });
-        broadcastAnnouncement("🕵️ A spy was ejected, but more spies remain! IN GAME - Back to lobby...", "danger");
+        broadcastAnnouncement("🕵️ A spy was ejected, but more spies remain! Back to the lobby...", "danger");
         return;
       }
     } else {
@@ -1375,7 +1427,7 @@ function processVoteResults(room) {
           status: 'waiting',
           votes: null 
         });
-        broadcastAnnouncement("❌ An innocent person was ejected! IN GAME - Back to lobby...", "danger");
+        broadcastAnnouncement("❌ An innocent person was ejected! Back to the lobby...", "danger");
         return;
       }
     }
@@ -1385,7 +1437,7 @@ function processVoteResults(room) {
     status: 'waiting', 
     votes: null 
   });
-  broadcastAnnouncement("⚖️ Nobody ejected! IN GAME - Back to lobby...", "normal");
+  broadcastAnnouncement("⚖️ Nobody ejected! Back to the lobby...", "normal");
 }
 
 function showGameOverScreen(data) {
