@@ -12,7 +12,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spy Station">
 
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
+<!-- أيقونة التطبيق الجديدة (Favicon & Apple Touch Icon) -->
+<link rel="icon" type="image/png" href="https://img.icons8.com/isometric/512/spy.png">
+<link rel="apple-touch-icon" href="https://img.icons8.com/isometric/512/spy.png">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
@@ -318,7 +320,8 @@
     <div id="timerDisplay" style="font-size:20px; color:var(--accent-blue); font-weight:bold;">⏳ Time: --</div>
     <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:15px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
 
-    <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
+    <!-- زر التصويت الطارئ مجدد ويعمل دائماً بأعلى كفاءة -->
+    <button id="btnEmergencyVote" class="btn-danger" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
     <div class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
@@ -967,21 +970,14 @@ function showGameScreen(data) {
   const isSpy = data.spies && data.spies.includes(currentUser.uid);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
   document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
-
-  const halfTime = (data.initialTimer || 180) / 2;
-  const btnEmergency = document.getElementById('btnEmergencyVote');
-  
-  if(data.timeLeft <= halfTime) {
-    btnEmergency.classList.remove('hidden');
-  } else {
-    btnEmergency.classList.add('hidden');
-  }
 }
 
+// دالة التصويت الطارئ المحدثة والمضمونة
 function triggerVotingPhase() {
-  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
-  broadcastAnnouncement("🚨 Emergency Voting Triggered!", "danger");
-  if(isHost) startVoteTimerSync();
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null }).then(() => {
+    broadcastAnnouncement("🚨 Emergency Voting Triggered!", "danger");
+    if(isHost) startVoteTimerSync();
+  });
 }
 
 function showVotingScreen(data) {
@@ -1023,6 +1019,10 @@ function showVotingScreen(data) {
 
   document.getElementById('voteListContainer').innerHTML = voteHTML;
   document.getElementById('btnSkipVote').classList.toggle('disabled', hasVoted);
+
+  if(isHost && (!voteInterval || voteInterval._destroyed)) {
+    startVoteTimerSync();
+  }
 }
 
 function castVote(targetUid) {
