@@ -202,7 +202,6 @@
   .vote-card.disabled { pointer-events: none; opacity: 0.6; }
 
   .voters-overlay { display: flex; align-items: center; gap: 3px; }
-  /* تم تعديل الأفاتار الصغيرة لكي تكون غير مائلة ومظبوطة تماماً */
   .voter-mini-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-purple); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; transform: none !important; }
 
   .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: right; }
@@ -714,7 +713,6 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  // فحص إذا كان المستخدم منضم لغرفة مسبقاً لاسترجاعه عند الـ Refresh
   checkActiveRoomOnStart(user.uid);
   listenToPublicRooms();
 }
@@ -924,6 +922,7 @@ function joinRoomProcess(isRestoring = false) {
       return;
     }
 
+    document.getElementById('roomCodeDisplay').innerText = currentRoom;
     document.getElementById('playerCount').innerText = playersArr.length;
     document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
     document.getElementById('roomCategoryDisplay').innerText = `فئة الروم: ${categoryNamesMap[data.category] || data.category}`;
@@ -985,7 +984,7 @@ function handleHostAssignment(data) {
   if(!playersObj[data.hostUid]) {
     const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
     if(sorted.length > 0) {
-      if(isHost || currentUser.uid === sorted[0].uid) {
+      if(currentUser.uid === sorted[0].uid) {
         db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
       }
     }
@@ -1242,10 +1241,6 @@ function processVoteResults(room) {
     if(currentSpies.includes(ejectedUid)) {
       const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
       
-      // التحقق من فوز الطاقم بالكامل (لو خلصت كل الجواسيس)
-      const currentPlayers = Object.keys(playersObj);
-      const remainingCrew = currentPlayers.filter(uid => !updatedSpies.includes(uid));
-
       if(updatedSpies.length === 0) {
         db.ref(`spy_rooms/${currentRoom}`).update({ 
           status: 'gameover', 
@@ -1257,7 +1252,6 @@ function processVoteResults(room) {
         broadcastAnnouncement("🎉 تم طرد جميع الجواسيس! فوز الطاقم!", "success");
         return;
       } else {
-        // لسه في جواسيس تانيين، يرجعوا للوبي وتظهر حالتهم IN GAME
         db.ref(`spy_rooms/${currentRoom}`).update({ 
           spies: updatedSpies, 
           status: 'waiting',
@@ -1267,7 +1261,6 @@ function processVoteResults(room) {
         return;
       }
     } else {
-      // طرد بريء
       const currentPlayers = Object.keys(playersObj);
       const currentSpiesCount = currentSpies.filter(uid => currentPlayers.includes(uid)).length;
       const remainingCrewCount = currentPlayers.filter(uid => !currentSpies.includes(uid) && uid !== ejectedUid).length;
@@ -1283,7 +1276,6 @@ function processVoteResults(room) {
         broadcastAnnouncement("🕵️ سيطر الجواسيس على المحطة! فوز الجواسيس!", "danger");
         return;
       } else {
-        // طرد بريء بس الجيم مخلصش -> رجوع للوبي مع حالة IN GAME للباقيين
         db.ref(`spy_rooms/${currentRoom}`).update({ 
           status: 'waiting',
           votes: null 
