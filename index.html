@@ -202,7 +202,6 @@
   .vote-card.disabled { pointer-events: none; opacity: 0.6; }
 
   .voters-overlay { display: flex; align-items: center; gap: 3px; }
-  /* تم تعديل الأفاتار الصغيرة لكي تكون غير مائلة ومظبوطة تماماً */
   .voter-mini-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-purple); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; transform: none !important; }
 
   .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: right; }
@@ -222,11 +221,7 @@
 <!-- 1. AUTH SCREEN -->
 <div id="auth-screen" class="page-screen" style="justify-content:center;">
   <div class="auth-card-container">
-    
-    <div class="cyber-logo-badge">
-      <span style="font-size:42px;">🛸</span>
-    </div>
-
+    <div class="cyber-logo-badge"><span style="font-size:42px;">🛸</span></div>
     <div style="margin-bottom:20px;">
       <div class="logo-title">SPY STATION</div>
       <div style="font-size: 10px; color: var(--accent-blue); letter-spacing: 3.5px; margin-top:4px; font-weight:bold;">DEEP SPACE TACTICS</div>
@@ -237,26 +232,15 @@
       <span data-key="googleAuth">الدخول بـ Google 🚀</span>
     </button>
 
-    <div class="auth-divider">
-      <span>أو البريد الإلكتروني</span>
-    </div>
+    <div class="auth-divider"><span>أو البريد الإلكتروني</span></div>
 
     <h3 id="auth-title" data-key="login" style="margin-bottom:12px; font-size:16px; color:var(--accent-blue);">تسجيل الدخول</h3>
     
-    <div class="auth-input-group">
-      <input type="email" id="authEmail" placeholder="البريد الإلكتروني 📧">
-    </div>
-
-    <div class="auth-input-group">
-      <input type="password" id="authPassword" placeholder="كلمة السر 🔑">
-    </div>
-
-    <div class="auth-input-group">
-      <input type="text" id="authUsername" placeholder="اسم المستخدم 👤" class="hidden">
-    </div>
+    <div class="auth-input-group"><input type="email" id="authEmail" placeholder="البريد الإلكتروني 📧"></div>
+    <div class="auth-input-group"><input type="password" id="authPassword" placeholder="كلمة السر 🔑"></div>
+    <div class="auth-input-group"><input type="text" id="authUsername" placeholder="اسم المستخدم 👤" class="hidden"></div>
 
     <button onclick="handleAuth()" id="btn-auth" class="btn-auth-primary" data-key="loginBtn">دخول المحطة 🚀</button>
-    
     <div onclick="toggleAuthMode()" style="color: #94a3b8; cursor: pointer; font-size: 13px; margin-top: 16px; text-decoration: underline;" id="txt-toggleAuth" data-key="toggleAuth">ليس لديك حساب؟ أنشئ حساباً جديداً</div>
   </div>
 </div>
@@ -277,34 +261,15 @@
   <div class="container-box">
     <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="chooseCategory">Create Station Room:</h3>
     <div class="category-grid">
-      <div class="category-card" onclick="openCreateRoomModal('players')">
-        <span class="icon">⚽</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span>
-      </div>
-      <div class="category-card" onclick="openCreateRoomModal('food')">
-        <span class="icon">🍕</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span>
-      </div>
-      <div class="category-card" onclick="openCreateRoomModal('places')">
-        <span class="icon">🗺️</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span>
-      </div>
-      <div class="category-card" onclick="openCreateRoomModal('movies')">
-        <span class="icon">🎬</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catMovies">Movies</span>
-      </div>
-      <div class="category-card" onclick="openCreateRoomModal('games')">
-        <span class="icon">🎮</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catGames">Games</span>
-      </div>
-      <div class="category-card" onclick="openCreateRoomModal('animals')">
-        <span class="icon">🦁</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span>
-      </div>
+      <div class="category-card" onclick="openCreateRoomModal('players')"><span class="icon">⚽</span><span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('food')"><span class="icon">🍕</span><span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('places')"><span class="icon">🗺️</span><span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('movies')"><span class="icon">🎬</span><span style="font-size:12px; font-weight:bold;" data-key="catMovies">Movies</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('games')"><span class="icon">🎮</span><span style="font-size:12px; font-weight:bold;" data-key="catGames">Games</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('animals')"><span class="icon">🦁</span><span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span></div>
     </div>
 
     <hr style="margin:20px 0; border-color:var(--glass-border);">
-
     <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;">Join via 6-Digit Code:</h3>
     <input type="text" id="roomCodeInput" placeholder="Enter Station Code (e.g. X8K9P2)" style="text-transform:uppercase;">
     <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Station 🛰️</button>
@@ -330,7 +295,6 @@
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
     <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
     <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
-    
     <input type="text" id="settingUsername" placeholder="Change Username">
     
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblSound">Sound Volume 🔊:</label>
@@ -386,6 +350,7 @@
 <div id="lobby-screen" class="page-screen hidden" style="z-index:20;">
   <div class="container-box" style="text-align:center;">
     <p data-key="stationCode">Station Frequency Code:</p>
+    <!-- كود اللوبي واضح وثابت -->
     <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
     <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">فئة الروم: --</div>
     
@@ -467,18 +432,9 @@
 
 <!-- BOTTOM NAVIGATION BAR -->
 <div id="main-bottom-nav" class="bottom-nav hidden">
-  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
-    <span class="nav-icon">🚀</span>
-    <span>Home</span>
-  </div>
-  <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
-    <span class="nav-icon">🌐</span>
-    <span>Stations</span>
-  </div>
-  <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
-    <span class="nav-icon">⚙️</span>
-    <span>Settings</span>
-  </div>
+  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')"><span class="nav-icon">🚀</span><span>Home</span></div>
+  <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')"><span class="nav-icon">🌐</span><span>Stations</span></div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')"><span class="nav-icon">⚙️</span><span>Settings</span></div>
 </div>
 
 <!-- Firebase SDKs -->
@@ -650,11 +606,8 @@ function showToast(msg, type = 'normal') {
   }
 
   notifyBox.classList.remove('hidden');
-
   if (notificationTimeout) clearTimeout(notificationTimeout);
-  notificationTimeout = setTimeout(() => {
-    notifyBox.classList.add('hidden');
-  }, 3500);
+  notificationTimeout = setTimeout(() => { notifyBox.classList.add('hidden'); }, 3500);
 }
 
 function signInWithGoogle() {
@@ -714,7 +667,6 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  // فحص إذا كان المستخدم منضم لغرفة مسبقاً لاسترجاعه عند الـ Refresh
   checkActiveRoomOnStart(user.uid);
   listenToPublicRooms();
 }
@@ -898,6 +850,7 @@ function joinRoomProcess(isRestoring = false) {
     }
   });
 
+  // حل مشكلة خروج اللاعب التلقائي وانقطاع النت باستخدام onDisconnect
   playerRef.onDisconnect().remove();
 
   listenToChat();
@@ -926,6 +879,9 @@ function joinRoomProcess(isRestoring = false) {
 
     document.getElementById('playerCount').innerText = playersArr.length;
     document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+    
+    // إظهار كود اللوبي بوضوح دائم
+    document.getElementById('roomCodeDisplay').innerText = currentRoom;
     document.getElementById('roomCategoryDisplay').innerText = `فئة الروم: ${categoryNamesMap[data.category] || data.category}`;
 
     document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
@@ -960,7 +916,6 @@ function joinRoomProcess(isRestoring = false) {
 
 function listenToSystemAnnouncements() {
   if(annListener) db.ref(`spy_rooms/${currentRoom}/announcement`).off('value', annListener);
-  
   annListener = db.ref(`spy_rooms/${currentRoom}/announcement`).on('value', snap => {
     const ann = snap.val();
     if(ann && ann.msg && ann.timestamp) {
@@ -973,19 +928,18 @@ function listenToSystemAnnouncements() {
 
 function broadcastAnnouncement(msg, type = 'normal') {
   db.ref(`spy_rooms/${currentRoom}/announcement`).set({
-    msg: msg,
-    type: type,
-    timestamp: firebase.database.ServerValue.TIMESTAMP
+    msg: msg, type: type, timestamp: firebase.database.ServerValue.TIMESTAMP
   });
 }
 
+// حل مشكلة نقل التحكمات للهوست الجديد فوراً عند خروج الهوست الحالي
 function handleHostAssignment(data) {
   const playersObj = data.players || {};
   
   if(!playersObj[data.hostUid]) {
     const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
     if(sorted.length > 0) {
-      if(isHost || currentUser.uid === sorted[0].uid) {
+      if(currentUser.uid === sorted[0].uid) {
         db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
       }
     }
@@ -995,23 +949,14 @@ function handleHostAssignment(data) {
   document.getElementById('host-controls').classList.toggle('hidden', !isHost);
 }
 
-function kickPlayer(uid) {
-  db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
-}
-
-function makeHost(uid) {
-  db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid);
-}
+function kickPlayer(uid) { db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove(); }
+function makeHost(uid) { db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid); }
 
 function sendChatMessage(screen) {
   const input = document.getElementById(`chatInput${screen}`);
   const msg = input.value.trim();
   if(!msg) return;
-  
-  db.ref(`spy_rooms/${currentRoom}/chat`).push({
-    sender: currentUser.displayName,
-    text: msg
-  });
+  db.ref(`spy_rooms/${currentRoom}/chat`).push({ sender: currentUser.displayName, text: msg });
   input.value = '';
 }
 
@@ -1020,15 +965,10 @@ function listenToChat() {
     const data = snap.val();
     if(!data) return;
     const msgs = Object.values(data);
-    const html = msgs.map(m => `
-      <div class="chat-msg">
-        <span class="sender">${m.sender}:</span><span>${m.text}</span>
-      </div>
-    `).join('');
+    const html = msgs.map(m => `<div class="chat-msg"><span class="sender">${m.sender}:</span><span>${m.text}</span></div>`).join('');
 
     document.getElementById('chatMessagesLobby').innerHTML = html;
     document.getElementById('chatMessagesGame').innerHTML = html;
-    
     document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
     document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
   });
@@ -1041,7 +981,6 @@ function startGame() {
 
     db.ref('spy_rooms/' + currentRoom).once('value', roomSnap => {
       const data = roomSnap.val();
-      
       if(data.spyCount >= Math.ceil(playersArr.length / 2)) {
         return showToast("عدد الجواسيس كبير جداً نسبة لعدد اللاعبين!", 'danger');
       }
@@ -1055,6 +994,9 @@ function startGame() {
         if(!spies.includes(randUid)) spies.push(randUid);
       }
 
+      const voteDuration = 80;
+      const voteEndTime = Date.now() + (voteDuration * 1000);
+
       db.ref(`spy_rooms/${currentRoom}`).update({ 
         status: 'playing', 
         word: selectedWord, 
@@ -1062,7 +1004,8 @@ function startGame() {
         timeLeft: data.roundTimer,
         initialTimer: data.roundTimer,
         votes: null,
-        voteTimeLeft: 80
+        voteTimeLeft: voteDuration,
+        voteEndTime: voteEndTime
       });
 
       broadcastAnnouncement("🚀 بدأت المهمة! استعدوا لاكتشاف الجاسوس بينكم!", "normal");
@@ -1079,12 +1022,13 @@ function startTimerSync() {
     db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
       const room = snap.val();
       if(!room) return;
-
       if(room.status === 'voting') return;
 
       if(room.status === 'playing') {
         if(room.timeLeft <= 1) {
-          db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+          const voteDuration = 80;
+          const voteEndTime = Date.now() + (voteDuration * 1000);
+          db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: voteDuration, voteEndTime: voteEndTime, votes: null });
           broadcastAnnouncement("🚨 انتهى الوقت! بدء مرحلة التصويت!", "danger");
           startVoteTimerSync();
         } else {
@@ -1095,6 +1039,7 @@ function startTimerSync() {
   }, 1000);
 }
 
+// حل مشكلة عداد التصويت المزامن بالاعتماد على وقت السيرفر/الجهاز
 function startVoteTimerSync() {
   if(!isHost) return;
   clearInterval(voteInterval);
@@ -1109,12 +1054,14 @@ function startVoteTimerSync() {
 
       const playersCount = room.players ? Object.keys(room.players).length : 0;
       const votesCount = room.votes ? Object.keys(room.votes).length : 0;
+      
+      const timeLeft = room.voteEndTime ? Math.max(0, Math.floor((room.voteEndTime - Date.now()) / 1000)) : room.voteTimeLeft;
 
-      if(room.voteTimeLeft <= 1 || votesCount >= playersCount) {
+      if(timeLeft <= 1 || votesCount >= playersCount) {
         clearInterval(voteInterval);
         processVoteResults(room);
       } else {
-        db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
+        db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(timeLeft);
       }
     });
   }, 1000);
@@ -1140,7 +1087,9 @@ function showGameScreen(data) {
 }
 
 function triggerVotingPhase() {
-  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+  const voteDuration = 80;
+  const voteEndTime = Date.now() + (voteDuration * 1000);
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: voteDuration, voteEndTime: voteEndTime, votes: null });
   broadcastAnnouncement("🚨 تم تفعيل التصويت الطارئ!", "danger");
   if(isHost) startVoteTimerSync();
 }
@@ -1149,14 +1098,15 @@ function showVotingScreen(data) {
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('voting-screen').classList.remove('hidden');
 
-  document.getElementById('voteTimerDisplay').innerText = `⏳ وقت التصويت: ${data.voteTimeLeft || 80}ث`;
+  // حساب العداد بشكل مزامن ودقيق لجميع اللاعبين
+  const timeLeft = data.voteEndTime ? Math.max(0, Math.floor((data.voteEndTime - Date.now()) / 1000)) : (data.voteTimeLeft || 80);
+  document.getElementById('voteTimerDisplay').innerText = `⏳ وقت التصويت: ${timeLeft}ث`;
 
   const players = data.players ? Object.values(data.players) : [];
   const votes = data.votes || {};
   const hasVoted = !!votes[currentUser.uid];
 
   let voteHTML = '';
-
   players.forEach(p => {
     let votersForThisPlayer = [];
     for(let voterUid in votes) {
@@ -1165,9 +1115,7 @@ function showVotingScreen(data) {
       }
     }
 
-    const votersAvatarsHTML = votersForThisPlayer.map(v => `
-      <img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">
-    `).join('');
+    const votersAvatarsHTML = votersForThisPlayer.map(v => `<img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">`).join('');
 
     voteHTML += `
       <div class="vote-card ${hasVoted ? 'disabled' : ''}" ${!hasVoted ? `onclick="castVote('${p.uid}')"` : ''}>
@@ -1175,22 +1123,15 @@ function showVotingScreen(data) {
           <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
           <span style="font-weight:bold; font-size:13px;">${p.name}</span>
         </div>
-        <div class="voters-overlay">
-          ${votersAvatarsHTML}
-        </div>
+        <div class="voters-overlay">${votersAvatarsHTML}</div>
       </div>
     `;
   });
 
   document.getElementById('voteListContainer').innerHTML = voteHTML;
-  
   const btnSkip = document.getElementById('btnSkipVote');
   btnSkip.classList.toggle('disabled', hasVoted);
-  if(hasVoted) {
-    btnSkip.onclick = null;
-  } else {
-    btnSkip.onclick = () => castVote('SKIP');
-  }
+  btnSkip.onclick = hasVoted ? null : () => castVote('SKIP');
 }
 
 function castVote(targetUid) {
@@ -1198,7 +1139,6 @@ function castVote(targetUid) {
     if(snap.exists()) return;
     db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
       showToast("تم تسجيل صوتك!", 'success');
-      
       db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
         const room = roomSnap.val();
         if(room && room.players && room.votes) {
@@ -1241,63 +1181,40 @@ function processVoteResults(room) {
   if(ejectedUid) {
     if(currentSpies.includes(ejectedUid)) {
       const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
-      
-      // التحقق من فوز الطاقم بالكامل (لو خلصت كل الجواسيس)
       const currentPlayers = Object.keys(playersObj);
       const remainingCrew = currentPlayers.filter(uid => !updatedSpies.includes(uid));
 
       if(updatedSpies.length === 0) {
         db.ref(`spy_rooms/${currentRoom}`).update({ 
-          status: 'gameover', 
-          winnerTeam: 'crew',
-          finalSpies: room.spies,
-          finalPlayers: playersObj,
-          votes: null 
+          status: 'gameover', winnerTeam: 'crew', finalSpies: room.spies, finalPlayers: playersObj, votes: null 
         });
         broadcastAnnouncement("🎉 تم طرد جميع الجواسيس! فوز الطاقم!", "success");
         return;
       } else {
-        // لسه في جواسيس تانيين، يرجعوا للوبي وتظهر حالتهم IN GAME
-        db.ref(`spy_rooms/${currentRoom}`).update({ 
-          spies: updatedSpies, 
-          status: 'waiting',
-          votes: null 
-        });
+        db.ref(`spy_rooms/${currentRoom}`).update({ spies: updatedSpies, status: 'waiting', votes: null });
         broadcastAnnouncement("🕵️ تم طرد أحد الجواسيس، ولكن هناك جواسيس آخرون متبقون! عودة للوبي...", "danger");
         return;
       }
     } else {
-      // طرد بريء
       const currentPlayers = Object.keys(playersObj);
       const currentSpiesCount = currentSpies.filter(uid => currentPlayers.includes(uid)).length;
       const remainingCrewCount = currentPlayers.filter(uid => !currentSpies.includes(uid) && uid !== ejectedUid).length;
 
       if(currentSpiesCount >= remainingCrewCount) {
         db.ref(`spy_rooms/${currentRoom}`).update({ 
-          status: 'gameover', 
-          winnerTeam: 'spies',
-          finalSpies: room.spies,
-          finalPlayers: playersObj,
-          votes: null 
+          status: 'gameover', winnerTeam: 'spies', finalSpies: room.spies, finalPlayers: playersObj, votes: null 
         });
         broadcastAnnouncement("🕵️ سيطر الجواسيس على المحطة! فوز الجواسيس!", "danger");
         return;
       } else {
-        // طرد بريء بس الجيم مخلصش -> رجوع للوبي مع حالة IN GAME للباقيين
-        db.ref(`spy_rooms/${currentRoom}`).update({ 
-          status: 'waiting',
-          votes: null 
-        });
+        db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting', votes: null });
         broadcastAnnouncement("❌ تم طرد بريء عن طريق الخطأ! عودة للوبي...", "danger");
         return;
       }
     }
   }
 
-  db.ref(`spy_rooms/${currentRoom}`).update({ 
-    status: 'playing', 
-    votes: null 
-  });
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing', votes: null });
   broadcastAnnouncement("⚖️ لم يتم طرد أحد! تستمر المهمة...", "normal");
 }
 
@@ -1316,17 +1233,9 @@ function showGameOverScreen(data) {
 
   for(let uid in allPlayers) {
     const p = allPlayers[uid];
-    const chip = `
-      <div class="team-member-chip">
-        <img src="${p.avatar}" alt="img">
-        <span>${p.name}</span>
-      </div>
-    `;
-    if(spyUids.includes(uid)) {
-      spiesHTML += chip;
-    } else {
-      crewHTML += chip;
-    }
+    const chip = `<div class="team-member-chip"><img src="${p.avatar}" alt="img"><span>${p.name}</span></div>`;
+    if(spyUids.includes(uid)) spiesHTML += chip;
+    else crewHTML += chip;
   }
 
   document.getElementById('spiesTeamList').innerHTML = spiesHTML || '<span style="font-size:12px; color:#64748b;">لا يوجد</span>';
@@ -1336,11 +1245,7 @@ function showGameOverScreen(data) {
 function returnToLobbyFromResults() {
   if(isHost) {
     db.ref(`spy_rooms/${currentRoom}`).update({
-      status: 'waiting',
-      winnerTeam: null,
-      votes: null,
-      spies: null,
-      word: null
+      status: 'waiting', winnerTeam: null, votes: null, spies: null, word: null
     });
   }
 }
