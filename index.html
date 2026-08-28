@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,7 +106,7 @@
   
   .auth-card-container input {
     background: rgba(3, 7, 18, 0.85); color: white;
-    border: 1px solid rgba(56, 189, 248, 0.3); text-align: right; padding-right: 18px;
+    border: 1px solid rgba(56, 189, 248, 0.3); padding-inline: 18px;
     font-size: 14px; transition: all 0.3s ease;
   }
   
@@ -149,10 +149,10 @@
     border-radius: 16px; margin-bottom: 20px; backdrop-filter: blur(10px);
   }
 
-  .avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: var(--neon-glow); }
-  .avatar-preview { width: 90px; height: 90px; border-radius: 50%; margin: 15px auto; border: 2px dashed var(--accent-purple); display: block; object-fit: cover; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+  .avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: var(--neon-glow); transform: none !important; }
+  .avatar-preview { width: 90px; height: 90px; border-radius: 50%; margin: 15px auto; border: 2px dashed var(--accent-purple); display: block; object-fit: cover; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); transform: none !important; }
 
-  input:not(.auth-card-container input), select { background: rgba(3, 7, 18, 0.8); color: white; border: 1px solid var(--glass-border); text-align: center; }
+  input:not(.auth-card-container input), select { background: rgba(3, 7, 18, 0.8); color: white; border: 1px solid var(--glass-border); text-align: start; padding-inline: 14px; }
   input:focus, select:focus { border-color: var(--accent-blue); box-shadow: var(--neon-glow); }
 
   button:not(.btn-auth-primary):not(.btn-google-auth) { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: #030712; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
@@ -179,10 +179,10 @@
   .public-rooms-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
   .public-room-card { background: rgba(3, 7, 18, 0.6); border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
 
-  .chat-container { background: rgba(3, 7, 18, 0.8); border: 1px solid var(--glass-border); border-radius: 14px; padding: 12px; margin-top: 15px; text-align: left; }
+  .chat-container { background: rgba(3, 7, 18, 0.8); border: 1px solid var(--glass-border); border-radius: 14px; padding: 12px; margin-top: 15px; text-align: start; }
   .chat-messages { height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
   .chat-msg { background: rgba(15, 23, 42, 0.8); padding: 8px 12px; border-radius: 10px; }
-  .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
+  .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-inline-end: 5px; }
 
   #top-notification {
     position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 99999;
@@ -204,10 +204,10 @@
   .voters-overlay { display: flex; align-items: center; gap: 3px; }
   .voter-mini-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-purple); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; transform: none !important; }
 
-  .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: right; }
+  .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: start; }
   .team-members-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .team-member-chip { display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.9); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); font-size: 12px; }
-  .team-member-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+  .team-member-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; transform: none !important; }
 </style>
 </head>
 <body>
@@ -215,7 +215,7 @@
 <div class="stars-overlay"></div>
 <div id="top-notification" class="hidden">
   <span id="notification-icon">🛰️</span>
-  <span id="notification-text">رسالة المحطة</span>
+  <span id="notification-text">Station Message</span>
 </div>
 
 <!-- 1. AUTH SCREEN -->
@@ -233,30 +233,30 @@
     
     <button class="btn-google-auth" onclick="signInWithGoogle()">
       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.99 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
-      <span data-key="googleAuth">الدخول بـ Google 🚀</span>
+      <span data-key="googleAuth">Sign in with Google 🚀</span>
     </button>
 
     <div class="auth-divider">
-      <span>أو البريد الإلكتروني</span>
+      <span>OR EMAIL</span>
     </div>
 
-    <h3 id="auth-title" data-key="login" style="margin-bottom:12px; font-size:16px; color:var(--accent-blue);">تسجيل الدخول</h3>
+    <h3 id="auth-title" data-key="login" style="margin-bottom:12px; font-size:16px; color:var(--accent-blue);">Login</h3>
     
     <div class="auth-input-group">
-      <input type="email" id="authEmail" placeholder="البريد الإلكتروني 📧">
+      <input type="email" id="authEmail" placeholder="Email Address 📧">
     </div>
 
     <div class="auth-input-group">
-      <input type="password" id="authPassword" placeholder="كلمة السر 🔑">
+      <input type="password" id="authPassword" placeholder="Password 🔑">
     </div>
 
     <div class="auth-input-group">
-      <input type="text" id="authUsername" placeholder="اسم المستخدم 👤" class="hidden">
+      <input type="text" id="authUsername" placeholder="Username 👤" class="hidden">
     </div>
 
-    <button onclick="handleAuth()" id="btn-auth" class="btn-auth-primary" data-key="loginBtn">دخول المحطة 🚀</button>
+    <button onclick="handleAuth()" id="btn-auth" class="btn-auth-primary" data-key="loginBtn">Enter Station 🚀</button>
     
-    <div onclick="toggleAuthMode()" style="color: #94a3b8; cursor: pointer; font-size: 13px; margin-top: 16px; text-decoration: underline;" id="txt-toggleAuth" data-key="toggleAuth">ليس لديك حساب؟ أنشئ حساباً جديداً</div>
+    <div onclick="toggleAuthMode()" style="color: #94a3b8; cursor: pointer; font-size: 13px; margin-top: 16px; text-decoration: underline;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
   </div>
 </div>
 
@@ -304,8 +304,8 @@
 
     <hr style="margin:20px 0; border-color:var(--glass-border);">
 
-    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;">Join via 6-Digit Code:</h3>
-    <input type="text" id="roomCodeInput" placeholder="Enter Station Code (e.g. X8K9P2)" style="text-transform:uppercase;">
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="lblJoinTitle">Join via 6-Digit Code:</h3>
+    <input type="text" id="roomCodeInput" data-key-placeholder="lblJoinPlaceholder" placeholder="Enter Station Code (e.g. X8K9P2)" style="text-transform:uppercase;">
     <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Station 🛰️</button>
   </div>
 </div>
@@ -313,9 +313,9 @@
 <!-- 3. STATIONS TAB -->
 <div id="tab-stations" class="page-screen has-nav hidden">
   <div class="container-box">
-    <h3 style="margin-bottom:15px; color:var(--accent-blue);">🌐 Active Public Stations</h3>
+    <h3 style="margin-bottom:15px; color:var(--accent-blue);" data-key="activeStationsTitle">🌐 Active Public Stations</h3>
     <div id="publicRoomsList" class="public-rooms-container">
-      <div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">Searching for public stations...</div>
+      <div style="font-size:13px; color:#64748b; padding:15px; text-align:center;" data-key="searchingStations">Searching for public stations...</div>
     </div>
   </div>
 </div>
@@ -328,9 +328,9 @@
     
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
     <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
-    <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
+    <input type="text" id="settingAvatarUrl" data-key-placeholder="lblAvatarUrlPlaceholder" placeholder="Or Image URL" onchange="updateAvatarPreview()">
     
-    <input type="text" id="settingUsername" placeholder="Change Username">
+    <input type="text" id="settingUsername" data-key-placeholder="lblUsernamePlaceholder" placeholder="Change Username">
     
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblSound">Sound Volume 🔊:</label>
     <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
@@ -338,7 +338,7 @@
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblLang">Language / اللغة:</label>
     <select id="languageSelect" onchange="changeLanguage(this.value)">
       <option value="en">English</option>
-      <option value="ar" selected>العربية</option>
+      <option value="ar">العربية</option>
     </select>
 
     <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:15px;">Save Changes 💾</button>
@@ -351,23 +351,23 @@
   <div class="container-box">
     <h3 data-key="roomSettingsTitle" style="margin-bottom:15px; text-align:center;">Station Configuration ⚙️</h3>
     
-    <label style="font-size:12px; color:#94a3b8; display:block;">Room Visibility 👁️:</label>
+    <label style="font-size:12px; color:#94a3b8; display:block;" data-key="lblVisibility">Room Visibility 👁️:</label>
     <select id="roomVisibilitySelect">
-      <option value="public">🌐 Public (Visible to everyone)</option>
-      <option value="private">🔒 Private (Code only)</option>
+      <option value="public" data-key="visPublic">🌐 Public (Visible to everyone)</option>
+      <option value="private" data-key="visPrivate">🔒 Private (Code only)</option>
     </select>
 
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblCategory">Category:</label>
     <select id="categorySelect">
-      <option value="players">⚽ Football Players</option>
-      <option value="food">🍕 Food & Drinks</option>
-      <option value="places">🗺️ Famous Places</option>
-      <option value="movies">🎬 Movies & Series</option>
-      <option value="games">🎮 Video Games</option>
-      <option value="animals">🦁 Animals</option>
+      <option value="players" data-key="catFootball">⚽ Football Players</option>
+      <option value="food" data-key="catFood">🍕 Food & Drinks</option>
+      <option value="places" data-key="catPlaces">🗺️ Famous Places</option>
+      <option value="movies" data-key="catMovies">🎬 Movies & Series</option>
+      <option value="games" data-key="catGames">🎮 Video Games</option>
+      <option value="animals" data-key="catAnimals">🦁 Animals</option>
     </select>
 
-    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;">Max Players (3 - 20):</label>
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblMaxPlayers">Max Players (3 - 20):</label>
     <select id="maxPlayersSelect"></select>
 
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count (1 - 8):</label>
@@ -377,7 +377,7 @@
     <input type="number" id="roundTimerSelect" value="180">
 
     <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Station 🚀</button>
-    <button class="btn-secondary" onclick="switchTab('tab-home')">Cancel</button>
+    <button class="btn-secondary" onclick="switchTab('tab-home')" data-key="btnCancel">Cancel</button>
   </div>
 </div>
 
@@ -386,14 +386,14 @@
   <div class="container-box" style="text-align:center;">
     <p data-key="stationCode">Station Frequency Code:</p>
     <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
-    <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">فئة الروم: --</div>
+    <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">Category: --</div>
     
     <div id="host-controls" class="hidden">
       <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
       <button onclick="startGame()" data-key="btnStartGame">Start Mission 🚀</button>
     </div>
 
-    <div style="margin-top:15px; text-align:left;">
+    <div style="margin-top:15px; text-align:start;">
       <b><span data-key="txtAstronauts">Crew Members</span> (<span id="playerCount">0</span> / <span id="maxPlayerCount">20</span>):</b>
       <div id="playersContainer" class="player-grid"></div>
     </div>
@@ -401,12 +401,12 @@
     <div class="chat-container">
       <div id="chatMessagesLobby" class="chat-messages"></div>
       <div style="display:flex; gap:6px; margin-top:8px;">
-        <input type="text" id="chatInputLobby" placeholder="Send transmission..." style="margin:0;">
+        <input type="text" id="chatInputLobby" data-key-placeholder="lblChatPlaceholder" placeholder="Send transmission..." style="margin:0;">
         <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
 
-    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom(true)">Leave Station 🚪</button>
+    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom(true)" data-key="btnLeaveStation">Leave Station 🚪</button>
   </div>
 </div>
 
@@ -421,7 +421,7 @@
     <div class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
       <div style="display:flex; gap:6px; margin-top:8px;">
-        <input type="text" id="chatInputGame" placeholder="Discuss transmission..." style="margin:0;">
+        <input type="text" id="chatInputGame" data-key-placeholder="lblChatPlaceholder" placeholder="Discuss transmission..." style="margin:0;">
         <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
@@ -437,7 +437,7 @@
     <div id="voteListContainer" class="vote-grid"></div>
 
     <div style="margin-top:15px;">
-      <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')">⏩ Skip Vote</button>
+      <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')" data-key="btnSkipVote">⏩ Skip Vote</button>
     </div>
   </div>
 </div>
@@ -445,21 +445,21 @@
 <!-- 9. GAME OVER / RESULTS SCREEN -->
 <div id="gameover-screen" class="page-screen hidden" style="z-index:40; background:rgba(3,7,18,0.95);">
   <div class="container-box" style="text-align:center;">
-    <h2 id="winnerTitle" style="color:var(--accent-blue); font-size:24px; margin-bottom:15px;">نتيجة المهمة</h2>
+    <h2 id="winnerTitle" style="color:var(--accent-blue); font-size:24px; margin-bottom:15px;">Mission Result</h2>
     
     <div class="team-section">
-      <b style="color:var(--danger-red);">🕵️ فريق الجواسيس:</b>
+      <b style="color:var(--danger-red);" data-key="spiesTeamLabel">🕵️ Spies Team:</b>
       <div id="spiesTeamList" class="team-members-row"></div>
     </div>
 
     <div class="team-section">
-      <b style="color:var(--accent-blue);">🚀 فريق الطاقم:</b>
+      <b style="color:var(--accent-blue);" data-key="crewTeamLabel">🚀 Crew Team:</b>
       <div id="crewTeamList" class="team-members-row"></div>
     </div>
 
     <div style="display:flex; gap:10px; margin-top:20px;">
-      <button onclick="returnToLobbyFromResults()" style="flex:1;" class="btn-secondary">العودة للوبي 🔄</button>
-      <button onclick="leaveRoom(true)" style="flex:1;" class="btn-danger">مغادرة المحطة 🚪</button>
+      <button onclick="returnToLobbyFromResults()" style="flex:1;" class="btn-secondary" data-key="btnReturnLobby">Return to Lobby 🔄</button>
+      <button onclick="leaveRoom(true)" style="flex:1;" class="btn-danger" data-key="btnLeaveGame">Leave the game 🚪</button>
     </div>
   </div>
 </div>
@@ -468,15 +468,15 @@
 <div id="main-bottom-nav" class="bottom-nav hidden">
   <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
     <span class="nav-icon">🚀</span>
-    <span>Home</span>
+    <span data-key="navHome">Home</span>
   </div>
   <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
     <span class="nav-icon">🌐</span>
-    <span>Stations</span>
+    <span data-key="navStations">Stations</span>
   </div>
   <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
     <span class="nav-icon">⚙️</span>
-    <span>Settings</span>
+    <span data-key="navSettings">Settings</span>
   </div>
 </div>
 
@@ -553,35 +553,62 @@ function generate6DigitCode() {
 
 const dictionary = {
   en: {
-    googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
+    googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Enter Station 🚀", toggleAuth: "Don't have an account? Sign Up",
     chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals",
     joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
     lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
     stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀", txtAstronauts: "Crew Members",
-    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL"
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL",
+    lblJoinTitle: "Join via 6-Digit Code:", lblJoinPlaceholder: "Enter Station Code (e.g. X8K9P2)",
+    activeStationsTitle: "🌐 Active Public Stations", searchingStations: "Searching for public stations...",
+    lblAvatarUrlPlaceholder: "Or Image URL", lblUsernamePlaceholder: "Change Username",
+    lblVisibility: "Room Visibility 👁️:", visPublic: "🌐 Public (Visible to everyone)", visPrivate: "🔒 Private (Code only)",
+    lblMaxPlayers: "Max Players (3 - 20):", btnCancel: "Cancel", lblChatPlaceholder: "Send transmission...",
+    btnLeaveStation: "Leave Station 🚪", btnSkipVote: "⏩ Skip Vote",
+    spiesTeamLabel: "🕵️ Spies Team:", crewTeamLabel: "🚀 Crew Team:",
+    btnReturnLobby: "Return to Lobby 🔄", btnLeaveGame: "Leave the game 🚪",
+    navHome: "Home", navStations: "Stations", navSettings: "Settings",
+    categoryPrefix: "Category: "
   },
   ar: {
-    googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول للمحطة", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
+    googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
     chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات",
     joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
     stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀", txtAstronauts: "أفراد الطاقم",
-    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ"
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ",
+    lblJoinTitle: "الانضمام عبر كود مكون من 6 أرقام:", lblJoinPlaceholder: "أدخل كود المحطة (مثل X8K9P2)",
+    activeStationsTitle: "🌐 المحطات العامة النشطة", searchingStations: "جاري البحث عن المحطات العامة...",
+    lblAvatarUrlPlaceholder: "أو رابط الصورة", lblUsernamePlaceholder: "تغيير اسم المستخدم",
+    lblVisibility: "ظهور الروم 👁️:", visPublic: "🌐 عام (مرئي للجميع)", visPrivate: "🔒 خاص (بالكود فقط)",
+    lblMaxPlayers: "الحد الأقصى للاعبين (3 - 20):", btnCancel: "إلغاء", lblChatPlaceholder: "إرسال إرسال...",
+    btnLeaveStation: "مغادرة المحطة 🚪", btnSkipVote: "⏩ تخطي التصويت",
+    spiesTeamLabel: "🕵️ فريق الجواسيس:", crewTeamLabel: "🚀 فريق الطاقم:",
+    btnReturnLobby: "العودة للوبي 🔄", btnLeaveGame: "مغادرة اللعبة 🚪",
+    navHome: "الرئيسية", navStations: "المحطات", navSettings: "الإعدادات",
+    categoryPrefix: "فئة الروم: "
   }
 };
 
-let currentLang = 'ar';
+let currentLang = localStorage.getItem('spy_station_lang') || 'en';
 
 function changeLanguage(lang) {
   currentLang = lang;
+  localStorage.setItem('spy_station_lang', lang);
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('languageSelect').value = lang;
 
   document.querySelectorAll('[data-key]').forEach(el => {
     const key = el.getAttribute('data-key');
     if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
+  });
+
+  document.querySelectorAll('[data-key-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-key-placeholder');
+    if (dictionary[lang][key]) el.placeholder = dictionary[lang][key];
   });
 }
 
@@ -590,12 +617,12 @@ let gameInterval = null, voteInterval = null;
 let roomListener = null, annListener = null;
 
 const categoryNamesMap = {
-  players: "⚽ كرة القدم",
-  food: "🍕 أكلات ومشروبات",
-  places: "🗺️ أماكن ومعالم",
-  movies: "🎬 أفلام ومسلسلات",
-  games: "🎮 ألعاب فيديو",
-  animals: "🦁 حيوانات"
+  players: { en: "⚽ Football Players", ar: "⚽ كرة القدم" },
+  food: { en: "🍕 Food & Drinks", ar: "🍕 أكلات ومشروبات" },
+  places: { en: "🗺️ Famous Places", ar: "🗺️ أماكن ومعالم" },
+  movies: { en: "🎬 Movies & Series", ar: "🎬 أفلام ومسلسلات" },
+  games: { en: "🎮 Video Games", ar: "🎮 ألعاب فيديو" },
+  animals: { en: "🦁 Animals", ar: "🦁 حيوانات" }
 };
 
 const wordsDB = {
@@ -701,6 +728,7 @@ auth.onAuthStateChanged(user => {
 
 function initUser(user) {
   currentUser = user;
+  changeLanguage(currentLang);
   document.getElementById('userDisplay').innerText = user.displayName || user.email.split('@')[0];
   document.getElementById('userAvatarDisplay').src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=astro`;
   
@@ -753,20 +781,21 @@ function listenToPublicRooms() {
       }
 
       if(room.visibility === 'public' && room.status === 'waiting' && pCount > 0) {
+        const catText = categoryNamesMap[room.category] ? categoryNamesMap[room.category][currentLang] || categoryNamesMap[room.category].en : room.category;
         publicRoomsHTML += `
           <div class="public-room-card">
-            <div style="text-align:right;">
+            <div style="text-align:start;">
               <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
-              <span style="font-size:11px; color:#94a3b8;">(${categoryNamesMap[room.category] || 'عام'})</span>
-              <div style="font-size:11px; color:#64748b; margin-top:2px;">اللاعبين: ${pCount}/${room.maxPlayers || 20} | الـ Host: ${hostName}</div>
+              <span style="font-size:11px; color:#94a3b8;">(${catText})</span>
+              <div style="font-size:11px; color:#64748b; margin-top:2px;">Players: ${pCount}/${room.maxPlayers || 20} | Host: ${hostName}</div>
             </div>
-            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">انضمام 🚀</button>
+            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">Join 🚀</button>
           </div>
         `;
       }
     }
 
-    listContainer.innerHTML = publicRoomsHTML || '<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">لا توجد محطات عامة مفتوحة حالياً. أنشئ واحدة!</div>';
+    listContainer.innerHTML = publicRoomsHTML || `<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">${dictionary[currentLang].searchingStations}</div>`;
   });
 }
 
@@ -806,7 +835,7 @@ function saveSettings() {
 
   currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
     initUser(currentUser);
-    showToast("تم تحديث الملف الشخصي!", 'success');
+    showToast("Settings saved successfully!", 'success');
   });
 }
 
@@ -839,7 +868,7 @@ async function confirmCreateOrUpdateRoom() {
 
 function joinRoomByInput() {
   const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-  if(!code || code.length !== 6) return showToast("أدخل كود مكون من 6 أرقام/أحرف!", 'danger');
+  if(!code || code.length !== 6) return showToast("Enter a valid 6-character code!", 'danger');
   joinDirectRoom(code);
 }
 
@@ -851,12 +880,12 @@ function joinDirectRoom(code) {
       const playersCount = room.players ? Object.keys(room.players).length : 0;
       if(!room.players || !room.players[currentUser.uid]) {
         if(playersCount >= (room.maxPlayers || 20)) {
-          return showToast("المحطة ممتلئة بالكامل!", 'danger');
+          return showToast("Station is full!", 'danger');
         }
       }
       joinRoomProcess(false);
     } else {
-      showToast("الغرفة غير موجودة!", 'danger');
+      showToast("Station does not exist!", 'danger');
     }
   });
 }
@@ -878,7 +907,7 @@ function leaveRoom(manual = false) {
   }
 
   switchTab('tab-home');
-  if(manual) showToast("تم مغادرة المحطة");
+  if(manual) showToast("Left station successfully");
 }
 
 function joinRoomProcess(isRestoring = false) {
@@ -917,7 +946,7 @@ function joinRoomProcess(isRestoring = false) {
     const playersArr = Object.values(playersObj);
 
     if(!playersObj[currentUser.uid]) {
-      showToast("تم إخراجك من المحطة", 'danger');
+      showToast("You were removed from the station", 'danger');
       leaveRoom(false);
       return;
     }
@@ -925,7 +954,10 @@ function joinRoomProcess(isRestoring = false) {
     document.getElementById('roomCodeDisplay').innerText = currentRoom;
     document.getElementById('playerCount').innerText = playersArr.length;
     document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
-    document.getElementById('roomCategoryDisplay').innerText = `فئة الروم: ${categoryNamesMap[data.category] || data.category}`;
+    
+    const catObj = categoryNamesMap[data.category];
+    const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
+    document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
 
     document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
       <div class="player-item">
@@ -984,9 +1016,7 @@ function handleHostAssignment(data) {
   if(!playersObj[data.hostUid]) {
     const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
     if(sorted.length > 0) {
-      if(currentUser.uid === sorted[0].uid) {
-        db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
-      }
+      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
     }
   }
 
@@ -1036,13 +1066,13 @@ function listenToChat() {
 function startGame() {
   db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
     const playersArr = Object.values(snap.val() || {});
-    if(playersArr.length < 3) return showToast("الحد الأدنى 3 لاعبين لبدء المهمة!", 'danger');
+    if(playersArr.length < 3) return showToast("Minimum 3 players required to start!", 'danger');
 
     db.ref('spy_rooms/' + currentRoom).once('value', roomSnap => {
       const data = roomSnap.val();
       
       if(data.spyCount >= Math.ceil(playersArr.length / 2)) {
-        return showToast("عدد الجواسيس كبير جداً نسبة لعدد اللاعبين!", 'danger');
+        return showToast("Too many spies for this player count!", 'danger');
       }
 
       const wordList = wordsDB[data.category] || wordsDB.players;
@@ -1064,7 +1094,7 @@ function startGame() {
         voteTimeLeft: 80
       });
 
-      broadcastAnnouncement("🚀 بدأت المهمة! استعدوا لاكتشاف الجاسوس بينكم!", "normal");
+      broadcastAnnouncement("🚀 Mission started! Find the spy!", "normal");
       startTimerSync();
     });
   });
@@ -1084,7 +1114,7 @@ function startTimerSync() {
       if(room.status === 'playing') {
         if(room.timeLeft <= 1) {
           db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
-          broadcastAnnouncement("🚨 انتهى الوقت! بدء مرحلة التصويت!", "danger");
+          broadcastAnnouncement("🚨 Time's up! Voting phase started!", "danger");
           startVoteTimerSync();
         } else {
           db.ref(`spy_rooms/${currentRoom}/timeLeft`).set(room.timeLeft - 1);
@@ -1124,8 +1154,8 @@ function showGameScreen(data) {
   document.getElementById('game-screen').classList.remove('hidden');
   
   const isSpy = data.spies && data.spies.includes(currentUser.uid);
-  document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ أنت الجاسوس!" : `الكلمة هي: ${data.word}`;
-  document.getElementById('timerDisplay').innerText = `⏳ الوقت المتبقي: ${data.timeLeft || 0}ث`;
+  document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ You are the Spy!" : `The word is: ${data.word}`;
+  document.getElementById('timerDisplay').innerText = `⏳ Time left: ${data.timeLeft || 0}s`;
 
   const btnEmergency = document.getElementById('btnEmergencyVote');
   const initial = data.initialTimer || 180;
@@ -1140,7 +1170,7 @@ function showGameScreen(data) {
 
 function triggerVotingPhase() {
   db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
-  broadcastAnnouncement("🚨 تم تفعيل التصويت الطارئ!", "danger");
+  broadcastAnnouncement("🚨 Emergency vote triggered!", "danger");
   if(isHost) startVoteTimerSync();
 }
 
@@ -1148,7 +1178,7 @@ function showVotingScreen(data) {
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('voting-screen').classList.remove('hidden');
 
-  document.getElementById('voteTimerDisplay').innerText = `⏳ وقت التصويت: ${data.voteTimeLeft || 80}ث`;
+  document.getElementById('voteTimerDisplay').innerText = `⏳ Vote Time: ${data.voteTimeLeft || 80}s`;
 
   const players = data.players ? Object.values(data.players) : [];
   const votes = data.votes || {};
@@ -1185,9 +1215,7 @@ function showVotingScreen(data) {
   
   const btnSkip = document.getElementById('btnSkipVote');
   btnSkip.classList.toggle('disabled', hasVoted);
-  if(hasVoted) {
-    btnSkip.onclick = null;
-  } else {
+  if(!hasVoted) {
     btnSkip.onclick = () => castVote('SKIP');
   }
 }
@@ -1196,7 +1224,7 @@ function castVote(targetUid) {
   db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
     if(snap.exists()) return;
     db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
-      showToast("تم تسجيل صوتك!", 'success');
+      showToast("Vote recorded!", 'success');
       
       db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
         const room = roomSnap.val();
@@ -1249,7 +1277,7 @@ function processVoteResults(room) {
           finalPlayers: playersObj,
           votes: null 
         });
-        broadcastAnnouncement("🎉 تم طرد جميع الجواسيس! فوز الطاقم!", "success");
+        broadcastAnnouncement("🎉 All spies caught! Crew wins!", "success");
         return;
       } else {
         db.ref(`spy_rooms/${currentRoom}`).update({ 
@@ -1257,7 +1285,7 @@ function processVoteResults(room) {
           status: 'waiting',
           votes: null 
         });
-        broadcastAnnouncement("🕵️ تم طرد أحد الجواسيس، ولكن هناك جواسيس آخرون متبقون! عودة للوبي...", "danger");
+        broadcastAnnouncement("🕵️ A spy was ejected, but more spies remain! IN GAME - Back to lobby...", "danger");
         return;
       }
     } else {
@@ -1273,24 +1301,24 @@ function processVoteResults(room) {
           finalPlayers: playersObj,
           votes: null 
         });
-        broadcastAnnouncement("🕵️ سيطر الجواسيس على المحطة! فوز الجواسيس!", "danger");
+        broadcastAnnouncement("🕵️ Spies have taken over! Spies win!", "danger");
         return;
       } else {
         db.ref(`spy_rooms/${currentRoom}`).update({ 
           status: 'waiting',
           votes: null 
         });
-        broadcastAnnouncement("❌ تم طرد بريء عن طريق الخطأ! عودة للوبي...", "danger");
+        broadcastAnnouncement("❌ An innocent person was ejected! IN GAME - Back to lobby...", "danger");
         return;
       }
     }
   }
 
   db.ref(`spy_rooms/${currentRoom}`).update({ 
-    status: 'playing', 
+    status: 'waiting', 
     votes: null 
   });
-  broadcastAnnouncement("⚖️ لم يتم طرد أحد! تستمر المهمة...", "normal");
+  broadcastAnnouncement("⚖️ Nobody ejected! IN GAME - Back to lobby...", "normal");
 }
 
 function showGameOverScreen(data) {
@@ -1298,7 +1326,7 @@ function showGameOverScreen(data) {
   document.getElementById('gameover-screen').classList.remove('hidden');
 
   const winner = data.winnerTeam;
-  document.getElementById('winnerTitle').innerText = winner === 'crew' ? "🎉 فوز فريق الطاقم! 🎉" : "🕵️ فوز فريق الجواسيس! 🕵️";
+  document.getElementById('winnerTitle').innerText = winner === 'crew' ? "🎉 Crew Team Won! 🎉" : "🕵️ Spies Team Won! 🕵️";
 
   const allPlayers = data.finalPlayers || data.players || {};
   const spyUids = data.finalSpies || data.spies || [];
@@ -1321,8 +1349,8 @@ function showGameOverScreen(data) {
     }
   }
 
-  document.getElementById('spiesTeamList').innerHTML = spiesHTML || '<span style="font-size:12px; color:#64748b;">لا يوجد</span>';
-  document.getElementById('crewTeamList').innerHTML = crewHTML || '<span style="font-size:12px; color:#64748b;">لا يوجد</span>';
+  document.getElementById('spiesTeamList').innerHTML = spiesHTML || '<span style="font-size:12px; color:#64748b;">None</span>';
+  document.getElementById('crewTeamList').innerHTML = crewHTML || '<span style="font-size:12px; color:#64748b;">None</span>';
 }
 
 function returnToLobbyFromResults() {
