@@ -1,70 +1,54 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPY STATION 🛰️</title>
+<title>Spy Station 🚀</title>
 
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#030712">
+<meta name="theme-color" content="#38bdf8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spy Station">
+
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;900&family=Cairo:wght@400;700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
 
   :root {
     --bg-primary: #030712;
     --accent-blue: #38bdf8;
-    --accent-purple: #c084fc;
-    --glass-bg: rgba(15, 23, 42, 0.85);
-    --glass-border: rgba(56, 189, 248, 0.3);
-    --neon-glow: 0 0 20px rgba(56, 189, 248, 0.35);
+    --accent-purple: #a855f7;
+    --neon-glow: 0 0 20px rgba(56, 189, 248, 0.4);
     --danger-red: #ef4444;
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(56, 189, 248, 0.25);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Exo 2', 'Cairo', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   
-  body { background: var(--bg-primary); color: #f8fafc; min-height: 100vh; width: 100vw; overflow-x: hidden; position: relative; }
+  body { background: var(--bg-primary); color: #f3f4f6; min-height: 100vh; width: 100vw; overflow-x: hidden; position: relative; }
 
-  /* خلفية النجوم الفضائية */
+  body::before {
+    content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at bottom, #1e1b4b 0%, #030712 100%); z-index: -2;
+  }
+  
   .stars-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-image: 
-      radial-gradient(1.5px 1.5px at 20px 30px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
       radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)),
-      radial-gradient(1px 1px at 90px 40px, #a855f7, rgba(0,0,0,0));
-    background-repeat: repeat; background-size: 200px 200px; opacity: 0.5;
-    animation: starsAnimation 60s linear infinite; z-index: -1;
+      radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 160px 120px, #a855f7, rgba(0,0,0,0));
+    background-repeat: repeat; background-size: 200px 200px; opacity: 0.6;
+    animation: starsAnimation 100s linear infinite; z-index: -1;
   }
 
   @keyframes starsAnimation { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
 
-  /* 🌌 شاشة الدخلة (Cyber Splash Screen) */
-  #splash-screen {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: #030712; z-index: 99999; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; opacity: 1; transition: opacity 0.8s ease;
-  }
-
-  .radar-container {
-    width: 130px; height: 130px; border-radius: 50%; border: 2px solid var(--accent-blue);
-    position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: var(--neon-glow); margin-bottom: 20px; background: rgba(15, 23, 42, 0.6);
-  }
-
-  .radar-sweep {
-    position: absolute; width: 100%; height: 100%; border-radius: 50%;
-    background: conic-gradient(from 0deg, transparent 60%, rgba(56, 189, 248, 0.4) 100%);
-    animation: radarSpin 2s linear infinite;
-  }
-
-  @keyframes radarSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-  .splash-title {
-    font-family: 'Chakra Petch', sans-serif; font-size: 30px; font-weight: 900; letter-spacing: 4px;
-    background: linear-gradient(90deg, #38bdf8, #c084fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-
-  /* الشاشات الرئيسية */
   .page-screen {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
@@ -74,57 +58,83 @@
   .page-screen.has-nav { height: calc(100vh - 75px); }
   .hidden { display: none !important; }
 
-  /* الشريط العالي للمستخدم */
+  h1, h2, h3, .logo-title { font-family: 'Chakra Petch', 'Cairo', sans-serif; text-transform: uppercase; letter-spacing: 1.5px; }
+
+  .logo-title {
+    font-size: 26px; font-weight: 900;
+    background: linear-gradient(90deg, #38bdf8, #a855f7, #38bdf8);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shine 4s linear infinite; text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+  }
+
+  @keyframes shine { to { background-position: 200% center; } }
+
+  .container-box { 
+    background: var(--glass-bg); border: 1px solid var(--glass-border); 
+    backdrop-filter: blur(16px); border-radius: 20px; padding: 20px; 
+    width: 100%; max-width: 600px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); margin-bottom: 20px;
+  }
+
   .header-profile-bar {
     width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
-    border: 1px solid var(--glass-border); padding: 12px 18px;
-    border-radius: 20px; margin-bottom: 20px; backdrop-filter: blur(16px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); padding: 12px 20px;
+    border-radius: 16px; margin-bottom: 20px; backdrop-filter: blur(10px);
   }
 
   .avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: var(--neon-glow); }
-
-  /* تصميم الكروت الجديد */
-  .container-box { 
-    background: var(--glass-bg); border: 1px solid var(--glass-border); 
-    backdrop-filter: blur(20px); border-radius: 24px; padding: 22px; 
-    width: 100%; max-width: 600px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); margin-bottom: 20px;
-  }
+  .avatar-preview { width: 90px; height: 90px; border-radius: 50%; margin: 15px auto; border: 2px dashed var(--accent-purple); display: block; object-fit: cover; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
 
   input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 14px; border: none; font-size: 14px; outline: none; }
-  input, select { background: rgba(3, 7, 18, 0.9); color: white; border: 1px solid var(--glass-border); text-align: center; }
+  input, select { background: rgba(3, 7, 18, 0.8); color: white; border: 1px solid var(--glass-border); text-align: center; }
   input:focus, select:focus { border-color: var(--accent-blue); box-shadow: var(--neon-glow); }
 
-  button { background: linear-gradient(135deg, var(--accent-blue), #0284c7); color: #030712; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
+  button { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: #030712; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
   button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
 
-  .btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255, 255, 255, 0.15); }
+  .btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
   .btn-danger { background: linear-gradient(135deg, var(--danger-red), #991b1b); color: white; }
 
-  /* كروت الفئات التفاعلية المحدثة */
   .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
-  .category-card { 
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
-    border: 1px solid var(--glass-border); padding: 18px 10px; border-radius: 20px;
-    cursor: pointer; text-align: center; position: relative; overflow: hidden;
-  }
-  .category-card:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.15); transform: translateY(-4px); box-shadow: var(--neon-glow); }
+  .category-card { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); padding: 16px 8px; border-radius: 16px; cursor: pointer; text-align: center; }
+  .category-card:hover { border-color: var(--accent-purple); background: rgba(168, 85, 247, 0.15); transform: translateY(-3px); box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+  .category-card .icon { font-size: 28px; display: block; margin-bottom: 4px; }
 
-  /* كروت غرف اللاعبين المفتوحة */
-  .public-room-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
-    border: 1px solid var(--glass-border); border-radius: 18px; padding: 16px; margin-bottom: 12px;
-    display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100vw; height: 70px; background: rgba(3, 7, 18, 0.9); border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; gap: 4px; width: 33.3%; height: 100%; }
+  .nav-item .nav-icon { font-size: 20px; }
+  .nav-item.active { color: var(--accent-blue); }
+  .nav-item.active .nav-icon { transform: scale(1.1); text-shadow: 0 0 10px var(--accent-blue); }
 
-  /* الشريط السفلي المطور (3 تبويبات) */
-  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100vw; height: 75px; background: rgba(3, 7, 18, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 700; gap: 4px; width: 33.3%; height: 100%; }
-  .nav-item.active { color: var(--accent-blue); border-top: 2px solid var(--accent-blue); }
+  .player-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin: 12px 0; max-height: 250px; overflow-y: auto; }
+  .player-item { background: rgba(3, 7, 18, 0.6); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; }
+
+  .public-rooms-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .public-room-card { background: rgba(3, 7, 18, 0.6); border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+
+  .chat-container { background: rgba(3, 7, 18, 0.8); border: 1px solid var(--glass-border); border-radius: 14px; padding: 12px; margin-top: 15px; text-align: left; }
+  .chat-messages { height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .chat-msg { background: rgba(15, 23, 42, 0.8); padding: 8px 12px; border-radius: 10px; }
+  .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
 
   #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; pointer-events: none; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 440px; }
-  .toast { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); color: #f8fafc; padding: 14px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; box-shadow: var(--neon-glow); }
+  .toast { 
+    background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); color: #f8fafc; padding: 16px 20px; 
+    border-radius: 16px; font-size: 14px; font-weight: 700; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35); 
+    backdrop-filter: blur(16px); display: flex; align-items: center; gap: 12px;
+    animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .toast.toast-danger { border-color: var(--danger-red); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45); }
+  .toast.toast-success { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45); }
+  @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .vote-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+  .vote-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .vote-card:hover { border-color: var(--accent-purple); }
+  .vote-card.disabled { pointer-events: none; opacity: 0.6; }
+
+  .voters-overlay { display: flex; align-items: center; }
+  .voter-mini-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent-purple); transform: rotate(-15deg); margin-left: -8px; box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; }
 </style>
 </head>
 <body>
@@ -132,98 +142,225 @@
 <div class="stars-overlay"></div>
 <div id="toast-container"></div>
 
-<!-- 1. CYBER SPLASH SCREEN -->
-<div id="splash-screen">
-  <div class="radar-container">
-    <div class="radar-sweep"></div>
-    <span style="font-size:36px; z-index:2;">🛰️</span>
-  </div>
-  <div class="splash-title">SPY STATION</div>
-</div>
-
-<!-- 2. AUTH SCREEN -->
-<div id="auth-screen" class="page-screen hidden" style="justify-content:center;">
-  <div class="container-box" style="text-align:center; max-width:400px;">
-    <div class="splash-title" style="font-size:24px; margin-bottom:15px;">SPY STATION</div>
-    <h3 id="auth-title" style="margin-bottom:15px; font-size:16px;">تسجيل الدخول للمحطة</h3>
-
+<!-- 1. AUTH SCREEN -->
+<div id="auth-screen" class="page-screen" style="justify-content:center;">
+  <div class="container-box" style="text-align:center;">
+    <div style="margin-bottom:20px;">
+      <div class="logo-title" style="font-size:32px;">🛸 SPY STATION</div>
+      <div style="font-size: 11px; color: #94a3b8; letter-spacing: 3px; margin-top:5px;">DEEP SPACE TACTICS</div>
+    </div>
+    
     <button class="btn-secondary" onclick="signInWithGoogle()" style="margin-bottom:15px; background:white; color:#0f172a; font-weight:bold;">
-      <span>تسجيل الدخول بـ Google 🚀</span>
+      <span>Sign in with Google 🚀</span>
     </button>
 
-    <input type="email" id="authEmail" placeholder="البريد الإلكتروني">
-    <input type="password" id="authPassword" placeholder="كلمة السر">
-    <input type="text" id="authUsername" placeholder="اسم المستخدم" class="hidden">
-    <button onclick="handleAuth()" id="btn-auth">دخول للمحطة 🚀</button>
-    <div onclick="toggleAuthMode()" style="color: var(--accent-blue); cursor: pointer; font-size: 13px; margin-top: 12px;" id="txt-toggleAuth">ليس لديك حساب؟ أنشئ حساباً جديداً</div>
+    <h3 id="auth-title" data-key="login" style="margin-bottom:10px;">Login</h3>
+    <input type="email" id="authEmail" placeholder="Email">
+    <input type="password" id="authPassword" placeholder="Password">
+    <input type="text" id="authUsername" placeholder="Unique Username" class="hidden">
+    <button onclick="handleAuth()" id="btn-auth" data-key="loginBtn">Login 🚀</button>
+    <div onclick="toggleAuthMode()" style="color: var(--accent-blue); cursor: pointer; font-size: 13px; margin-top: 12px;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
   </div>
 </div>
 
-<!-- 3. HOME TAB (إنشاء وانضمام) -->
+<!-- 2. HOME TAB -->
 <div id="tab-home" class="page-screen has-nav hidden">
   <div class="header-profile-bar">
     <div style="display:flex; align-items:center; gap:12px;">
       <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
       <div>
-        <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block; font-size:15px;">اللاعب</span>
-        <span style="font-size:11px; color:#94a3b8;">متصل بالشبكة 🛰️</span>
+        <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block; font-size:16px;">Player</span>
+        <span id="userScoreDisplay" style="font-size:12px; color:#94a3b8;">Score: 0 pts</span>
       </div>
     </div>
-    <div class="splash-title" style="font-size: 16px;">SPY STATION</div>
+    <div class="logo-title" style="font-size: 18px;">SPY STATION</div>
   </div>
 
   <div class="container-box">
-    <h3 style="font-size:15px; color:var(--accent-blue); margin-bottom:10px;">🚀 اختر فئة اللعبة لإنشاء محطة:</h3>
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="chooseCategory">Create Station Room:</h3>
     <div class="category-grid">
-      <div class="category-card" onclick="openCreateRoomModal('players')"><span style="font-size:28px;">⚽</span><br><span style="font-size:12px; font-weight:bold;">كرة القدم</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('food')"><span style="font-size:28px;">🍕</span><br><span style="font-size:12px; font-weight:bold;">أكلات</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('places')"><span style="font-size:28px;">🗺️</span><br><span style="font-size:12px; font-weight:bold;">أماكن</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('movies')"><span style="font-size:28px;">🎬</span><br><span style="font-size:12px; font-weight:bold;">أفلام</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('games')"><span style="font-size:28px;">🎮</span><br><span style="font-size:12px; font-weight:bold;">ألعاب</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('animals')"><span style="font-size:28px;">🦁</span><br><span style="font-size:12px; font-weight:bold;">حيوانات</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('players')">
+        <span class="icon">⚽</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('food')">
+        <span class="icon">🍕</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('places')">
+        <span class="icon">🗺️</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('movies')">
+        <span class="icon">🎬</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catMovies">Movies</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('games')">
+        <span class="icon">🎮</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catGames">Games</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('animals')">
+        <span class="icon">🦁</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span>
+      </div>
     </div>
 
     <hr style="margin:20px 0; border-color:var(--glass-border);">
 
-    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;">🔒 الانضمام بكود محطة خاصة:</h3>
-    <input type="text" id="roomCodeInput" placeholder="أدخل كود المحطة (مثال: X8K9P2)" style="text-transform:uppercase;">
-    <button class="btn-secondary" onclick="joinRoomByInput()">انضمام للكود 🛰️</button>
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;">Join via 6-Digit Code:</h3>
+    <input type="text" id="roomCodeInput" placeholder="Enter Station Code (e.g. X8K9P2)" style="text-transform:uppercase;">
+    <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Station 🛰️</button>
   </div>
 </div>
 
-<!-- 4. PUBLIC ROOMS TAB (التبويب الجديد في الشريط السفلي) -->
-<div id="tab-public" class="page-screen has-nav hidden">
+<!-- 3. STATIONS TAB -->
+<div id="tab-stations" class="page-screen has-nav hidden">
   <div class="container-box">
-    <h3 style="font-size:16px; color:var(--accent-blue); margin-bottom:15px; text-align:center;">🌐 المحطات العامة النشطة</h3>
-    <div id="publicRoomsContainer">
-      <div style="text-align:center; color:#64748b; font-size:13px; padding:20px;">جاري تجميع المحطات العامة...</div>
+    <h3 style="margin-bottom:15px; color:var(--accent-blue);">🌐 Active Public Stations</h3>
+    <div id="publicRoomsList" class="public-rooms-container">
+      <div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">Searching for public stations...</div>
     </div>
   </div>
 </div>
 
-<!-- 5. SETTINGS TAB -->
+<!-- 4. SETTINGS TAB -->
 <div id="tab-settings" class="page-screen has-nav hidden">
   <div class="container-box">
-    <h3 style="margin-bottom:15px; text-align:center; color:var(--accent-blue);">إعدادات الحساب ⚙️</h3>
+    <h3 data-key="settingsTitle" style="margin-bottom:15px; text-align:center;">Profile & System Settings ⚙️</h3>
+    <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
     
-    <label style="font-size:12px; color:#94a3b8;">اسم المستخدم الجديد:</label>
-    <input type="text" id="settingUsername" placeholder="اسم المستخدم">
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
+    <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
+    <input type="text" id="settingAvatarUrl" placeholder="Or Image URL" onchange="updateAvatarPreview()">
     
-    <label style="font-size:12px; color:#94a3b8; margin-top:10px; display:block;">رابط الصورة الشخصية (URL):</label>
-    <input type="text" id="settingAvatarUrl" placeholder="https://...">
+    <input type="text" id="settingUsername" placeholder="Change Username">
+    
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblSound">Sound Volume 🔊:</label>
+    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
 
-    <button onclick="saveUserProfile()" style="margin-top:15px;">حفظ وتحديث البيانات 💾</button>
-    <button class="btn-danger" style="margin-top:20px;" onclick="logout()">تسجيل الخروج 🚪</button>
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblLang">Language / اللغة:</label>
+    <select id="languageSelect" onchange="changeLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="ar">العربية</option>
+    </select>
+
+    <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:15px;">Save Changes 💾</button>
+    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
   </div>
 </div>
 
-<!-- BOTTOM NAV (الشريط السفلي المطور) -->
-<div id="main-bottom-nav" class="bottom-nav hidden">
-  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')"><span>🚀 الرئيسية</span></div>
-  <div class="nav-item" id="nav-public" onclick="switchTab('tab-public')"><span>🌐 غرف عامة</span></div>
-  <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')"><span>⚙️ الإعدادات</span></div>
+<!-- 5. CREATE / EDIT ROOM SCREEN -->
+<div id="create-room-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box">
+    <h3 data-key="roomSettingsTitle" style="margin-bottom:15px; text-align:center;">Station Configuration ⚙️</h3>
+    
+    <label style="font-size:12px; color:#94a3b8; display:block;">Room Visibility 👁️:</label>
+    <select id="roomVisibilitySelect">
+      <option value="public">🌐 Public (Visible to everyone)</option>
+      <option value="private">🔒 Private (Code only)</option>
+    </select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblCategory">Category:</label>
+    <select id="categorySelect">
+      <option value="players">⚽ Football Players</option>
+      <option value="food">🍕 Food & Drinks</option>
+      <option value="places">🗺️ Famous Places</option>
+      <option value="movies">🎬 Movies & Series</option>
+      <option value="games">🎮 Video Games</option>
+      <option value="animals">🦁 Animals</option>
+    </select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;">Max Players (3 - 20):</label>
+    <select id="maxPlayersSelect"></select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count (1 - 8):</label>
+    <select id="spyCountSelect"></select>
+    
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblRoundTimer">Round Time (Seconds):</label>
+    <input type="number" id="roundTimerSelect" value="180">
+
+    <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Station 🚀</button>
+    <button class="btn-secondary" onclick="switchTab('tab-home')">Cancel</button>
+  </div>
 </div>
 
+<!-- 6. LOBBY SCREEN -->
+<div id="lobby-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box" style="text-align:center;">
+    <p data-key="stationCode">Station Frequency Code:</p>
+    <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:10px 0;">------</div>
+    
+    <div id="host-controls" class="hidden">
+      <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
+      <button onclick="startGame()" data-key="btnStartGame">Start Mission 🚀</button>
+    </div>
+
+    <div style="margin-top:15px; text-align:left;">
+      <b><span data-key="txtAstronauts">Crew Members</span> (<span id="playerCount">0</span> / <span id="maxPlayerCount">20</span>):</b>
+      <div id="playersContainer" class="player-grid"></div>
+    </div>
+
+    <div class="chat-container">
+      <div id="chatMessagesLobby" class="chat-messages"></div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputLobby" placeholder="Send transmission..." style="margin:0;">
+        <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 20px;">💬</button>
+      </div>
+    </div>
+
+    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom(true)">Leave Station 🚪</button>
+  </div>
+</div>
+
+<!-- 7. GAME SCREEN -->
+<div id="game-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box" style="text-align:center;">
+    <div id="timerDisplay" style="font-size:20px; color:var(--accent-blue); font-weight:bold;">⏳ Time: --</div>
+    <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:15px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
+
+    <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
+
+    <div class="chat-container">
+      <div id="chatMessagesGame" class="chat-messages"></div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputGame" placeholder="Discuss transmission..." style="margin:0;">
+        <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. VOTING OVERLAY SCREEN -->
+<div id="voting-screen" class="page-screen hidden" style="z-index:30; background:rgba(3,7,18,0.95);">
+  <div class="container-box" style="text-align:center;">
+    <h3 style="color:var(--danger-red); font-size:22px;" data-key="voteTitle">🚨 EMERGENCY VOTING PROTOCOL</h3>
+    <div id="voteTimerDisplay" style="font-size:18px; color:var(--accent-blue); margin:8px 0; font-weight:bold;">⏳ Vote Time: 80s</div>
+    
+    <div id="voteListContainer" class="vote-grid"></div>
+
+    <div style="margin-top:15px;">
+      <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')">⏩ Skip Vote</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAVIGATION BAR -->
+<div id="main-bottom-nav" class="bottom-nav hidden">
+  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
+    <span class="nav-icon">🚀</span>
+    <span>Home</span>
+  </div>
+  <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
+    <span class="nav-icon">🌐</span>
+    <span>Stations</span>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
+    <span class="nav-icon">⚙️</span>
+    <span>Settings</span>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
@@ -243,45 +380,153 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-let currentUser = null, isSignUpMode = false;
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const splash = document.getElementById('splash-screen');
-    splash.style.opacity = '0';
-    setTimeout(() => {
-      splash.classList.add('hidden');
-      if(!currentUser) document.getElementById('auth-screen').classList.remove('hidden');
-    }, 800);
-  }, 2000);
-});
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let soundVol = 0.5;
 
-function showToast(msg) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = `<span>🛰️ ${msg}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+function playSound(freq = 440, type = 'sine', duration = 0.15) {
+  if (soundVol <= 0) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = soundVol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e){}
+}
+
+function updateVolume() {
+  soundVol = parseFloat(document.getElementById('soundVolume').value);
+  playSound(520, 'sine', 0.1);
+}
+
+(function initSelectOptions() {
+  const maxPlayersSel = document.getElementById('maxPlayersSelect');
+  for(let i=3; i<=20; i++) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.innerText = `${i} Players`;
+    if(i === 8) opt.selected = true;
+    maxPlayersSel.appendChild(opt);
+  }
+
+  const spySel = document.getElementById('spyCountSelect');
+  for(let i=1; i<=8; i++) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.innerText = `${i} Spy ${i>1?'s':''} 🕵️`;
+    spySel.appendChild(opt);
+  }
+})();
+
+function generate6DigitCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0; i<6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+const dictionary = {
+  en: {
+    googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
+    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals",
+    joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
+    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
+    lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
+    stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀", txtAstronauts: "Crew Members",
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL"
+  },
+  ar: {
+    googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
+    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات",
+    joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
+    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
+    lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
+    stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀", txtAstronauts: "أفراد الطاقم",
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ"
+  }
+};
+
+let currentLang = 'en';
+
+function changeLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.getAttribute('data-key');
+    if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
+  });
+}
+
+let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
+let gameInterval = null, voteInterval = null;
+let roomListener = null, annListener = null;
+
+const wordsDB = {
+  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne", "Benzema", "Vinicius"],
+  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream", "Koshary", "Crepe"],
+  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome", "Colosseum", "Big Ben"],
+  movies: ["Inception", "Avatar", "Titanic", "Spider-Man", "Batman", "Interstellar", "Joker", "Harry Potter", "Avengers"],
+  games: ["GTA V", "Minecraft", "PUBG", "FIFA", "Valorant", "Call of Duty", "Fortnite", "League of Legends", "Roblox"],
+  animals: ["Lion", "Tiger", "Elephant", "Falcon", "Dolphin", "Cheetah", "Wolf", "Eagle", "Bear"]
+};
+
+function toggleBottomNav(show) {
+  const nav = document.getElementById('main-bottom-nav');
+  if(show) nav.classList.remove('hidden');
+  else nav.classList.add('hidden');
 }
 
 function switchTab(tabId) {
-  document.querySelectorAll('.page-screen').forEach(s => s.classList.add('hidden'));
+  playSound(400, 'sine', 0.08);
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById(tabId).classList.remove('hidden');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(tabId.replace('tab-', 'nav-')).classList.add('active');
-  document.getElementById('main-bottom-nav').classList.remove('hidden');
+  
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
+  if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
+  if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
+
+  toggleBottomNav(true);
 }
 
-function toggleAuthMode() {
-  isSignUpMode = !isSignUpMode;
-  document.getElementById('auth-title').innerText = isSignUpMode ? "إنشاء حساب جديد" : "تسجيل الدخول للمحطة";
-  document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
+function showToast(msg, type = 'normal') {
+  if (type === 'danger') playSound(220, 'sawtooth', 0.3);
+  else if (type === 'success') playSound(750, 'sine', 0.2);
+  else playSound(550, 'triangle', 0.12);
+
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type === 'danger' ? 'toast-danger' : type === 'success' ? 'toast-success' : ''}`;
+  
+  const icon = type === 'danger' ? '🚨' : type === 'success' ? '🎉' : '🛰️';
+  toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+  
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-20px) scale(0.9)';
+    setTimeout(() => toast.remove(), 350);
+  }, 3500);
 }
 
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(e => showToast(e.message));
+  auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
+}
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  changeLanguage(currentLang);
+  document.getElementById('auth-title').innerText = isSignUpMode ? dictionary[currentLang].signup : dictionary[currentLang].login;
+  document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
 }
 
 function handleAuth() {
@@ -289,14 +534,19 @@ function handleAuth() {
   const password = document.getElementById('authPassword').value.trim();
   const username = document.getElementById('authUsername').value.trim();
 
-  if(!email || !password) return showToast("يرجى إدخال البيانات كاملة!");
+  if(!email || !password) return showToast("Fill all fields!", 'danger');
 
   if(isSignUpMode) {
-    auth.createUserWithEmailAndPassword(email, password).then(res => {
-      res.user.updateProfile({ displayName: username, photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${username}` }).then(() => initUser(res.user));
-    }).catch(e => showToast(e.message));
+    if(!username) return showToast("Username is required!", 'danger');
+    db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
+      if(snap.exists()) return showToast("Username already exists!", 'danger');
+      auth.createUserWithEmailAndPassword(email, password).then(res => {
+        const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+        res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
+      }).catch(err => showToast(err.message, 'danger'));
+    });
   } else {
-    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(e => showToast(e.message));
+    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
   }
 }
 
@@ -304,76 +554,564 @@ auth.onAuthStateChanged(user => { if(user) initUser(user); });
 
 function initUser(user) {
   currentUser = user;
-  updateUserUI();
+  document.getElementById('userDisplay').innerText = user.displayName || user.email.split('@')[0];
+  document.getElementById('userAvatarDisplay').src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=astro`;
+  
+  document.getElementById('settingUsername').value = currentUser.displayName || '';
+  document.getElementById('settingAvatarUrl').value = currentUser.photoURL || '';
+  document.getElementById('settingAvatarPreview').src = currentUser.photoURL || '';
+
+  db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
+    const score = snap.val() || 0;
+    document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
+  });
+
   switchTab('tab-home');
   listenToPublicRooms();
 }
 
-function updateUserUI() {
-  const name = currentUser.displayName || currentUser.email.split('@')[0];
-  const avatar = currentUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=spy`;
-
-  document.getElementById('userDisplay').innerText = name;
-  document.getElementById('userAvatarDisplay').src = avatar;
-  document.getElementById('settingUsername').value = name;
-  document.getElementById('settingAvatarUrl').value = avatar;
-}
-
-// مراقبة واستبعاد الغرف الفاضية تلقائياً 🛡️
 function listenToPublicRooms() {
   db.ref('spy_rooms').on('value', snap => {
-    const container = document.getElementById('publicRoomsContainer');
-    const rooms = snap.val();
-    
-    if(!rooms) {
-      container.innerHTML = '<div style="text-align:center; color:#64748b; font-size:13px; padding:20px;">لا يوجد محطات نشطة الآن</div>';
-      return;
-    }
+    const rooms = snap.val() || {};
+    const listContainer = document.getElementById('publicRoomsList');
+    let publicRoomsHTML = '';
 
-    let html = '';
-    Object.keys(rooms).forEach(code => {
-      const r = rooms[code];
-      const pCount = r.players ? Object.keys(r.players).length : 0;
-      
-      // شرط الفلترة: الغرفة منتظرة، ليست خاصة، وبها لاعب واحد على الأقل (مش فاضية)
-      if(r.status === 'waiting' && r.visibility !== 'private' && pCount > 0) {
-        html += `
+    for(let code in rooms) {
+      const room = rooms[code];
+      const pCount = room.players ? Object.keys(room.players).length : 0;
+
+      if(room.visibility === 'public' && room.status === 'waiting' && pCount > 0) {
+        publicRoomsHTML += `
           <div class="public-room-card">
-            <div>
-              <span style="font-weight:bold; color:var(--accent-blue); display:block;">محطة #${code}</span>
-              <span style="font-size:11px; color:#94a3b8;">الفئة: ${r.category || 'عامة'} | 👥 اللاعبين: ${pCount}</span>
+            <div style="text-align:left;">
+              <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
+              <span style="font-size:11px; color:#94a3b8;">(${room.category.toUpperCase()})</span>
+              <div style="font-size:11px; color:#64748b; margin-top:2px;">Players: ${pCount}/${room.maxPlayers || 20}</div>
             </div>
-            <button onclick="joinPublicRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">انضمام 🚀</button>
+            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">Join 🚀</button>
           </div>
         `;
       }
-    });
+    }
 
-    container.innerHTML = html || '<div style="text-align:center; color:#64748b; font-size:13px; padding:20px;">لا يوجد محطات بها لاعبين حالياً</div>';
+    listContainer.innerHTML = publicRoomsHTML || '<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">No public stations open. Create one!</div>';
   });
 }
 
-function joinPublicRoom(code) {
-  document.getElementById('roomCodeInput').value = code;
-  switchTab('tab-home');
-  joinRoomByInput();
-}
+function logout() { auth.signOut().then(() => location.reload()); }
 
-function saveUserProfile() {
-  const newName = document.getElementById('settingUsername').value.trim();
-  const newAvatar = document.getElementById('settingAvatarUrl').value.trim();
-
-  if(currentUser) {
-    currentUser.updateProfile({ displayName: newName, photoURL: newAvatar }).then(() => {
-      showToast("تم حفظ التعديلات 💾");
-      updateUserUI();
-    });
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if(file) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      document.getElementById('settingAvatarUrl').value = evt.target.result;
+      document.getElementById('settingAvatarPreview').src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 }
 
-function logout() {
-  auth.signOut().then(() => location.reload());
+function updateAvatarPreview() { document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value; }
+
+function openCreateRoomModal(cat) {
+  playSound(350, 'sine', 0.1);
+  document.getElementById('categorySelect').value = cat;
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('create-room-screen').classList.remove('hidden');
+  toggleBottomNav(false);
+}
+
+function openRoomEditModal() {
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('create-room-screen').classList.remove('hidden');
+  toggleBottomNav(false);
+}
+
+function saveSettings() {
+  const newName = document.getElementById('settingUsername').value.trim();
+  const newAvatar = document.getElementById('settingAvatarUrl').value.trim();
+
+  currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
+    initUser(currentUser);
+    showToast("Profile Updated!", 'success');
+  });
+}
+
+async function confirmCreateOrUpdateRoom() {
+  const cat = document.getElementById('categorySelect').value;
+  const spies = parseInt(document.getElementById('spyCountSelect').value);
+  const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
+  const timer = parseInt(document.getElementById('roundTimerSelect').value);
+  const visibility = document.getElementById('roomVisibilitySelect').value;
+
+  if(!currentRoom) {
+    currentRoom = generate6DigitCode();
+    isHost = true;
+    await db.ref('spy_rooms/' + currentRoom).set({
+      status: 'waiting', 
+      originalHostUid: currentUser.uid,
+      hostUid: currentUser.uid, 
+      category: cat, 
+      spyCount: spies, 
+      maxPlayers: maxPlayers,
+      roundTimer: timer, 
+      visibility: visibility,
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    });
+  } else {
+    await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, roundTimer: timer, visibility: visibility });
+  }
+  joinRoomProcess();
+}
+
+function joinRoomByInput() {
+  const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+  if(!code || code.length !== 6) return showToast("Enter a valid 6-Digit Code!", 'danger');
+  joinDirectRoom(code);
+}
+
+function joinDirectRoom(code) {
+  currentRoom = code.toUpperCase();
+  db.ref('spy_rooms/' + currentRoom).once('value', snap => {
+    if(snap.exists()) {
+      const room = snap.val();
+      const playersCount = room.players ? Object.keys(room.players).length : 0;
+      if(playersCount >= (room.maxPlayers || 20)) {
+        return showToast("Station is FULL!", 'danger');
+      }
+      joinRoomProcess();
+    } else {
+      showToast("Room not found!", 'danger');
+    }
+  });
+}
+
+function leaveRoom(manual = false) {
+  if(currentRoom && currentUser) {
+    const rCode = currentRoom;
+    if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
+    if (annListener) db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener);
+    currentRoom = null;
+
+    db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove().then(() => {
+      db.ref(`spy_rooms/${rCode}/players`).once('value', snap => {
+        if(!snap.exists() || !snap.val()) {
+          db.ref(`spy_rooms/${rCode}`).remove();
+        }
+      });
+    });
+  }
+
+  switchTab('tab-home');
+  if(manual) showToast("Left the station");
+}
+
+function joinRoomProcess() {
+  toggleBottomNav(false);
+
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('lobby-screen').classList.remove('hidden');
+  document.getElementById('roomCodeDisplay').innerText = currentRoom;
+
+  const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
+  playerRef.set({ 
+    uid: currentUser.uid,
+    name: currentUser.displayName, 
+    avatar: currentUser.photoURL, 
+    joinedAt: firebase.database.ServerValue.TIMESTAMP 
+  });
+
+  playerRef.onDisconnect().remove().then(() => {
+    if(currentRoom) {
+      db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
+        if(!snap.exists() || !snap.val()) {
+          db.ref(`spy_rooms/${currentRoom}`).remove();
+        }
+      });
+    }
+  });
+
+  listenToChat();
+  listenToSystemAnnouncements();
+
+  if(roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
+
+  roomListener = db.ref('spy_rooms/' + currentRoom).on('value', snap => {
+    const data = snap.val();
+
+    if(!data) {
+      if(currentRoom) leaveRoom(false);
+      return;
+    }
+
+    handleHostAssignment(data);
+
+    const playersObj = data.players || {};
+    const playersArr = Object.values(playersObj);
+
+    if(!playersObj[currentUser.uid]) {
+      showToast("You were removed from the station", 'danger');
+      leaveRoom(false);
+      return;
+    }
+
+    document.getElementById('playerCount').innerText = playersArr.length;
+    document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+
+    document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
+      <div class="player-item">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}</span>
+        </div>
+        ${(isHost && p.uid !== currentUser.uid) ? `
+          <div style="display:flex; gap:4px; width:auto;">
+            <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
+            <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+
+    if(data.status === 'waiting') {
+      clearInterval(gameInterval);
+      clearInterval(voteInterval);
+      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+      document.getElementById('lobby-screen').classList.remove('hidden');
+    } else if(data.status === 'playing') {
+      showGameScreen(data);
+    } else if(data.status === 'voting') {
+      showVotingScreen(data);
+    }
+  });
+}
+
+function listenToSystemAnnouncements() {
+  if(annListener) db.ref(`spy_rooms/${currentRoom}/announcement`).off('value', annListener);
+  
+  annListener = db.ref(`spy_rooms/${currentRoom}/announcement`).on('value', snap => {
+    const ann = snap.val();
+    if(ann && ann.msg && ann.timestamp) {
+      if(Date.now() - ann.timestamp < 4000) {
+        showToast(ann.msg, ann.type);
+      }
+    }
+  });
+}
+
+function broadcastAnnouncement(msg, type = 'normal') {
+  db.ref(`spy_rooms/${currentRoom}/announcement`).set({
+    msg: msg,
+    type: type,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+function handleHostAssignment(data) {
+  const playersObj = data.players || {};
+  const playerUids = Object.keys(playersObj);
+  
+  if(playerUids.length === 0) return;
+
+  if(playersObj[data.originalHostUid]) {
+    if(data.hostUid !== data.originalHostUid) {
+      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(data.originalHostUid);
+    }
+  } else if(!playersObj[data.hostUid]) {
+    const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+    if(sorted.length > 0) {
+      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
+    }
+  }
+
+  isHost = (data.hostUid === currentUser.uid);
+  document.getElementById('host-controls').classList.toggle('hidden', !isHost);
+}
+
+function kickPlayer(uid) {
+  db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
+}
+
+function makeHost(uid) {
+  db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid);
+}
+
+function sendChatMessage(screen) {
+  const input = document.getElementById(`chatInput${screen}`);
+  const msg = input.value.trim();
+  if(!msg) return;
+  
+  db.ref(`spy_rooms/${currentRoom}/chat`).push({
+    sender: currentUser.displayName,
+    text: msg
+  });
+  input.value = '';
+}
+
+function listenToChat() {
+  db.ref(`spy_rooms/${currentRoom}/chat`).on('value', snap => {
+    const data = snap.val();
+    if(!data) return;
+    const msgs = Object.values(data);
+    const html = msgs.map(m => `
+      <div class="chat-msg">
+        <span class="sender">${m.sender}:</span><span>${m.text}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('chatMessagesLobby').innerHTML = html;
+    document.getElementById('chatMessagesGame').innerHTML = html;
+    
+    document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
+    document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
+  });
+}
+
+function startGame() {
+  db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
+    const playersArr = Object.values(snap.val() || {});
+    if(playersArr.length < 3) return showToast("Minimum 3 players required!", 'danger');
+
+    db.ref('spy_rooms/' + currentRoom).once('value', roomSnap => {
+      const data = roomSnap.val();
+      
+      if(data.spyCount >= Math.ceil(playersArr.length / 2)) {
+        return showToast("Too many spies for current player count!", 'danger');
+      }
+
+      const wordList = wordsDB[data.category] || wordsDB.players;
+      const selectedWord = wordList[Math.floor(Math.random() * wordList.length)];
+      
+      let spies = [];
+      while(spies.length < Math.min(data.spyCount, playersArr.length - 1)) {
+        let randUid = playersArr[Math.floor(Math.random() * playersArr.length)].uid;
+        if(!spies.includes(randUid)) spies.push(randUid);
+      }
+
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'playing', 
+        word: selectedWord, 
+        spies: spies,
+        timeLeft: data.roundTimer,
+        initialTimer: data.roundTimer,
+        votes: null,
+        voteTimeLeft: 80
+      });
+
+      broadcastAnnouncement("🚀 Mission Started! Identify the imposter!", "normal");
+      startTimerSync();
+    });
+  });
+}
+
+function startTimerSync() {
+  if(!isHost) return;
+  clearInterval(gameInterval);
+  
+  gameInterval = setInterval(() => {
+    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
+      const room = snap.val();
+      if(!room) return;
+
+      checkSpiesAndPlayersStatus(room);
+
+      if(room.status === 'playing') {
+        if(room.timeLeft <= 1) {
+          db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+          broadcastAnnouncement("🚨 Time Expired! Voting Phase Initiated!", "danger");
+          startVoteTimerSync();
+        } else {
+          db.ref(`spy_rooms/${currentRoom}/timeLeft`).set(room.timeLeft - 1);
+        }
+      }
+    });
+  }, 1000);
+}
+
+function startVoteTimerSync() {
+  if(!isHost) return;
+  clearInterval(voteInterval);
+
+  voteInterval = setInterval(() => {
+    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
+      const room = snap.val();
+      if(!room || room.status !== 'voting') {
+        clearInterval(voteInterval);
+        return;
+      }
+
+      const playersCount = room.players ? Object.keys(room.players).length : 0;
+      const votesCount = room.votes ? Object.keys(room.votes).length : 0;
+
+      if(room.voteTimeLeft <= 1 || votesCount >= playersCount) {
+        clearInterval(voteInterval);
+        processVoteResults(room);
+      } else {
+        db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
+      }
+    });
+  }, 1000);
+}
+
+function checkSpiesAndPlayersStatus(room) {
+  if(room.status === 'playing' || room.status === 'voting') {
+    checkWinConditions(room);
+  }
+}
+
+function showGameScreen(data) {
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('game-screen').classList.remove('hidden');
+  
+  const isSpy = data.spies && data.spies.includes(currentUser.uid);
+  document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
+  document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
+
+  const halfTime = (data.initialTimer || 180) / 2;
+  const btnEmergency = document.getElementById('btnEmergencyVote');
+  
+  if(data.timeLeft <= halfTime) {
+    btnEmergency.classList.remove('hidden');
+  } else {
+    btnEmergency.classList.add('hidden');
+  }
+}
+
+function triggerVotingPhase() {
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+  broadcastAnnouncement("🚨 Emergency Voting Triggered!", "danger");
+  if(isHost) startVoteTimerSync();
+}
+
+function showVotingScreen(data) {
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('voting-screen').classList.remove('hidden');
+
+  document.getElementById('voteTimerDisplay').innerText = `⏳ Vote Time: ${data.voteTimeLeft || 80}s`;
+
+  const players = data.players ? Object.values(data.players) : [];
+  const votes = data.votes || {};
+  const hasVoted = !!votes[currentUser.uid];
+
+  let voteHTML = '';
+
+  players.forEach(p => {
+    let votersForThisPlayer = [];
+    for(let voterUid in votes) {
+      if(votes[voterUid] === p.uid && players.find(pl => pl.uid === voterUid)) {
+        votersForThisPlayer.push(players.find(pl => pl.uid === voterUid));
+      }
+    }
+
+    const votersAvatarsHTML = votersForThisPlayer.map(v => `
+      <img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">
+    `).join('');
+
+    voteHTML += `
+      <div class="vote-card ${hasVoted ? 'disabled' : ''}" onclick="castVote('${p.uid}')">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-weight:bold; font-size:13px;">${p.name}</span>
+        </div>
+        <div class="voters-overlay">
+          ${votersAvatarsHTML}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('voteListContainer').innerHTML = voteHTML;
+  document.getElementById('btnSkipVote').classList.toggle('disabled', hasVoted);
+}
+
+function castVote(targetUid) {
+  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid);
+  showToast("Vote Registered!", 'success');
+}
+
+function processVoteResults(room) {
+  const votes = room.votes || {};
+  const counts = {};
+
+  Object.values(votes).forEach(target => {
+    if(target !== 'SKIP') counts[target] = (counts[target] || 0) + 1;
+  });
+
+  let maxVotes = 0;
+  let topCandidates = [];
+
+  for(let uid in counts) {
+    if(counts[uid] > maxVotes) {
+      maxVotes = counts[uid];
+      topCandidates = [uid];
+    } else if(counts[uid] === maxVotes && maxVotes > 0) {
+      topCandidates.push(uid);
+    }
+  }
+
+  let ejectedUid = (topCandidates.length === 1) ? topCandidates[0] : null;
+  const currentSpies = room.spies || [];
+  const playersObj = room.players || {};
+
+  if(ejectedUid) {
+    if(currentSpies.includes(ejectedUid)) {
+      const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
+      
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        spies: updatedSpies, 
+        votes: null 
+      }).then(() => {
+        checkWinConditions({ ...room, spies: updatedSpies });
+      });
+
+      broadcastAnnouncement("🕵️ Imposter Ejected!", "normal");
+      return;
+    } else {
+      delete playersObj[ejectedUid];
+      
+      db.ref(`spy_rooms/${currentRoom}/players/${ejectedUid}`).remove();
+      db.ref(`spy_rooms/${currentRoom}`).update({ votes: null }).then(() => {
+        checkWinConditions({ ...room, players: playersObj });
+      });
+
+      broadcastAnnouncement("❌ Crew member ejected by mistake!", "danger");
+      return;
+    }
+  }
+
+  db.ref(`spy_rooms/${currentRoom}`).update({ 
+    status: 'playing', 
+    votes: null 
+  });
+  broadcastAnnouncement("⚖️ No one ejected! Station match continues...", "normal");
+}
+
+function checkWinConditions(room) {
+  const currentPlayers = room.players ? Object.keys(room.players) : [];
+  const currentSpies = room.spies ? room.spies.filter(uid => currentPlayers.includes(uid)) : [];
+  const currentCrew = currentPlayers.filter(uid => !currentSpies.includes(uid));
+
+  if(currentSpies.length === 0) {
+    clearInterval(gameInterval);
+    clearInterval(voteInterval);
+    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
+    broadcastAnnouncement("🎉 All Spies Ejected! Crew Wins!", "success");
+    return true;
+  }
+
+  if(currentSpies.length >= currentCrew.length) {
+    clearInterval(gameInterval);
+    clearInterval(voteInterval);
+    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
+    broadcastAnnouncement("🕵️ Spies Dominated the Station! Spies Win!", "danger");
+    return true;
+  }
+
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing' });
+  return false;
 }
 </script>
+
 </body>
 </html>
