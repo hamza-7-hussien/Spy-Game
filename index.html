@@ -220,7 +220,7 @@
   .vote-card.disabled { pointer-events: none; opacity: 0.6; }
 
   .voters-overlay { display: flex; align-items: center; }
-  .voter-mini-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent-purple); transform: rotate(-15deg); margin-left: -8px; box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; }
+  .voter-mini-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent-purple); margin-left: -8px; box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; }
 </style>
 </head>
 <body>
@@ -1092,7 +1092,14 @@ function showGameScreen(data) {
   document.getElementById('timerDisplay').innerText = `⏳ الوقت المتبقي: ${data.timeLeft || 0}ث`;
 
   const btnEmergency = document.getElementById('btnEmergencyVote');
-  btnEmergency.classList.remove('hidden');
+  const initial = data.initialTimer || 180;
+  const current = data.timeLeft || 180;
+
+  if (current <= initial / 2) {
+    btnEmergency.classList.remove('hidden');
+  } else {
+    btnEmergency.classList.add('hidden');
+  }
 }
 
 function triggerVotingPhase() {
@@ -1126,7 +1133,7 @@ function showVotingScreen(data) {
     `).join('');
 
     voteHTML += `
-      <div class="vote-card ${hasVoted ? 'disabled' : ''}" onclick="castVote('${p.uid}')">
+      <div class="vote-card ${hasVoted ? 'disabled' : ''}" ${!hasVoted ? `onclick="castVote('${p.uid}')"` : ''}>
         <div style="display:flex; align-items:center; gap:8px;">
           <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
           <span style="font-weight:bold; font-size:13px;">${p.name}</span>
@@ -1139,15 +1146,39 @@ function showVotingScreen(data) {
   });
 
   document.getElementById('voteListContainer').innerHTML = voteHTML;
-  document.getElementById('btnSkipVote').classList.toggle('disabled', hasVoted);
+  
+  const btnSkip = document.getElementById('btnSkipVote');
+  btnSkip.classList.toggle('disabled', hasVoted);
+  if(hasVoted) {
+    btnSkip.onclick = null;
+  } else {
+    btnSkip.onclick = () => castVote('SKIP');
+  }
 }
 
 function castVote(targetUid) {
-  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid);
-  showToast("تم تسجيل صوتك!", 'success');
+  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
+    if(snap.exists()) return; // منع تغيير التصويت إذا كان قد صوت مسبقاً
+    db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
+      showToast("تم تسجيل صوتك!", 'success');
+      
+      // فحص فوري لو الكل صوت علشان نتأكد إن النتيجة تظهر فوراً
+      db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
+        const room = roomSnap.val();
+        if(room && room.players && room.votes) {
+          const pCount = Object.keys(room.players).length;
+          const vCount = Object.keys(room.votes).length;
+          if(vCount >= pCount && isHost) {
+            processVoteResults(room);
+          }
+        }
+      });
+    });
+  });
 }
 
 function processVoteResults(room) {
+  if(!isHost) return;
   const votes = room.votes || {};
   const counts = {};
 
