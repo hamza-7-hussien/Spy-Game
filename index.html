@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spy Station 🚀</title>
 
-<!-- Web App Manifest & PWA Meta Tags -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#38bdf8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -45,7 +44,6 @@
     position: relative;
   }
 
-  /* خلفية النجوم */
   body::before {
     content: '';
     position: fixed;
@@ -79,7 +77,7 @@
     top: 0;
     left: 0;
     width: 100vw;
-    height: calc(100vh - 75px);
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -87,6 +85,10 @@
     padding: 20px 15px;
     z-index: 10;
     overflow-y: auto;
+  }
+
+  .page-screen.has-nav {
+    height: calc(100vh - 75px);
   }
 
   .hidden { display: none !important; }
@@ -195,11 +197,12 @@
   .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
   .btn-danger { background: linear-gradient(135deg, var(--danger-red), #991b1b); color: white; }
 
+  /* شبكة الفئات المحدثة - 6 فئات */
   .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
   .category-card { 
     background: rgba(15, 23, 42, 0.5); 
     border: 1px solid var(--glass-border); 
-    padding: 18px 10px; 
+    padding: 16px 8px; 
     border-radius: 16px; 
     cursor: pointer; 
     text-align: center; 
@@ -210,7 +213,7 @@
     transform: translateY(-3px);
     box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
   }
-  .category-card .icon { font-size: 32px; display: block; margin-bottom: 6px; }
+  .category-card .icon { font-size: 28px; display: block; margin-bottom: 4px; }
 
   /* Bottom Navigation Bar */
   .bottom-nav {
@@ -268,16 +271,40 @@
   .chat-msg { background: rgba(15, 23, 42, 0.8); padding: 8px 12px; border-radius: 10px; }
   .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
 
+  /* نظام التنبيهات الفضائي المطور (Custom Sci-Fi Toast System) */
   #toast-container { 
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; 
-    pointer-events: none; display: flex; flex-direction: column; gap: 6px;
+    position: fixed; top: 25px; left: 50%; transform: translateX(-50%); z-index: 99999; 
+    pointer-events: none; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 420px;
   }
   .toast { 
-    background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); 
-    color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; box-shadow: var(--neon-glow); 
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--accent-blue); 
+    color: #f8fafc; 
+    padding: 14px 20px; 
+    border-radius: 16px; 
+    font-size: 13px; 
+    font-weight: 700;
+    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3); 
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: toastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .toast.toast-danger {
+    border-color: var(--danger-red);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+  }
+  .toast.toast-success {
+    border-color: #10b981;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* تصميم قائمة Voting المتطورة */
+  /* التصويت */
   .vote-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
   .vote-card {
     background: rgba(15, 23, 42, 0.8);
@@ -293,22 +320,12 @@
   .vote-card:hover { border-color: var(--accent-purple); }
   .vote-card.disabled { pointer-events: none; opacity: 0.6; }
 
-  /* صور الشخصيات التي فوتت بزاوية */
-  .voters-overlay {
-    display: flex;
-    align-items: center;
-    gap: -8px;
-  }
+  .voters-overlay { display: flex; align-items: center; }
   .voter-mini-avatar {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    border: 2px solid var(--accent-purple);
-    transform: rotate(-15deg);
-    margin-left: -8px;
-    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
-    object-fit: cover;
-    background: #000;
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--accent-purple); transform: rotate(-15deg);
+    margin-left: -8px; box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+    object-fit: cover; background: #000;
   }
 </style>
 </head>
@@ -318,7 +335,7 @@
 <div id="toast-container"></div>
 
 <!-- 1. AUTH SCREEN -->
-<div id="auth-screen" class="page-screen" style="height:100vh; justify-content:center;">
+<div id="auth-screen" class="page-screen" style="justify-content:center;">
   <div class="container-box" style="text-align:center;">
     <div style="margin-bottom:20px;">
       <div class="logo-title" style="font-size:32px;">🛸 SPY STATION</div>
@@ -339,7 +356,7 @@
 </div>
 
 <!-- 2. HOME TAB -->
-<div id="tab-home" class="page-screen hidden">
+<div id="tab-home" class="page-screen has-nav hidden">
   <div class="header-profile-bar">
     <div style="display:flex; align-items:center; gap:12px;">
       <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
@@ -356,15 +373,27 @@
     <div class="category-grid">
       <div class="category-card" onclick="openCreateRoomModal('players')">
         <span class="icon">⚽</span>
-        <span style="font-size:13px; font-weight:bold;" data-key="catFootball">Football</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span>
       </div>
       <div class="category-card" onclick="openCreateRoomModal('food')">
         <span class="icon">🍕</span>
-        <span style="font-size:13px; font-weight:bold;" data-key="catFood">Food</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span>
       </div>
       <div class="category-card" onclick="openCreateRoomModal('places')">
         <span class="icon">🗺️</span>
-        <span style="font-size:13px; font-weight:bold;" data-key="catPlaces">Places</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('movies')">
+        <span class="icon">🎬</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catMovies">Movies</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('games')">
+        <span class="icon">🎮</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catGames">Games</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('animals')">
+        <span class="icon">🦁</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span>
       </div>
     </div>
 
@@ -377,7 +406,7 @@
 </div>
 
 <!-- 3. STATIONS TAB -->
-<div id="tab-stations" class="page-screen hidden">
+<div id="tab-stations" class="page-screen has-nav hidden">
   <div class="container-box">
     <h3 style="margin-bottom:15px; color:var(--accent-blue);">🌐 Active Public Stations</h3>
     <div id="publicRoomsList" class="public-rooms-container">
@@ -387,7 +416,7 @@
 </div>
 
 <!-- 4. SETTINGS TAB -->
-<div id="tab-settings" class="page-screen hidden">
+<div id="tab-settings" class="page-screen has-nav hidden">
   <div class="container-box">
     <h3 data-key="settingsTitle" style="margin-bottom:15px; text-align:center;">Profile & System Settings ⚙️</h3>
     <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
@@ -428,6 +457,9 @@
       <option value="players">⚽ Football Players</option>
       <option value="food">🍕 Food & Drinks</option>
       <option value="places">🗺️ Famous Places</option>
+      <option value="movies">🎬 Movies & Series</option>
+      <option value="games">🎮 Video Games</option>
+      <option value="animals">🦁 Animals</option>
     </select>
     
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count:</label>
@@ -467,6 +499,8 @@
         <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
+
+    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom()">Leave Station 🚪</button>
   </div>
 </div>
 
@@ -476,7 +510,6 @@
     <div id="timerDisplay" style="font-size:20px; color:var(--accent-blue); font-weight:bold;">⏳ Time: --</div>
     <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:15px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
 
-    <!-- Emergency Vote Button -->
     <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
     <div class="chat-container">
@@ -500,8 +533,6 @@
     <div style="margin-top:15px;">
       <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')">⏩ Skip Vote</button>
     </div>
-
-    <div id="votingStatusMessage" style="margin-top:15px; font-weight:bold; color:var(--accent-purple);"></div>
   </div>
 </div>
 
@@ -569,7 +600,7 @@ function updateVolume() {
 const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
-    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
+    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals",
     joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
     lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
@@ -578,7 +609,7 @@ const dictionary = {
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
-    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
+    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات",
     joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
@@ -602,12 +633,24 @@ function changeLanguage(lang) {
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 let gameInterval = null, voteInterval = null;
+let roomListener = null;
 
+// قاعدة البيانات المحدثة 6 فئات
 const wordsDB = {
-  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne"],
-  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream"],
-  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome"]
+  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne", "Benzema", "Vinicius"],
+  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream", "Koshary", "Crepe"],
+  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome", "Colosseum", "Big Ben"],
+  movies: ["Inception", "Avatar", "Titanic", "Spider-Man", "Batman", "Interstellar", "Joker", "Harry Potter", "Avengers"],
+  games: ["GTA V", "Minecraft", "PUBG", "FIFA", "Valorant", "Call of Duty", "Fortnite", "League of Legends", "Roblox"],
+  animals: ["Lion", "Tiger", "Elephant", "Falcon", "Dolphin", "Cheetah", "Wolf", "Eagle", "Bear"]
 };
+
+// إظهار الشريط السفلي فقط في القوائم الرئيسية
+function toggleBottomNav(show) {
+  const nav = document.getElementById('main-bottom-nav');
+  if(show) nav.classList.remove('hidden');
+  else nav.classList.add('hidden');
+}
 
 function switchTab(tabId) {
   playSound(400, 'sine', 0.08);
@@ -618,21 +661,34 @@ function switchTab(tabId) {
   if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
   if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
   if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
+
+  toggleBottomNav(true);
 }
 
-function showToast(msg) {
-  playSound(600, 'triangle', 0.1);
+// نظام التنبيهات الفضائي المتطور (Sci-Fi Toast UI System)
+function showToast(msg, type = 'normal') {
+  if (type === 'danger') playSound(220, 'sawtooth', 0.3);
+  else if (type === 'success') playSound(750, 'sine', 0.2);
+  else playSound(550, 'triangle', 0.12);
+
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerText = msg;
+  toast.className = `toast ${type === 'danger' ? 'toast-danger' : type === 'success' ? 'toast-success' : ''}`;
+  
+  const icon = type === 'danger' ? '🚨' : type === 'success' ? '🎉' : '🛰️';
+  toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+  
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 2500);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-20px) scale(0.9)';
+    setTimeout(() => toast.remove(), 350);
+  }, 3200);
 }
 
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(err => showToast(err.message));
+  auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
 }
 
 function toggleAuthMode() {
@@ -647,19 +703,19 @@ function handleAuth() {
   const password = document.getElementById('authPassword').value.trim();
   const username = document.getElementById('authUsername').value.trim();
 
-  if(!email || !password) return showToast("Fill all fields!");
+  if(!email || !password) return showToast("Fill all fields!", 'danger');
 
   if(isSignUpMode) {
-    if(!username) return showToast("Username is required!");
+    if(!username) return showToast("Username is required!", 'danger');
     db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
-      if(snap.exists()) return showToast("Username already exists!");
+      if(snap.exists()) return showToast("Username already exists!", 'danger');
       auth.createUserWithEmailAndPassword(email, password).then(res => {
         const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
         res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
-      }).catch(err => showToast(err.message));
+      }).catch(err => showToast(err.message, 'danger'));
     });
   } else {
-    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(err.message));
+    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
   }
 }
 
@@ -679,7 +735,6 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
-  document.getElementById('main-bottom-nav').classList.remove('hidden');
   switchTab('tab-home');
   listenToPublicRooms();
 }
@@ -732,11 +787,13 @@ function openCreateRoomModal(cat) {
   document.getElementById('categorySelect').value = cat;
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('create-room-screen').classList.remove('hidden');
+  toggleBottomNav(false);
 }
 
 function openRoomEditModal() {
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('create-room-screen').classList.remove('hidden');
+  toggleBottomNav(false);
 }
 
 function saveSettings() {
@@ -745,7 +802,7 @@ function saveSettings() {
 
   currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
     initUser(currentUser);
-    showToast("Profile Updated!");
+    showToast("Profile Updated!", 'success');
   });
 }
 
@@ -775,7 +832,7 @@ function confirmCreateOrUpdateRoom() {
 
 function joinRoomByInput() {
   const code = document.getElementById('roomCodeInput').value.trim();
-  if(!code) return showToast("Enter Room Code!");
+  if(!code) return showToast("Enter Room Code!", 'danger');
   joinDirectRoom(code);
 }
 
@@ -783,11 +840,23 @@ function joinDirectRoom(code) {
   currentRoom = code;
   db.ref('spy_rooms/' + currentRoom).once('value', snap => {
     if(snap.exists()) joinRoomProcess();
-    else showToast("Room not found!");
+    else showToast("Room not found!", 'danger');
   });
 }
 
+function leaveRoom() {
+  if(currentRoom && currentUser) {
+    db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`).remove();
+    if(roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
+    currentRoom = null;
+  }
+  switchTab('tab-home');
+  showToast("Left the station");
+}
+
 function joinRoomProcess() {
+  toggleBottomNav(false); // إخفاء الشريط السفلي تماماً داخل الغرفة
+
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('lobby-screen').classList.remove('hidden');
   document.getElementById('roomCodeDisplay').innerText = currentRoom;
@@ -800,19 +869,18 @@ function joinRoomProcess() {
     joinedAt: firebase.database.ServerValue.TIMESTAMP 
   });
 
-  // إدارة انقطاع الاتصال تلقائياً (Remove Player & Reassign Host)
   playerRef.onDisconnect().remove();
 
   listenToChat();
 
-  db.ref('spy_rooms/' + currentRoom).on('value', snap => {
+  if(roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
+
+  roomListener = db.ref('spy_rooms/' + currentRoom).on('value', snap => {
     const data = snap.val();
     if(!data) return;
 
-    // نقل الـ Host التلقائي وإعادة الملكية
     handleHostAssignment(data);
 
-    // عرض قائمة اللاعبين وأزرار الطرد/إعطاء الهوست
     const playersObj = data.players || {};
     const playersArr = Object.values(playersObj);
     document.getElementById('playerCount').innerText = playersArr.length;
@@ -832,21 +900,27 @@ function joinRoomProcess() {
       </div>
     `).join('');
 
-    // إذا طُرد اللاعب الحالي
     if(!playersObj[currentUser.uid]) {
-      showToast("You were removed from the station.");
-      switchTab('tab-home');
+      showToast("You left or were removed from the room", 'danger');
+      leaveRoom();
       return;
     }
 
-    // إدارة الشاشات حسب حالة اللعبة
+    // التنقل الاحترافي الموحد بين الشاشات
     if(data.status === 'waiting') {
+      clearInterval(gameInterval);
+      clearInterval(voteInterval);
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
     } else if(data.status === 'playing') {
       showGameScreen(data);
     } else if(data.status === 'voting') {
       showVotingScreen(data);
+    }
+
+    // عرض إشعار النظام الموحد إذا تم إرساله من السيرفر
+    if(data.globalAnnouncement && data.announcementTime && (Date.now() - data.announcementTime < 3000)) {
+      showToast(data.globalAnnouncement.msg, data.globalAnnouncement.type);
     }
   });
 }
@@ -857,13 +931,11 @@ function handleHostAssignment(data) {
   
   if(playerUids.length === 0) return;
 
-  // إذا عاد الهوست الأصلي ترجع له
   if(playersObj[data.originalHostUid]) {
     if(data.hostUid !== data.originalHostUid) {
       db.ref(`spy_rooms/${currentRoom}/hostUid`).set(data.originalHostUid);
     }
   } else if(!playersObj[data.hostUid]) {
-    // إذا خرج الـ Host، تنتقل لأول شخص انضم
     const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
     if(sorted.length > 0) {
       db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
@@ -916,11 +988,11 @@ function listenToChat() {
 function startGame() {
   db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
     const playersArr = Object.values(snap.val());
-    if(playersArr.length < 3) return showToast("Minimum 3 players required!");
+    if(playersArr.length < 3) return showToast("Minimum 3 players required!", 'danger');
 
     db.ref('spy_rooms/' + currentRoom).once('value', roomSnap => {
       const data = roomSnap.val();
-      const wordList = wordsDB[data.category];
+      const wordList = wordsDB[data.category] || wordsDB.players;
       const selectedWord = wordList[Math.floor(Math.random() * wordList.length)];
       
       let spies = [];
@@ -936,7 +1008,8 @@ function startGame() {
         timeLeft: data.roundTimer,
         initialTimer: data.roundTimer,
         votes: null,
-        voteTimeLeft: 80
+        voteTimeLeft: 80,
+        globalAnnouncement: null
       });
 
       startTimerSync();
@@ -953,12 +1026,10 @@ function startTimerSync() {
       const room = snap.val();
       if(!room) return;
 
-      // تحقق من خروج اللاعبين والجواسيس أثناء اللعبة
       checkSpiesAndPlayersStatus(room);
 
       if(room.status === 'playing') {
         if(room.timeLeft <= 1) {
-          // فتح الفوت تلقائياً عند انتهاء الوقت
           db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
           startVoteTimerSync();
         } else {
@@ -984,7 +1055,6 @@ function startVoteTimerSync() {
       const playersCount = room.players ? Object.keys(room.players).length : 0;
       const votesCount = room.votes ? Object.keys(room.votes).length : 0;
 
-      // إذا الجميع فوت أو انتهى الوقت 80 ثانية
       if(room.voteTimeLeft <= 1 || votesCount >= playersCount) {
         clearInterval(voteInterval);
         processVoteResults(room);
@@ -995,14 +1065,20 @@ function startVoteTimerSync() {
   }, 1000);
 }
 
+// فحص موحد بدون تكرار
 function checkSpiesAndPlayersStatus(room) {
   const currentPlayers = room.players ? Object.keys(room.players) : [];
   const currentSpies = room.spies ? room.spies.filter(uid => currentPlayers.includes(uid)) : [];
 
-  // لو آخر جاسوس خرج -> فوز رواد الفضاء
-  if(currentSpies.length === 0 && room.spies && room.spies.length > 0) {
-    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-    showToast("🎉 All Spies disconnected! Astronauts Win!");
+  if(currentSpies.length === 0 && room.spies && room.spies.length > 0 && room.status !== 'waiting') {
+    clearInterval(gameInterval);
+    clearInterval(voteInterval);
+    
+    db.ref(`spy_rooms/${currentRoom}`).update({ 
+      status: 'waiting',
+      globalAnnouncement: { msg: "🎉 All Spies disconnected! Astronauts Win!", type: "success" },
+      announcementTime: firebase.database.ServerValue.TIMESTAMP
+    });
   }
 }
 
@@ -1014,7 +1090,6 @@ function showGameScreen(data) {
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
   document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
 
-  // إظهار زر الإمرجنسي فوت بعد مرور نصف الوقت
   const halfTime = (data.initialTimer || 180) / 2;
   const btnEmergency = document.getElementById('btnEmergencyVote');
   
@@ -1047,7 +1122,6 @@ function showVotingScreen(data) {
   let voteHTML = '';
 
   players.forEach(p => {
-    // إيجاد من قام بالتصويت على هذا اللاعب
     let votersForThisPlayer = [];
     for(let voterUid in votes) {
       if(votes[voterUid] === p.uid && players.find(pl => pl.uid === voterUid)) {
@@ -1078,7 +1152,7 @@ function showVotingScreen(data) {
 
 function castVote(targetUid) {
   db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid);
-  showToast("Vote Registered!");
+  showToast("Vote Registered!", 'success');
 }
 
 function processVoteResults(room) {
@@ -1102,30 +1176,31 @@ function processVoteResults(room) {
   const spies = room.spies || [];
 
   if(ejectedUid && spies.includes(ejectedUid)) {
-    // إذا كان المطرود جاسوس
     const updatedSpies = spies.filter(s => s !== ejectedUid);
     if(updatedSpies.length === 0) {
-      // فوز رواد الفضاء عند طرد آخر جاسوس
-      db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
-      showToast("🎉 Imposter Ejected! Astronauts Win!");
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'waiting',
+        globalAnnouncement: { msg: "🎉 Imposter Ejected! Astronauts Win!", type: "success" },
+        announcementTime: firebase.database.ServerValue.TIMESTAMP
+      });
     } else {
-      // يكملوا لعب وتحديث الجواسيس المتبقين
       db.ref(`spy_rooms/${currentRoom}`).update({ 
         status: 'playing', 
         spies: updatedSpies, 
         timeLeft: room.initialTimer, 
-        votes: null 
+        votes: null,
+        globalAnnouncement: { msg: "🕵️ Imposter Ejected! Remaining spies active!", type: "normal" },
+        announcementTime: firebase.database.ServerValue.TIMESTAMP
       });
-      showToast("🕵️ Imposter Ejected! Remaining spies still active!");
     }
   } else {
-    // لو تم السكيب أو طرد شخص غلط -> تكتمل اللعبة بدون تكشيف وظائف ويدأ الوقت من جديد
     db.ref(`spy_rooms/${currentRoom}`).update({ 
       status: 'playing', 
       timeLeft: room.initialTimer, 
-      votes: null 
+      votes: null,
+      globalAnnouncement: { msg: "❌ Mission continues! No imposter was ejected.", type: "danger" },
+      announcementTime: firebase.database.ServerValue.TIMESTAMP
     });
-    showToast("❌ Mission continues! No imposter was ejected.");
   }
 }
 </script>
