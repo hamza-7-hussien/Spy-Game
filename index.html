@@ -28,7 +28,15 @@
     --glass-border: rgba(56, 189, 248, 0.3);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Exo 2', 'Cairo', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Exo 2', 'Cairo', sans-serif; 
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+    -webkit-tap-highlight-color: transparent; 
+    outline: none; 
+  }
   
   body { background: var(--bg-primary); color: #f3f4f6; min-height: 100vh; width: 100vw; overflow-x: hidden; position: relative; }
 
@@ -176,16 +184,35 @@
   .chat-msg { background: rgba(15, 23, 42, 0.8); padding: 8px 12px; border-radius: 10px; }
   .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
 
-  #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; pointer-events: none; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 440px; }
-  .toast { 
-    background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); color: #f8fafc; padding: 16px 20px; 
-    border-radius: 16px; font-size: 14px; font-weight: 700; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35); 
-    backdrop-filter: blur(16px); display: flex; align-items: center; gap: 12px;
-    animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  #top-notification {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid var(--accent-blue);
+    color: #f8fafc;
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35);
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 90%;
+    text-align: center;
   }
-  .toast.toast-danger { border-color: var(--danger-red); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45); }
-  .toast.toast-success { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45); }
-  @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  #top-notification.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  #top-notification.toast-danger { border-color: var(--danger-red); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45); }
+  #top-notification.toast-success { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45); }
 
   .vote-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
   .vote-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
@@ -199,7 +226,10 @@
 <body>
 
 <div class="stars-overlay"></div>
-<div id="toast-container"></div>
+<div id="top-notification" class="hidden">
+  <span id="notification-icon">🛰️</span>
+  <span id="notification-text">رسالة المحطة</span>
+</div>
 
 <!-- 1. AUTH SCREEN -->
 <div id="auth-screen" class="page-screen" style="justify-content:center;">
@@ -577,23 +607,33 @@ function switchTab(tabId) {
   toggleBottomNav(true);
 }
 
+let notificationTimeout = null;
 function showToast(msg, type = 'normal') {
   if (type === 'danger') playSound(220, 'sawtooth', 0.3);
   else if (type === 'success') playSound(750, 'sine', 0.2);
   else playSound(550, 'triangle', 0.12);
 
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type === 'danger' ? 'toast-danger' : type === 'success' ? 'toast-success' : ''}`;
-  
-  const icon = type === 'danger' ? '🚨' : type === 'success' ? '🎉' : '🛰️';
-  toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
-  
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(-20px) scale(0.9)';
-    setTimeout(() => toast.remove(), 350);
+  const notifyBox = document.getElementById('top-notification');
+  const notifyText = document.getElementById('notification-text');
+  const notifyIcon = document.getElementById('notification-icon');
+
+  notifyText.innerText = msg;
+  notifyBox.className = '';
+  if (type === 'danger') {
+    notifyBox.classList.add('toast-danger');
+    notifyIcon.innerText = '🚨';
+  } else if (type === 'success') {
+    notifyBox.classList.add('toast-success');
+    notifyIcon.innerText = '🎉';
+  } else {
+    notifyIcon.innerText = '🛰️';
+  }
+
+  notifyBox.classList.remove('hidden');
+
+  if (notificationTimeout) clearTimeout(notificationTimeout);
+  notificationTimeout = setTimeout(() => {
+    notifyBox.classList.add('hidden');
   }, 3500);
 }
 
@@ -658,15 +698,21 @@ function listenToPublicRooms() {
 
     for(let code in rooms) {
       const room = rooms[code];
-      const pCount = room.players ? Object.keys(room.players).length : 0;
+      const playersObj = room.players || {};
+      const pCount = Object.keys(playersObj).length;
+
+      let hostName = 'Unknown';
+      if (room.hostUid && playersObj[room.hostUid]) {
+        hostName = playersObj[room.hostUid].name;
+      }
 
       if(room.visibility === 'public' && room.status === 'waiting' && pCount > 0) {
         publicRoomsHTML += `
           <div class="public-room-card">
             <div style="text-align:right;">
               <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
-              <span style="font-size:11px; color:#94a3b8;">(${room.category.toUpperCase()})</span>
-              <div style="font-size:11px; color:#64748b; margin-top:2px;">اللاعبين: ${pCount}/${room.maxPlayers || 20}</div>
+              <span style="font-size:11px; color:#94a3b8;">(${room.category ? room.category.toUpperCase() : 'GENERAL'})</span>
+              <div style="font-size:11px; color:#64748b; margin-top:2px;">اللاعبين: ${pCount}/${room.maxPlayers || 20} | الـ Host: ${hostName}</div>
             </div>
             <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">انضمام 🚀</button>
           </div>
@@ -873,7 +919,6 @@ function listenToSystemAnnouncements() {
   annListener = db.ref(`spy_rooms/${currentRoom}/announcement`).on('value', snap => {
     const ann = snap.val();
     if(ann && ann.msg && ann.timestamp) {
-      // تم تعديل وقت مقارنة الإعلان لمنع تكراره على الأجهزة المختلفة
       if(Date.now() - ann.timestamp < 3000) {
         showToast(ann.msg, ann.type);
       }
@@ -891,18 +936,13 @@ function broadcastAnnouncement(msg, type = 'normal') {
 
 function handleHostAssignment(data) {
   const playersObj = data.players || {};
-  const playerUids = Object.keys(playersObj);
   
-  if(playerUids.length === 0) return;
-
-  if(playersObj[data.originalHostUid]) {
-    if(data.hostUid !== data.originalHostUid) {
-      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(data.originalHostUid);
-    }
-  } else if(!playersObj[data.hostUid]) {
+  if(!playersObj[data.hostUid]) {
     const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
     if(sorted.length > 0) {
-      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
+      if(isHost || currentUser.uid === sorted[0].uid) {
+        db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
+      }
     }
   }
 
@@ -980,7 +1020,7 @@ function startGame() {
         voteTimeLeft: 80
       });
 
-      broadcastAnnouncement("🚀 بدأت المهمة! اكتشف الجاسوس بينكم!", "normal");
+      broadcastAnnouncement("🚀 بدأت المهمة! استعدوا لاكتشاف الجاسوس بينكم!", "normal");
       startTimerSync();
     });
   });
@@ -995,7 +1035,6 @@ function startTimerSync() {
       const room = snap.val();
       if(!room) return;
 
-      // 🛑 تم التعديل: إذا كانت الغرفة في حالة تصويت، لا تقم بتشغيل تايمر اللعب أو إعادة ضبطه لمنع رجوع الشاشة!
       if(room.status === 'voting') return;
 
       checkSpiesAndPlayersStatus(room);
@@ -1052,18 +1091,11 @@ function showGameScreen(data) {
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ أنت الجاسوس!" : `الكلمة هي: ${data.word}`;
   document.getElementById('timerDisplay').innerText = `⏳ الوقت المتبقي: ${data.timeLeft || 0}ث`;
 
-  const halfTime = (data.initialTimer || 180) / 2;
   const btnEmergency = document.getElementById('btnEmergencyVote');
-  
-  if(data.timeLeft <= halfTime) {
-    btnEmergency.classList.remove('hidden');
-  } else {
-    btnEmergency.classList.add('hidden');
-  }
+  btnEmergency.classList.remove('hidden');
 }
 
 function triggerVotingPhase() {
-  // تحديث حالة الغرفة مباشرة إلى voting مع إيقاف أي تداخل محتمل
   db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
   broadcastAnnouncement("🚨 تم تفعيل التصويت الطارئ!", "danger");
   if(isHost) startVoteTimerSync();
