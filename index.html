@@ -5,8 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPY STATION 🚀</title>
 
-<!-- Web App Manifest for Native Google/Mobile App Installation -->
-<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22SPY%20STATION%22%2C%22short_name%22%3A%22SpyStation%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23030712%22%2C%22theme_color%22%3A%22%2338bdf8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fbottts%2Fpng%3Fseed%3Dspystation%26size%3D192%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fapi.dicebear.com%2F7.x%2Fbottts%2Fpng%3Fseed%3Dspystation%26size%3D512%22%2C%22sizes%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+<!-- Web App Manifest & PWA Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#38bdf8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spy Station">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/MTs324rX/IMG-20260317-190541.png">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
@@ -16,7 +22,7 @@
     --accent-blue: #38bdf8;
     --accent-purple: #818cf8;
     --danger-red: #ef4444;
-    --card-bg: rgba(17, 24, 39, 0.85);
+    --card-bg: rgba(17, 24, 39, 0.9);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Orbitron', 'Cairo', sans-serif; transition: all 0.3s ease; }
@@ -40,7 +46,7 @@
     border-radius: 24px; 
     padding: 24px; 
     width: 100%; 
-    max-width: 600px; 
+    max-width: 650px; 
     text-align: center; 
     box-shadow: 0 0 50px rgba(56, 189, 248, 0.15);
     position: relative;
@@ -61,7 +67,6 @@
     letter-spacing: 2px;
   }
 
-  /* Back Arrow Style */
   .back-arrow-btn {
     position: absolute;
     top: 20px;
@@ -91,22 +96,28 @@
   .btn-secondary { background: #1f2937; color: white; }
   .btn-danger { background: linear-gradient(135deg, var(--danger-red), #dc2626); color: white; }
 
-  /* Category Grid */
   .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
   .category-card { background: #111827; border: 1px solid #1f2937; padding: 15px 5px; border-radius: 16px; cursor: pointer; text-align: center; }
   .category-card:hover { border-color: var(--accent-blue); transform: translateY(-3px); background: #1e1b4b; }
   .category-card .icon { font-size: 28px; display: block; margin-bottom: 5px; }
 
-  /* Custom Avatar Display */
   .avatar-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
   .avatar-preview { width: 80px; height: 80px; border-radius: 50%; margin: 10px auto; border: 2px dashed var(--accent-blue); display: block; object-fit: cover; }
 
   .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 180px; overflow-y: auto; background: #0b0f19; padding: 10px; border-radius: 12px; }
   .player-item { background: #111827; padding: 8px 12px; border-radius: 12px; border: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
+  /* Public Rooms Grid */
+  .public-rooms-container { max-height: 150px; overflow-y: auto; background: #0b0f19; border: 1px solid #1f2937; border-radius: 12px; padding: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+  .public-room-card { background: #111827; border: 1px solid #1f2937; padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+  .chat-container { background: #0b0f19; border: 1px solid #1f2937; border-radius: 12px; padding: 10px; margin-top: 15px; text-align: left; }
+  .chat-messages { height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; font-size: 13px; }
+  .chat-msg { background: #111827; padding: 6px 10px; border-radius: 8px; max-width: 85%; }
+  .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-right: 5px; }
+
   .hidden { display: none !important; }
 
-  /* Toast Notification */
   #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
   .toast { background: #111827; border-left: 4px solid var(--accent-blue); color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 </style>
@@ -136,17 +147,26 @@
     <div onclick="toggleAuthMode()" style="color: var(--accent-blue); cursor: pointer; font-size: 12px; margin-top: 8px;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
   </div>
 
-  <!-- MAIN MENU & CATEGORY SELECTOR -->
+  <!-- MAIN MENU -->
   <div id="main-menu" class="hidden">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
       <div style="display:flex; align-items:center; gap:10px;">
-        <img id="userAvatarDisplay" class="avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=astro" alt="avatar">
-        <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue);">Player</span>
+        <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
+        <div>
+          <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block;">Player</span>
+          <span id="userScoreDisplay" style="font-size:11px; color:#94a3b8;">Score: 0 pts</span>
+        </div>
       </div>
       <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="showSettings()" data-key="settingsBtn">Settings ⚙️</button>
     </div>
 
-    <p style="font-size:12px; color:#94a3b8; text-align:left;" data-key="chooseCategory">Choose Category to Create Room:</p>
+    <!-- PUBLIC ROOMS SECTION -->
+    <p style="font-size:12px; color:#94a3b8; text-align:left; margin-bottom:5px;">🌐 Public Rooms (Join Anyone):</p>
+    <div id="publicRoomsList" class="public-rooms-container">
+      <div style="font-size:12px; color:#64748b; padding:10px;">Searching for public stations...</div>
+    </div>
+
+    <p style="font-size:12px; color:#94a3b8; text-align:left;" data-key="chooseCategory">Or Create Your Own Station:</p>
     
     <div class="category-grid">
       <div class="category-card" onclick="openCreateRoomModal('players')">
@@ -165,15 +185,21 @@
 
     <hr style="margin:15px 0; border-color:#1f2937;">
 
-    <input type="text" id="roomCodeInput" placeholder="Room Code">
-    <button class="btn-secondary" onclick="joinRoom()" data-key="joinRoom">Join Room 🛰️</button>
+    <input type="text" id="roomCodeInput" placeholder="Room Code (For Private Rooms)">
+    <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Private Room 🛰️</button>
   </div>
 
-  <!-- CREATE / UPDATE ROOM MODAL -->
+  <!-- CREATE ROOM MODAL -->
   <div id="create-room-screen" class="hidden">
     <div class="back-arrow-btn" onclick="backToMenu()">➔</div>
     <h3 data-key="roomSettingsTitle">Room Settings ⚙️</h3>
     
+    <label style="font-size:11px; color:#94a3b8;">Room Access Visibility 👁️:</label>
+    <select id="roomVisibilitySelect">
+      <option value="public">🌐 Public (Anyone can join)</option>
+      <option value="private">🔒 Private (Friends with Code only)</option>
+    </select>
+
     <label style="font-size:11px; color:#94a3b8;" data-key="lblCategory">Category:</label>
     <select id="categorySelect">
       <option value="players">⚽ Football Players</option>
@@ -186,11 +212,6 @@
       <option value="1">1 Spy 🕵️</option>
       <option value="2">2 Spies 🕵️🕵️</option>
       <option value="3">3 Spies 🕵️🕵️🕵️</option>
-      <option value="4">4 Spies 🕵️</option>
-      <option value="5">5 Spies 🕵️</option>
-      <option value="6">6 Spies 🕵️</option>
-      <option value="7">7 Spies 🕵️</option>
-      <option value="8">8 Spies 🕵️</option>
     </select>
     
     <label style="font-size:11px; color:#94a3b8;" data-key="lblRoundTimer">Round Time (Seconds):</label>
@@ -238,18 +259,38 @@
       <b><span data-key="txtAstronauts">Astronauts</span> (<span id="playerCount">0</span>):</b>
       <div id="playersContainer" class="player-grid"></div>
     </div>
+
+    <!-- CHAT BOX -->
+    <div class="chat-container">
+      <div id="chatMessagesLobby" class="chat-messages"></div>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="chatInputLobby" placeholder="Send a message..." style="margin:0;">
+        <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 15px;">💬</button>
+      </div>
+    </div>
   </div>
 
   <!-- GAME SCREEN -->
   <div id="game-screen" class="hidden">
-    <div id="timerDisplay" style="font-size:16px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
-    <div id="roleDisplay" style="font-size:20px; font-weight:bold; margin:15px 0; background:#0b0f19; padding:15px; border-radius:12px;">...</div>
+    <div id="timerDisplay" style="font-size:18px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
+    <div id="roleDisplay" style="font-size:20px; font-weight:bold; margin:15px 0; background:#0b0f19; padding:15px; border-radius:12px; border: 1px solid rgba(56, 189, 248, 0.2);">...</div>
 
     <button class="btn-danger" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
+    <!-- VOTING MODAL -->
     <div id="voteModal" class="hidden" style="margin-top:15px; background:#0b0f19; padding:15px; border-radius:12px;">
       <h4 data-key="voteTitle">Vote to Eject Imposter</h4>
       <div id="voteContainer" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;"></div>
+      <div id="votingResultsDisplay" style="margin-top:10px; font-weight:bold; color:var(--accent-blue);"></div>
+    </div>
+
+    <!-- GAME CHAT -->
+    <div class="chat-container">
+      <div id="chatMessagesGame" class="chat-messages"></div>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="chatInputGame" placeholder="Discuss or bluff..." style="margin:0;">
+        <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 15px;">💬</button>
+      </div>
     </div>
 
     <button id="resetBtn" class="hidden btn-secondary" style="margin-top:15px;" onclick="resetGameToLobby()" data-key="btnReturnLobby">Return to Lobby 🔄</button>
@@ -305,7 +346,7 @@ const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Login 🚀", toggleAuth: "Don't have an account? Sign Up",
     settingsBtn: "Settings ⚙️", chooseCategory: "Choose Category to Create Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places",
-    joinRoom: "Join Room 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters:",
+    joinRoom: "Join Private Room 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Room Settings ⚙️", lblCategory: "Category:", lblSpies: "Spies / Imposters:",
     lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Room 🚀", settingsTitle: "Profile & Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
     stationCode: "Station Code:", btnEditRoom: "Change Room Settings ⚙️", btnStartGame: "Start Game 🚀 (Min 3 Players)", txtAstronauts: "Astronauts",
@@ -314,7 +355,7 @@ const dictionary = {
   ar: {
     googleAuth: "الدخول السريع بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
     settingsBtn: "الإعدادات ⚙️", chooseCategory: "اختر الفئة لإنشاء الغرفة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
-    joinRoom: "دخول الغرفة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
+    joinRoom: "دخول غرفة خاصة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات الغرفة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق الغرفة 🚀", settingsTitle: "الملف الشخصي والإعدادات ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
     stationCode: "كود المحطة:", btnEditRoom: "تعديل إعدادات الغرفة ⚙️", btnStartGame: "بدء الجولة 🚀 (أقل عدد 3)", txtAstronauts: "رواد الفضاء",
@@ -338,11 +379,12 @@ function changeLanguage(lang) {
 }
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
+let gameInterval = null;
 
 const wordsDB = {
-  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar"],
-  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma"],
-  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo"]
+  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne"],
+  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream"],
+  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome"]
 };
 
 function showToast(msg) {
@@ -394,8 +436,43 @@ function initUser(user) {
   currentUser = user;
   document.getElementById('userDisplay').innerText = user.displayName || user.email.split('@')[0];
   document.getElementById('userAvatarDisplay').src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=astro`;
+  
+  db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
+    const score = snap.val() || 0;
+    document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
+  });
+
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('main-menu').classList.remove('hidden');
+
+  listenToPublicRooms();
+}
+
+function listenToPublicRooms() {
+  db.ref('spy_rooms').on('value', snap => {
+    const rooms = snap.val() || {};
+    const listContainer = document.getElementById('publicRoomsList');
+    let publicRoomsHTML = '';
+
+    for(let code in rooms) {
+      const room = rooms[code];
+      if(room.visibility === 'public' && room.status === 'waiting') {
+        const pCount = room.players ? Object.keys(room.players).length : 0;
+        publicRoomsHTML += `
+          <div class="public-room-card">
+            <div style="text-align:left;">
+              <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
+              <span style="font-size:11px; color:#94a3b8;">(${room.category.toUpperCase()})</span>
+              <div style="font-size:10px; color:#64748b;">Host: ${room.host} | Players: ${pCount}</div>
+            </div>
+            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:6px 14px; font-size:12px;">Join 🚀</button>
+          </div>
+        `;
+      }
+    }
+
+    listContainer.innerHTML = publicRoomsHTML || '<div style="font-size:12px; color:#64748b; padding:10px;">No public stations open. Create one!</div>';
+  });
 }
 
 function logout() { auth.signOut().then(() => location.reload()); }
@@ -428,7 +505,7 @@ function openRoomEditModal() {
 
 function backToMenu() {
   document.getElementById('create-room-screen').classList.add('hidden');
-  document.getElementById('settings-screen').classList.add('hidden');
+  document.getElementById('settings-screen').classList.remove('hidden');
   if(currentRoom) document.getElementById('lobby-screen').classList.remove('hidden');
   else document.getElementById('main-menu').classList.remove('hidden');
 }
@@ -457,22 +534,28 @@ function confirmCreateOrUpdateRoom() {
   const cat = document.getElementById('categorySelect').value;
   const spies = parseInt(document.getElementById('spyCountSelect').value);
   const timer = parseInt(document.getElementById('roundTimerSelect').value);
+  const visibility = document.getElementById('roomVisibilitySelect').value;
 
   if(!currentRoom) {
     currentRoom = Math.floor(10000 + Math.random() * 90000).toString();
     isHost = true;
     db.ref('spy_rooms/' + currentRoom).set({
-      status: 'waiting', host: currentUser.displayName, category: cat, spyCount: spies, roundTimer: timer
+      status: 'waiting', host: currentUser.displayName, category: cat, spyCount: spies, roundTimer: timer, visibility: visibility
     });
   } else {
-    db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, roundTimer: timer });
+    db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, roundTimer: timer, visibility: visibility });
   }
   joinRoomProcess();
 }
 
-function joinRoom() {
-  currentRoom = document.getElementById('roomCodeInput').value.trim();
-  if(!currentRoom) return showToast("Enter Room Code!");
+function joinRoomByInput() {
+  const code = document.getElementById('roomCodeInput').value.trim();
+  if(!code) return showToast("Enter Room Code!");
+  joinDirectRoom(code);
+}
+
+function joinDirectRoom(code) {
+  currentRoom = code;
   db.ref('spy_rooms/' + currentRoom).once('value', snap => {
     if(snap.exists()) joinRoomProcess();
     else showToast("Room not found!");
@@ -489,6 +572,8 @@ function joinRoomProcess() {
   playerRef.set({ name: currentUser.displayName, avatar: currentUser.photoURL, isHost: isHost });
   playerRef.onDisconnect().remove();
 
+  listenToChat();
+
   db.ref('spy_rooms/' + currentRoom).on('value', snap => {
     const data = snap.val();
     if(!data) return;
@@ -496,6 +581,7 @@ function joinRoomProcess() {
     if(data.host === currentUser.displayName) {
       isHost = true;
       document.getElementById('host-controls').classList.remove('hidden');
+      document.getElementById('resetBtn').classList.remove('hidden');
     }
 
     const players = data.players ? Object.values(data.players) : [];
@@ -511,6 +597,37 @@ function joinRoomProcess() {
 
     if(data.status === 'playing') showGameScreen(data);
     if(data.status === 'waiting') showLobbyScreen();
+  });
+}
+
+function sendChatMessage(screen) {
+  const input = document.getElementById(`chatInput${screen}`);
+  const msg = input.value.trim();
+  if(!msg) return;
+  
+  db.ref(`spy_rooms/${currentRoom}/chat`).push({
+    sender: currentUser.displayName,
+    text: msg
+  });
+  input.value = '';
+}
+
+function listenToChat() {
+  db.ref(`spy_rooms/${currentRoom}/chat`).on('value', snap => {
+    const data = snap.val();
+    if(!data) return;
+    const msgs = Object.values(data);
+    const html = msgs.map(m => `
+      <div class="chat-msg">
+        <span class="sender">${m.sender}:</span><span>${m.text}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('chatMessagesLobby').innerHTML = html;
+    document.getElementById('chatMessagesGame').innerHTML = html;
+    
+    document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
+    document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
   });
 }
 
@@ -530,9 +647,33 @@ function startGame() {
         if(!spies.includes(randPlayer)) spies.push(randPlayer);
       }
 
-      db.ref(`spy_rooms/${currentRoom}`).update({ status: 'playing', word: selectedWord, spies: spies });
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'playing', 
+        word: selectedWord, 
+        spies: spies,
+        timeLeft: data.roundTimer,
+        votes: null,
+        ejected: null
+      });
+
+      startTimerSync();
     });
   });
+}
+
+function startTimerSync() {
+  if(isHost) {
+    clearInterval(gameInterval);
+    gameInterval = setInterval(() => {
+      db.ref(`spy_rooms/${currentRoom}/timeLeft`).transaction(t => {
+        if (t <= 1) {
+          clearInterval(gameInterval);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  }
 }
 
 function showGameScreen(data) {
@@ -540,6 +681,9 @@ function showGameScreen(data) {
   document.getElementById('game-screen').classList.remove('hidden');
   const isSpy = data.spies && data.spies.includes(currentUser.displayName);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
+  document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
+
+  if(data.votes) renderVotes(data.votes, data.spies);
 }
 
 function triggerVotingPhase() {
@@ -554,11 +698,75 @@ function triggerVotingPhase() {
 
 function castVote(target) {
   document.getElementById('voteModal').classList.add('hidden');
+  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.displayName}`).set(target);
   showToast("Vote Submitted!");
 }
 
-function resetGameToLobby() { db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' }); }
-function showLobbyScreen() { document.getElementById('game-screen').classList.add('hidden'); document.getElementById('lobby-screen').classList.remove('hidden'); }
+function renderVotes(votes, spies) {
+  document.getElementById('voteModal').classList.remove('hidden');
+  const counts = {};
+  Object.values(votes).forEach(t => counts[t] = (counts[t] || 0) + 1);
+
+  let resultHtml = 'Votes Count:<br>';
+  for(let player in counts) {
+    resultHtml += `${player}: ${counts[player]} votes<br>`;
+  }
+  
+  document.getElementById('votingResultsDisplay').innerHTML = resultHtml;
+  
+  const mostVoted = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, null);
+  if(mostVoted && spies.includes(mostVoted)) {
+    document.getElementById('votingResultsDisplay').innerHTML += `<br>🎉 Imposter ${mostVoted} Ejected! Astronauts Win!`;
+    if(!spies.includes(currentUser.displayName)) addScore(10);
+  } else if(mostVoted) {
+    document.getElementById('votingResultsDisplay').innerHTML += `<br>❌ ${mostVoted} was NOT the Imposter!`;
+    if(spies.includes(currentUser.displayName)) addScore(15);
+  }
+}
+
+function addScore(pts) {
+  if(currentUser && currentUser.uid) {
+    db.ref(`users/${currentUser.uid}/score`).transaction(s => (s || 0) + pts);
+  }
+}
+
+function resetGameToLobby() { 
+  clearInterval(gameInterval);
+  db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' }); 
+}
+
+function showLobbyScreen() { 
+  document.getElementById('game-screen').classList.add('hidden'); 
+  document.getElementById('lobby-screen').classList.remove('hidden'); 
+}
 </script>
+
+<!-- PWA Service Worker Registration & Installation Prompt Script -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker Registered'))
+        .catch(err => console.log('Service Worker Error:', err));
+    });
+  }
+
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // إظهار نافذة التثبيت تلقائيًا بعد ثانيتين من فتح اللعبة
+    setTimeout(() => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          deferredPrompt = null;
+        });
+      }
+    }, 2000);
+  });
+</script>
+
 </body>
 </html>
