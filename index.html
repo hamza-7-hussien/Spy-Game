@@ -16,29 +16,29 @@
     --accent-blue: #38bdf8;
     --accent-purple: #c084fc;
     --glass-bg: rgba(15, 23, 42, 0.85);
-    --glass-border: rgba(56, 189, 248, 0.25);
-    --neon-glow: 0 0 25px rgba(56, 189, 248, 0.4);
+    --glass-border: rgba(56, 189, 248, 0.3);
+    --neon-glow: 0 0 20px rgba(56, 189, 248, 0.35);
     --danger-red: #ef4444;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; transition: all 0.25s ease; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   
   body { background: var(--bg-primary); color: #f8fafc; min-height: 100vh; width: 100vw; overflow-x: hidden; position: relative; }
 
-  /* خلفية النجوم المتحركة */
+  /* خلفية النجوم الفضائية */
   .stars-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-image: 
       radial-gradient(1.5px 1.5px at 20px 30px, #fff, rgba(0,0,0,0)),
       radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)),
       radial-gradient(1px 1px at 90px 40px, #a855f7, rgba(0,0,0,0));
-    background-repeat: repeat; background-size: 200px 200px; opacity: 0.6;
+    background-repeat: repeat; background-size: 200px 200px; opacity: 0.5;
     animation: starsAnimation 60s linear infinite; z-index: -1;
   }
 
   @keyframes starsAnimation { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
 
-  /* 🌌 1. شاشة الدخلة السايبر الجديدة (Cyber Splash Screen) */
+  /* 🌌 شاشة الدخلة (Cyber Splash Screen) */
   #splash-screen {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: #030712; z-index: 99999; display: flex; flex-direction: column;
@@ -46,9 +46,9 @@
   }
 
   .radar-container {
-    width: 140px; height: 140px; border-radius: 50%; border: 2px solid var(--accent-blue);
+    width: 130px; height: 130px; border-radius: 50%; border: 2px solid var(--accent-blue);
     position: relative; display: flex; align-items: center; justify-content: center;
-    box-shadow: var(--neon-glow); margin-bottom: 25px; background: rgba(15, 23, 42, 0.5);
+    box-shadow: var(--neon-glow); margin-bottom: 20px; background: rgba(15, 23, 42, 0.6);
   }
 
   .radar-sweep {
@@ -59,16 +59,10 @@
 
   @keyframes radarSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-  .radar-center-icon { font-size: 40px; z-index: 2; animation: pulse 1.5s infinite alternate; }
-  @keyframes pulse { from { transform: scale(0.9); } to { transform: scale(1.1); } }
-
   .splash-title {
-    font-family: 'Chakra Petch', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: 4px;
+    font-family: 'Chakra Petch', sans-serif; font-size: 30px; font-weight: 900; letter-spacing: 4px;
     background: linear-gradient(90deg, #38bdf8, #c084fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
   }
-
-  .splash-subtitle { font-size: 11px; letter-spacing: 3px; color: #94a3b8; margin-top: 6px; }
 
   /* الشاشات الرئيسية */
   .page-screen {
@@ -80,23 +74,26 @@
   .page-screen.has-nav { height: calc(100vh - 75px); }
   .hidden { display: none !important; }
 
-  /* تصميم الكروت والحاويات الداخلية */
+  /* الشريط العالي للمستخدم */
+  .header-profile-bar {
+    width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+    border: 1px solid var(--glass-border); padding: 12px 18px;
+    border-radius: 20px; margin-bottom: 20px; backdrop-filter: blur(16px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  }
+
+  .avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: var(--neon-glow); }
+
+  /* تصميم الكروت الجديد */
   .container-box { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     backdrop-filter: blur(20px); border-radius: 24px; padding: 22px; 
-    width: 100%; max-width: 600px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), var(--neon-glow); margin-bottom: 20px;
+    width: 100%; max-width: 600px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); margin-bottom: 20px;
   }
-
-  .header-profile-bar {
-    width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between;
-    background: rgba(15, 23, 42, 0.75); border: 1px solid var(--glass-border); padding: 12px 20px;
-    border-radius: 20px; margin-bottom: 20px; backdrop-filter: blur(16px);
-  }
-
-  .avatar-img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: var(--neon-glow); }
 
   input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 14px; border: none; font-size: 14px; outline: none; }
-  input, select { background: rgba(3, 7, 18, 0.85); color: white; border: 1px solid var(--glass-border); text-align: center; }
+  input, select { background: rgba(3, 7, 18, 0.9); color: white; border: 1px solid var(--glass-border); text-align: center; }
   input:focus, select:focus { border-color: var(--accent-blue); box-shadow: var(--neon-glow); }
 
   button { background: linear-gradient(135deg, var(--accent-blue), #0284c7); color: #030712; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
@@ -105,24 +102,26 @@
   .btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255, 255, 255, 0.15); }
   .btn-danger { background: linear-gradient(135deg, var(--danger-red), #991b1b); color: white; }
 
-  /* كروت الفئات التفاعلية */
+  /* كروت الفئات التفاعلية المحدثة */
   .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
   .category-card { 
-    background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); 
-    padding: 16px 8px; border-radius: 18px; cursor: pointer; text-align: center; position: relative; overflow: hidden;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+    border: 1px solid var(--glass-border); padding: 18px 10px; border-radius: 20px;
+    cursor: pointer; text-align: center; position: relative; overflow: hidden;
   }
   .category-card:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.15); transform: translateY(-4px); box-shadow: var(--neon-glow); }
 
-  /* قائمة المحطات العامة (Public Rooms Monitor) */
+  /* كروت غرف اللاعبين المفتوحة */
   .public-room-card {
-    background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border);
-    border-radius: 16px; padding: 14px; margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
+    border: 1px solid var(--glass-border); border-radius: 18px; padding: 16px; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
 
-  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100vw; height: 70px; background: rgba(3, 7, 18, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; gap: 4px; width: 50%; height: 100%; }
-  .nav-item.active { color: var(--accent-blue); }
+  /* الشريط السفلي المطور (3 تبويبات) */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100vw; height: 75px; background: rgba(3, 7, 18, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 700; gap: 4px; width: 33.3%; height: 100%; }
+  .nav-item.active { color: var(--accent-blue); border-top: 2px solid var(--accent-blue); }
 
   #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; pointer-events: none; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 440px; }
   .toast { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); color: #f8fafc; padding: 14px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; box-shadow: var(--neon-glow); }
@@ -133,14 +132,13 @@
 <div class="stars-overlay"></div>
 <div id="toast-container"></div>
 
-<!-- 1. CYBER SPLASH SCREEN (الدخلة السايبر) -->
+<!-- 1. CYBER SPLASH SCREEN -->
 <div id="splash-screen">
   <div class="radar-container">
     <div class="radar-sweep"></div>
-    <span class="radar-center-icon">🛰️</span>
+    <span style="font-size:36px; z-index:2;">🛰️</span>
   </div>
   <div class="splash-title">SPY STATION</div>
-  <div class="splash-subtitle">INITIALIZING SECURE QUANTUM LINK...</div>
 </div>
 
 <!-- 2. AUTH SCREEN -->
@@ -161,7 +159,7 @@
   </div>
 </div>
 
-<!-- 3. HOME TAB -->
+<!-- 3. HOME TAB (إنشاء وانضمام) -->
 <div id="tab-home" class="page-screen has-nav hidden">
   <div class="header-profile-bar">
     <div style="display:flex; align-items:center; gap:12px;">
@@ -174,36 +172,36 @@
     <div class="splash-title" style="font-size: 16px;">SPY STATION</div>
   </div>
 
-  <!-- إنشاء محطة -->
   <div class="container-box">
-    <h3 style="font-size:15px; color:var(--accent-blue); margin-bottom:10px;">🚀 إنشاء محطة جديدة:</h3>
+    <h3 style="font-size:15px; color:var(--accent-blue); margin-bottom:10px;">🚀 اختر فئة اللعبة لإنشاء محطة:</h3>
     <div class="category-grid">
-      <div class="category-card" onclick="openCreateRoomModal('players')"><span style="font-size:26px;">⚽</span><br><span style="font-size:12px; font-weight:bold;">كرة القدم</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('food')"><span style="font-size:26px;">🍕</span><br><span style="font-size:12px; font-weight:bold;">أكلات</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('places')"><span style="font-size:26px;">🗺️</span><br><span style="font-size:12px; font-weight:bold;">أماكن</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('movies')"><span style="font-size:26px;">🎬</span><br><span style="font-size:12px; font-weight:bold;">أفلام</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('games')"><span style="font-size:26px;">🎮</span><br><span style="font-size:12px; font-weight:bold;">ألعاب</span></div>
-      <div class="category-card" onclick="openCreateRoomModal('animals')"><span style="font-size:26px;">🦁</span><br><span style="font-size:12px; font-weight:bold;">حيوانات</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('players')"><span style="font-size:28px;">⚽</span><br><span style="font-size:12px; font-weight:bold;">كرة القدم</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('food')"><span style="font-size:28px;">🍕</span><br><span style="font-size:12px; font-weight:bold;">أكلات</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('places')"><span style="font-size:28px;">🗺️</span><br><span style="font-size:12px; font-weight:bold;">أماكن</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('movies')"><span style="font-size:28px;">🎬</span><br><span style="font-size:12px; font-weight:bold;">أفلام</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('games')"><span style="font-size:28px;">🎮</span><br><span style="font-size:12px; font-weight:bold;">ألعاب</span></div>
+      <div class="category-card" onclick="openCreateRoomModal('animals')"><span style="font-size:28px;">🦁</span><br><span style="font-size:12px; font-weight:bold;">حيوانات</span></div>
     </div>
 
     <hr style="margin:20px 0; border-color:var(--glass-border);">
 
-    <!-- انضمام كود -->
     <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;">🔒 الانضمام بكود محطة خاصة:</h3>
     <input type="text" id="roomCodeInput" placeholder="أدخل كود المحطة (مثال: X8K9P2)" style="text-transform:uppercase;">
     <button class="btn-secondary" onclick="joinRoomByInput()">انضمام للكود 🛰️</button>
   </div>
+</div>
 
-  <!-- قسم المحطات العامة (Public Rooms Monitor) -->
+<!-- 4. PUBLIC ROOMS TAB (التبويب الجديد في الشريط السفلي) -->
+<div id="tab-public" class="page-screen has-nav hidden">
   <div class="container-box">
-    <h3 style="font-size:15px; color:var(--accent-blue); margin-bottom:12px;">🌐 المحطات العامة النشطة (Public Rooms):</h3>
+    <h3 style="font-size:16px; color:var(--accent-blue); margin-bottom:15px; text-align:center;">🌐 المحطات العامة النشطة</h3>
     <div id="publicRoomsContainer">
-      <div style="text-align:center; color:#64748b; font-size:13px; padding:15px;">جاري البحث عن محطات عامة...</div>
+      <div style="text-align:center; color:#64748b; font-size:13px; padding:20px;">جاري تجميع المحطات العامة...</div>
     </div>
   </div>
 </div>
 
-<!-- 4. SETTINGS TAB (إعدادات الحساب والنظام) -->
+<!-- 5. SETTINGS TAB -->
 <div id="tab-settings" class="page-screen has-nav hidden">
   <div class="container-box">
     <h3 style="margin-bottom:15px; text-align:center; color:var(--accent-blue);">إعدادات الحساب ⚙️</h3>
@@ -219,9 +217,10 @@
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- BOTTOM NAV (الشريط السفلي المطور) -->
 <div id="main-bottom-nav" class="bottom-nav hidden">
-  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')"><span>🚀 المحطات والتأطير</span></div>
+  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')"><span>🚀 الرئيسية</span></div>
+  <div class="nav-item" id="nav-public" onclick="switchTab('tab-public')"><span>🌐 غرف عامة</span></div>
   <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')"><span>⚙️ الإعدادات</span></div>
 </div>
 
@@ -246,7 +245,6 @@ const db = firebase.database();
 
 let currentUser = null, isSignUpMode = false;
 
-// تشغيل الـ Splash Screen عند فتح التطبيق
 window.addEventListener('load', () => {
   setTimeout(() => {
     const splash = document.getElementById('splash-screen');
@@ -255,7 +253,7 @@ window.addEventListener('load', () => {
       splash.classList.add('hidden');
       if(!currentUser) document.getElementById('auth-screen').classList.remove('hidden');
     }, 800);
-  }, 2200);
+  }, 2000);
 });
 
 function showToast(msg) {
@@ -291,7 +289,7 @@ function handleAuth() {
   const password = document.getElementById('authPassword').value.trim();
   const username = document.getElementById('authUsername').value.trim();
 
-  if(!email || !password) return showToast("يرجى إدخال الحقول المطلوبة!");
+  if(!email || !password) return showToast("يرجى إدخال البيانات كاملة!");
 
   if(isSignUpMode) {
     auth.createUserWithEmailAndPassword(email, password).then(res => {
@@ -311,7 +309,6 @@ function initUser(user) {
   listenToPublicRooms();
 }
 
-// تحديث بيانات الملف الشخصي فوراً وبشكل ديناميكي في كل الشاشات
 function updateUserUI() {
   const name = currentUser.displayName || currentUser.email.split('@')[0];
   const avatar = currentUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=spy`;
@@ -322,38 +319,43 @@ function updateUserUI() {
   document.getElementById('settingAvatarUrl').value = avatar;
 }
 
-// مراقبة المحطات العامة (Public Rooms Monitor)
+// مراقبة واستبعاد الغرف الفاضية تلقائياً 🛡️
 function listenToPublicRooms() {
   db.ref('spy_rooms').on('value', snap => {
     const container = document.getElementById('publicRoomsContainer');
     const rooms = snap.val();
+    
     if(!rooms) {
-      container.innerHTML = '<div style="text-align:center; color:#64748b; font-size:13px; padding:10px;">لا يوجد محطات عامة مفتوحة حالياً</div>';
+      container.innerHTML = '<div style="text-align:center; color:#64748b; font-size:13px; padding:20px;">لا يوجد محطات نشطة الآن</div>';
       return;
     }
 
     let html = '';
     Object.keys(rooms).forEach(code => {
       const r = rooms[code];
-      if(r.status === 'waiting' && r.visibility !== 'private') {
-        const pCount = r.players ? Object.keys(r.players).length : 0;
+      const pCount = r.players ? Object.keys(r.players).length : 0;
+      
+      // شرط الفلترة: الغرفة منتظرة، ليست خاصة، وبها لاعب واحد على الأقل (مش فاضية)
+      if(r.status === 'waiting' && r.visibility !== 'private' && pCount > 0) {
         html += `
           <div class="public-room-card">
             <div>
               <span style="font-weight:bold; color:var(--accent-blue); display:block;">محطة #${code}</span>
-              <span style="font-size:11px; color:#94a3b8;">الفئة: ${r.category || 'عامة'} | الأفراد: ${pCount}/20</span>
+              <span style="font-size:11px; color:#94a3b8;">الفئة: ${r.category || 'عامة'} | 👥 اللاعبين: ${pCount}</span>
             </div>
             <button onclick="joinPublicRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">انضمام 🚀</button>
           </div>
         `;
       }
     });
-    container.innerHTML = html || '<div style="text-align:center; color:#64748b; font-size:13px; padding:10px;">لا يوجد محطات عامة مفتوحة حالياً</div>';
+
+    container.innerHTML = html || '<div style="text-align:center; color:#64748b; font-size:13px; padding:20px;">لا يوجد محطات بها لاعبين حالياً</div>';
   });
 }
 
 function joinPublicRoom(code) {
   document.getElementById('roomCodeInput').value = code;
+  switchTab('tab-home');
   joinRoomByInput();
 }
 
@@ -363,7 +365,7 @@ function saveUserProfile() {
 
   if(currentUser) {
     currentUser.updateProfile({ displayName: newName, photoURL: newAvatar }).then(() => {
-      showToast("تم تحديث معلومات الحساب بنجاح 💾");
+      showToast("تم حفظ التعديلات 💾");
       updateUserUI();
     });
   }
