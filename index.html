@@ -45,7 +45,7 @@
     position: relative;
   }
 
-  /* خلفية النجوم المتحركة Spacewalk Background */
+  /* خلفية النجوم */
   body::before {
     content: '';
     position: fixed;
@@ -91,7 +91,6 @@
 
   .hidden { display: none !important; }
 
-  /* العناوين بالخط الفضائي */
   h1, h2, h3, .logo-title {
     font-family: 'Chakra Petch', 'Cairo', sans-serif;
     text-transform: uppercase;
@@ -125,7 +124,6 @@
     margin-bottom: 20px;
   }
 
-  /* الهيدر العلوي للملف الشخصي */
   .header-profile-bar {
     width: 100%;
     max-width: 600px;
@@ -141,8 +139,8 @@
   }
 
   .avatar-img { 
-    width: 48px; 
-    height: 48px; 
+    width: 44px; 
+    height: 44px; 
     border-radius: 50%; 
     object-fit: cover; 
     border: 2px solid var(--accent-blue);
@@ -197,7 +195,6 @@
   .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
   .btn-danger { background: linear-gradient(135deg, var(--danger-red), #991b1b); color: white; }
 
-  /* كروت الفئات الفضائية */
   .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
   .category-card { 
     background: rgba(15, 23, 42, 0.5); 
@@ -215,7 +212,7 @@
   }
   .category-card .icon { font-size: 32px; display: block; margin-bottom: 6px; }
 
-  /* الشريط السفلي للتنقل (Bottom Navigation Bar) */
+  /* Bottom Navigation Bar */
   .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -252,8 +249,16 @@
     text-shadow: 0 0 10px var(--accent-blue);
   }
 
-  .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; max-height: 200px; overflow-y: auto; }
-  .player-item { background: rgba(3, 7, 18, 0.6); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 8px; }
+  .player-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin: 12px 0; max-height: 250px; overflow-y: auto; }
+  .player-item { 
+    background: rgba(3, 7, 18, 0.6); 
+    padding: 10px 14px; 
+    border-radius: 14px; 
+    border: 1px solid var(--glass-border); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+  }
 
   .public-rooms-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
   .public-room-card { background: rgba(3, 7, 18, 0.6); border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
@@ -270,6 +275,40 @@
   .toast { 
     background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); 
     color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; box-shadow: var(--neon-glow); 
+  }
+
+  /* تصميم قائمة Voting المتطورة */
+  .vote-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+  .vote-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--glass-border);
+    padding: 10px 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    cursor: pointer;
+  }
+  .vote-card:hover { border-color: var(--accent-purple); }
+  .vote-card.disabled { pointer-events: none; opacity: 0.6; }
+
+  /* صور الشخصيات التي فوتت بزاوية */
+  .voters-overlay {
+    display: flex;
+    align-items: center;
+    gap: -8px;
+  }
+  .voter-mini-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-purple);
+    transform: rotate(-15deg);
+    margin-left: -8px;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+    object-fit: cover;
+    background: #000;
   }
 </style>
 </head>
@@ -299,7 +338,7 @@
   </div>
 </div>
 
-<!-- 2. HOME TAB / MAIN MENU -->
+<!-- 2. HOME TAB -->
 <div id="tab-home" class="page-screen hidden">
   <div class="header-profile-bar">
     <div style="display:flex; align-items:center; gap:12px;">
@@ -337,7 +376,7 @@
   </div>
 </div>
 
-<!-- 3. STATIONS TAB / PUBLIC ROOMS -->
+<!-- 3. STATIONS TAB -->
 <div id="tab-stations" class="page-screen hidden">
   <div class="container-box">
     <h3 style="margin-bottom:15px; color:var(--accent-blue);">🌐 Active Public Stations</h3>
@@ -434,16 +473,11 @@
 <!-- 7. GAME SCREEN -->
 <div id="game-screen" class="page-screen hidden" style="z-index:20;">
   <div class="container-box" style="text-align:center;">
-    <div id="timerDisplay" style="font-size:20px; color:var(--danger-red); font-weight:bold;">⏳ Time: --</div>
-    <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:20px 0; background:rgba(3,7,18,0.8); padding:20px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
+    <div id="timerDisplay" style="font-size:20px; color:var(--accent-blue); font-weight:bold;">⏳ Time: --</div>
+    <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:15px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
 
-    <button class="btn-danger" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
-
-    <div id="voteModal" class="hidden" style="margin-top:15px; background:rgba(3,7,18,0.9); padding:15px; border-radius:14px; border:1px solid var(--danger-red);">
-      <h4 data-key="voteTitle">Ejection Protocol</h4>
-      <div id="voteContainer" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;"></div>
-      <div id="votingResultsDisplay" style="margin-top:10px; font-weight:bold; color:var(--accent-blue);"></div>
-    </div>
+    <!-- Emergency Vote Button -->
+    <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
     <div class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
@@ -452,8 +486,22 @@
         <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
+  </div>
+</div>
 
-    <button id="resetBtn" class="hidden btn-secondary" style="margin-top:15px;" onclick="resetGameToLobby()" data-key="btnReturnLobby">Return to Lobby 🔄</button>
+<!-- 8. VOTING OVERLAY SCREEN -->
+<div id="voting-screen" class="page-screen hidden" style="z-index:30; background:rgba(3,7,18,0.95);">
+  <div class="container-box" style="text-align:center;">
+    <h3 style="color:var(--danger-red); font-size:22px;" data-key="voteTitle">🚨 EMERGENCY VOTING PROTOCOL</h3>
+    <div id="voteTimerDisplay" style="font-size:18px; color:var(--accent-blue); margin:8px 0; font-weight:bold;">⏳ Vote Time: 80s</div>
+    
+    <div id="voteListContainer" class="vote-grid"></div>
+
+    <div style="margin-top:15px;">
+      <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')">⏩ Skip Vote</button>
+    </div>
+
+    <div id="votingStatusMessage" style="margin-top:15px; font-weight:bold; color:var(--accent-purple);"></div>
   </div>
 </div>
 
@@ -526,16 +574,16 @@ const dictionary = {
     lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
     stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀 (Min 3 Players)", txtAstronauts: "Crew Members",
-    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "Ejection Protocol", btnReturnLobby: "Return to Lobby 🔄"
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL"
   },
   ar: {
-googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
+    googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب", loginBtn: "دخول 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
     chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم",
-    joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسبس:",
+    joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
     stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀 (أقل عدد 3)", txtAstronauts: "أفراد الطاقم",
-    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "بروتوكول الطرد", btnReturnLobby: "العودة للانتظار 🔄"
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ"
   }
 };
 
@@ -553,7 +601,7 @@ function changeLanguage(lang) {
 }
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
-let gameInterval = null;
+let gameInterval = null, voteInterval = null;
 
 const wordsDB = {
   players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne"],
@@ -561,17 +609,12 @@ const wordsDB = {
   places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome"]
 };
 
-// التنقل بين الـ Tabs السفلي
 function switchTab(tabId) {
   playSound(400, 'sine', 0.08);
-  document.querySelectorAll('.page-screen').forEach(screen => {
-    screen.classList.add('hidden');
-  });
-  
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById(tabId).classList.remove('hidden');
   
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  
   if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
   if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
   if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
@@ -656,7 +699,7 @@ function listenToPublicRooms() {
             <div style="text-align:left;">
               <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span> 
               <span style="font-size:11px; color:#94a3b8;">(${room.category.toUpperCase()})</span>
-              <div style="font-size:11px; color:#64748b; margin-top:2px;">Host: ${room.host} | Players: ${pCount}</div>
+              <div style="font-size:11px; color:#64748b; margin-top:2px;">Players: ${pCount}</div>
             </div>
             <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">Join 🚀</button>
           </div>
@@ -716,7 +759,13 @@ function confirmCreateOrUpdateRoom() {
     currentRoom = Math.floor(10000 + Math.random() * 90000).toString();
     isHost = true;
     db.ref('spy_rooms/' + currentRoom).set({
-      status: 'waiting', host: currentUser.displayName, category: cat, spyCount: spies, roundTimer: timer, visibility: visibility
+      status: 'waiting', 
+      originalHostUid: currentUser.uid,
+      hostUid: currentUser.uid, 
+      category: cat, 
+      spyCount: spies, 
+      roundTimer: timer, 
+      visibility: visibility
     });
   } else {
     db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, roundTimer: timer, visibility: visibility });
@@ -744,7 +793,14 @@ function joinRoomProcess() {
   document.getElementById('roomCodeDisplay').innerText = currentRoom;
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
-  playerRef.set({ name: currentUser.displayName, avatar: currentUser.photoURL, isHost: isHost });
+  playerRef.set({ 
+    uid: currentUser.uid,
+    name: currentUser.displayName, 
+    avatar: currentUser.photoURL, 
+    joinedAt: firebase.database.ServerValue.TIMESTAMP 
+  });
+
+  // إدارة انقطاع الاتصال تلقائياً (Remove Player & Reassign Host)
   playerRef.onDisconnect().remove();
 
   listenToChat();
@@ -753,27 +809,77 @@ function joinRoomProcess() {
     const data = snap.val();
     if(!data) return;
 
-    if(data.host === currentUser.displayName) {
-      isHost = true;
-      document.getElementById('host-controls').classList.remove('hidden');
-      document.getElementById('resetBtn').classList.remove('hidden');
-    }
+    // نقل الـ Host التلقائي وإعادة الملكية
+    handleHostAssignment(data);
 
-    const players = data.players ? Object.values(data.players) : [];
-    document.getElementById('playerCount').innerText = players.length;
-    document.getElementById('playersContainer').innerHTML = players.map(p => `
+    // عرض قائمة اللاعبين وأزرار الطرد/إعطاء الهوست
+    const playersObj = data.players || {};
+    const playersArr = Object.values(playersObj);
+    document.getElementById('playerCount').innerText = playersArr.length;
+    
+    document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
       <div class="player-item">
-        <img class="avatar-img" style="width:30px; height:30px;" src="${p.avatar}" alt="a">
-        <span style="font-size:13px;">${p.name} ${p.isHost ? '👑' : ''}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}</span>
+        </div>
+        ${(isHost && p.uid !== currentUser.uid) ? `
+          <div style="display:flex; gap:4px; width:auto;">
+            <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
+            <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
+          </div>
+        ` : ''}
       </div>
     `).join('');
 
-    if(data.status === 'playing') showGameScreen(data);
+    // إذا طُرد اللاعب الحالي
+    if(!playersObj[currentUser.uid]) {
+      showToast("You were removed from the station.");
+      switchTab('tab-home');
+      return;
+    }
+
+    // إدارة الشاشات حسب حالة اللعبة
     if(data.status === 'waiting') {
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
+    } else if(data.status === 'playing') {
+      showGameScreen(data);
+    } else if(data.status === 'voting') {
+      showVotingScreen(data);
     }
   });
+}
+
+function handleHostAssignment(data) {
+  const playersObj = data.players || {};
+  const playerUids = Object.keys(playersObj);
+  
+  if(playerUids.length === 0) return;
+
+  // إذا عاد الهوست الأصلي ترجع له
+  if(playersObj[data.originalHostUid]) {
+    if(data.hostUid !== data.originalHostUid) {
+      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(data.originalHostUid);
+    }
+  } else if(!playersObj[data.hostUid]) {
+    // إذا خرج الـ Host، تنتقل لأول شخص انضم
+    const sorted = Object.values(playersObj).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+    if(sorted.length > 0) {
+      db.ref(`spy_rooms/${currentRoom}/hostUid`).set(sorted[0].uid);
+    }
+  }
+
+  isHost = (data.hostUid === currentUser.uid);
+  document.getElementById('host-controls').classList.toggle('hidden', !isHost);
+}
+
+function kickPlayer(uid) {
+  db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
+}
+
+function makeHost(uid) {
+  db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid);
 }
 
 function sendChatMessage(screen) {
@@ -819,8 +925,8 @@ function startGame() {
       
       let spies = [];
       while(spies.length < Math.min(data.spyCount, playersArr.length - 1)) {
-        let randPlayer = playersArr[Math.floor(Math.random() * playersArr.length)].name;
-        if(!spies.includes(randPlayer)) spies.push(randPlayer);
+        let randUid = playersArr[Math.floor(Math.random() * playersArr.length)].uid;
+        if(!spies.includes(randUid)) spies.push(randUid);
       }
 
       db.ref(`spy_rooms/${currentRoom}`).update({ 
@@ -828,8 +934,9 @@ function startGame() {
         word: selectedWord, 
         spies: spies,
         timeLeft: data.roundTimer,
+        initialTimer: data.roundTimer,
         votes: null,
-        ejected: null
+        voteTimeLeft: 80
       });
 
       startTimerSync();
@@ -838,17 +945,64 @@ function startGame() {
 }
 
 function startTimerSync() {
-  if(isHost) {
-    clearInterval(gameInterval);
-    gameInterval = setInterval(() => {
-      db.ref(`spy_rooms/${currentRoom}/timeLeft`).transaction(t => {
-        if (t <= 1) {
-          clearInterval(gameInterval);
-          return 0;
+  if(!isHost) return;
+  clearInterval(gameInterval);
+  
+  gameInterval = setInterval(() => {
+    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
+      const room = snap.val();
+      if(!room) return;
+
+      // تحقق من خروج اللاعبين والجواسيس أثناء اللعبة
+      checkSpiesAndPlayersStatus(room);
+
+      if(room.status === 'playing') {
+        if(room.timeLeft <= 1) {
+          // فتح الفوت تلقائياً عند انتهاء الوقت
+          db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+          startVoteTimerSync();
+        } else {
+          db.ref(`spy_rooms/${currentRoom}/timeLeft`).set(room.timeLeft - 1);
         }
-        return t - 1;
-      });
-    }, 1000);
+      }
+    });
+  }, 1000);
+}
+
+function startVoteTimerSync() {
+  if(!isHost) return;
+  clearInterval(voteInterval);
+
+  voteInterval = setInterval(() => {
+    db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
+      const room = snap.val();
+      if(!room || room.status !== 'voting') {
+        clearInterval(voteInterval);
+        return;
+      }
+
+      const playersCount = room.players ? Object.keys(room.players).length : 0;
+      const votesCount = room.votes ? Object.keys(room.votes).length : 0;
+
+      // إذا الجميع فوت أو انتهى الوقت 80 ثانية
+      if(room.voteTimeLeft <= 1 || votesCount >= playersCount) {
+        clearInterval(voteInterval);
+        processVoteResults(room);
+      } else {
+        db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
+      }
+    });
+  }, 1000);
+}
+
+function checkSpiesAndPlayersStatus(room) {
+  const currentPlayers = room.players ? Object.keys(room.players) : [];
+  const currentSpies = room.spies ? room.spies.filter(uid => currentPlayers.includes(uid)) : [];
+
+  // لو آخر جاسوس خرج -> فوز رواد الفضاء
+  if(currentSpies.length === 0 && room.spies && room.spies.length > 0) {
+    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
+    showToast("🎉 All Spies disconnected! Astronauts Win!");
   }
 }
 
@@ -856,60 +1010,123 @@ function showGameScreen(data) {
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('game-screen').classList.remove('hidden');
   
-  const isSpy = data.spies && data.spies.includes(currentUser.displayName);
+  const isSpy = data.spies && data.spies.includes(currentUser.uid);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ YOU ARE THE SPY!" : `Word: ${data.word}`;
   document.getElementById('timerDisplay').innerText = `⏳ Time: ${data.timeLeft || 0}s`;
 
-  if(data.votes) renderVotes(data.votes, data.spies);
+  // إظهار زر الإمرجنسي فوت بعد مرور نصف الوقت
+  const halfTime = (data.initialTimer || 180) / 2;
+  const btnEmergency = document.getElementById('btnEmergencyVote');
+  
+  if(data.timeLeft <= halfTime) {
+    btnEmergency.classList.remove('hidden');
+  } else {
+    btnEmergency.classList.add('hidden');
+  }
 }
 
 function triggerVotingPhase() {
-  document.getElementById('voteModal').classList.remove('hidden');
-  db.ref(`spy_rooms/${currentRoom}/players`).once('value', snap => {
-    const players = Object.values(snap.val());
-    document.getElementById('voteContainer').innerHTML = players.map(p => `
-      <button class="btn-secondary" onclick="castVote('${p.name}')">🎯 ${p.name}</button>
-    `).join('');
+  db.ref(`spy_rooms/${currentRoom}`).update({ 
+    status: 'voting', 
+    voteTimeLeft: 80, 
+    votes: null 
   });
+  if(isHost) startVoteTimerSync();
 }
 
-function castVote(target) {
-  document.getElementById('voteModal').classList.add('hidden');
-  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.displayName}`).set(target);
-  showToast("Vote Submitted!");
+function showVotingScreen(data) {
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('voting-screen').classList.remove('hidden');
+
+  document.getElementById('voteTimerDisplay').innerText = `⏳ Vote Time: ${data.voteTimeLeft || 80}s`;
+
+  const players = data.players ? Object.values(data.players) : [];
+  const votes = data.votes || {};
+  const hasVoted = !!votes[currentUser.uid];
+
+  let voteHTML = '';
+
+  players.forEach(p => {
+    // إيجاد من قام بالتصويت على هذا اللاعب
+    let votersForThisPlayer = [];
+    for(let voterUid in votes) {
+      if(votes[voterUid] === p.uid && players.find(pl => pl.uid === voterUid)) {
+        votersForThisPlayer.push(players.find(pl => pl.uid === voterUid));
+      }
+    }
+
+    const votersAvatarsHTML = votersForThisPlayer.map(v => `
+      <img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">
+    `).join('');
+
+    voteHTML += `
+      <div class="vote-card ${hasVoted ? 'disabled' : ''}" onclick="castVote('${p.uid}')">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-weight:bold; font-size:13px;">${p.name}</span>
+        </div>
+        <div class="voters-overlay">
+          ${votersAvatarsHTML}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('voteListContainer').innerHTML = voteHTML;
+  document.getElementById('btnSkipVote').classList.toggle('disabled', hasVoted);
 }
 
-function renderVotes(votes, spies) {
-  document.getElementById('voteModal').classList.remove('hidden');
+function castVote(targetUid) {
+  db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid);
+  showToast("Vote Registered!");
+}
+
+function processVoteResults(room) {
+  const votes = room.votes || {};
   const counts = {};
-  Object.values(votes).forEach(t => counts[t] = (counts[t] || 0) + 1);
 
-  let resultHtml = 'Votes Count:<br>';
-  for(let player in counts) {
-    resultHtml += `${player}: ${counts[player]} votes<br>`;
-  }
+  Object.values(votes).forEach(target => {
+    if(target !== 'SKIP') counts[target] = (counts[target] || 0) + 1;
+  });
+
+  let maxVotes = 0;
+  let ejectedUid = null;
   
-  document.getElementById('votingResultsDisplay').innerHTML = resultHtml;
-  
-  const mostVoted = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, null);
-  if(mostVoted && spies.includes(mostVoted)) {
-    document.getElementById('votingResultsDisplay').innerHTML += `<br>🎉 Imposter ${mostVoted} Ejected! Astronauts Win!`;
-    if(!spies.includes(currentUser.displayName)) addScore(10);
-  } else if(mostVoted) {
-    document.getElementById('votingResultsDisplay').innerHTML += `<br>❌ ${mostVoted} was NOT the Imposter!`;
-    if(spies.includes(currentUser.displayName)) addScore(15);
+  for(let uid in counts) {
+    if(counts[uid] > maxVotes) {
+      maxVotes = counts[uid];
+      ejectedUid = uid;
+    }
   }
-}
 
-function addScore(pts) {
-  if(currentUser && currentUser.uid) {
-    db.ref(`users/${currentUser.uid}/score`).transaction(s => (s || 0) + pts);
+  const spies = room.spies || [];
+
+  if(ejectedUid && spies.includes(ejectedUid)) {
+    // إذا كان المطرود جاسوس
+    const updatedSpies = spies.filter(s => s !== ejectedUid);
+    if(updatedSpies.length === 0) {
+      // فوز رواد الفضاء عند طرد آخر جاسوس
+      db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting' });
+      showToast("🎉 Imposter Ejected! Astronauts Win!");
+    } else {
+      // يكملوا لعب وتحديث الجواسيس المتبقين
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'playing', 
+        spies: updatedSpies, 
+        timeLeft: room.initialTimer, 
+        votes: null 
+      });
+      showToast("🕵️ Imposter Ejected! Remaining spies still active!");
+    }
+  } else {
+    // لو تم السكيب أو طرد شخص غلط -> تكتمل اللعبة بدون تكشيف وظائف ويدأ الوقت من جديد
+    db.ref(`spy_rooms/${currentRoom}`).update({ 
+      status: 'playing', 
+      timeLeft: room.initialTimer, 
+      votes: null 
+    });
+    showToast("❌ Mission continues! No imposter was ejected.");
   }
-}
-
-function resetGameToLobby() { 
-  clearInterval(gameInterval);
-  db.ref('spy_rooms/' + currentRoom).update({ status: 'waiting' }); 
 }
 </script>
 
