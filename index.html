@@ -157,6 +157,7 @@
 
   button:not(.btn-auth-primary):not(.btn-google-auth) { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: #030712; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
   button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
   .btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
   .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
@@ -175,6 +176,8 @@
 
   .player-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin: 12px 0; max-height: 250px; overflow-y: auto; }
   .player-item { background: rgba(3, 7, 18, 0.6); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; }
+  .player-item.is-spectator { opacity: 0.5; }
+  .player-item.is-my-turn { border-color: var(--accent-purple); box-shadow: 0 0 14px rgba(168, 85, 247, 0.4); }
 
   .public-rooms-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
   .public-room-card { background: rgba(3, 7, 18, 0.6); border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
@@ -201,13 +204,19 @@
   .vote-card:hover { border-color: var(--accent-purple); }
   .vote-card.disabled { pointer-events: none; opacity: 0.6; }
 
-  .voters-overlay { display: flex; align-items: center; gap: 3px; }
+  .voters-overlay { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
   .voter-mini-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-purple); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; transform: none !important; }
 
   .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: start; }
   .team-members-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .team-member-chip { display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.9); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); font-size: 12px; }
   .team-member-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; transform: none !important; }
+
+  .in-game-topbar { display: flex; justify-content: flex-end; gap: 10px; width: 100%; max-width: 600px; margin-bottom: 8px; }
+  .in-game-topbar span { cursor: pointer; font-size: 20px; background: rgba(15,23,42,0.8); border: 1px solid var(--glass-border); border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+  .in-game-topbar span:hover { border-color: var(--accent-purple); }
+
+  .turn-banner { font-size: 14px; font-weight: bold; color: var(--accent-purple); margin: 8px 0 4px 0; min-height: 18px; }
 </style>
 </head>
 <body>
@@ -373,11 +382,12 @@
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count (1 - 8):</label>
     <select id="spyCountSelect"></select>
     
-    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblRoundTimer">Round Time (Seconds):</label>
-    <input type="number" id="roundTimerSelect" value="180">
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblTurnTimer">Turn Time (Seconds per player):</label>
+    <input type="number" id="turnTimerInput" value="30" min="10" max="180">
 
     <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Station 🚀</button>
-    <button class="btn-secondary" onclick="switchTab('tab-home')" data-key="btnCancel">Cancel</button>
+    <button class="btn-secondary" onclick="closeCreateRoomModal()" data-key="btnCancel">Cancel</button>
+    <button class="btn-danger hidden" id="btnLeaveFromSettings" onclick="leaveRoom(true)" data-key="btnLeaveStation">Leave Station 🚪</button>
   </div>
 </div>
 
@@ -416,8 +426,13 @@
 
 <!-- 7. GAME SCREEN -->
 <div id="game-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="in-game-topbar">
+    <span id="gameSettingsBtn" class="hidden" onclick="openRoomEditModal()" title="Settings">⚙️</span>
+    <span onclick="leaveRoom(true)" title="Leave">🚪</span>
+  </div>
   <div class="container-box" style="text-align:center;">
     <div id="timerDisplay" style="font-size:20px; color:var(--accent-blue); font-weight:bold;">⏳ Time: --</div>
+    <div id="turnBanner" class="turn-banner"></div>
     <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:15px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
 
     <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
@@ -426,7 +441,7 @@
       <div id="chatMessagesGame" class="chat-messages"></div>
       <div style="display:flex; gap:6px; margin-top:8px;">
         <input type="text" id="chatInputGame" data-key-placeholder="lblChatPlaceholder" placeholder="Discuss transmission..." style="margin:0;">
-        <button onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
+        <button id="btnGameSend" onclick="sendGameChatMessage()" style="width:auto; padding:0 20px;">💬</button>
       </div>
     </div>
   </div>
@@ -434,14 +449,19 @@
 
 <!-- 8. VOTING OVERLAY SCREEN -->
 <div id="voting-screen" class="page-screen hidden" style="z-index:30; background:rgba(3,7,18,0.95);">
+  <div class="in-game-topbar">
+    <span onclick="leaveRoom(true)" title="Leave">🚪</span>
+  </div>
   <div class="container-box" style="text-align:center;">
     <h3 style="color:var(--danger-red); font-size:22px;" data-key="voteTitle">🚨 EMERGENCY VOTING PROTOCOL</h3>
+    <div id="emergencyVoteByLine" class="hidden"></div>
     <div id="voteTimerDisplay" style="font-size:18px; color:var(--accent-blue); margin:8px 0; font-weight:bold;">⏳ Vote Time: 80s</div>
     
     <div id="voteListContainer" class="vote-grid"></div>
 
     <div style="margin-top:15px;">
       <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')" data-key="btnSkipVote">⏩ Skip Vote</button>
+      <div id="skipVotersRow" class="voters-overlay" style="justify-content:center; margin-top:8px;"></div>
     </div>
   </div>
 </div>
@@ -572,7 +592,7 @@ const dictionary = {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Enter Station 🚀", toggleAuth: "Don't have an account? Sign Up",
     chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals",
     joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
-    lblRoundTimer: "Round Time (Seconds):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
+    lblTurnTimer: "Turn Time (Seconds per player):", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
     stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀", btnResumeGame: "Resume Mission 🚀", missionInProgress: "Mission still in progress — spies remain among the crew!", txtAstronauts: "Crew Members",
     btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL",
@@ -591,7 +611,7 @@ const dictionary = {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
     chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات",
     joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
-    lblRoundTimer: "مدة الجولة (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
+    lblTurnTimer: "مدة دور اللاعب (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
     stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀", btnResumeGame: "استكمال المهمة 🚀", missionInProgress: "المهمة لسه شغالة — لسه فيه جاسوس بين الطاقم!", txtAstronauts: "أفراد الطاقم",
     btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ",
@@ -628,39 +648,31 @@ function changeLanguage(lang) {
     if (dictionary[lang][key]) el.placeholder = dictionary[lang][key];
   });
 
-  if (currentRoom) {
-    db.ref(`spy_rooms/${currentRoom}/category`).once('value', snap => {
-      const cat = snap.val();
-      if(cat && categoryNamesMap[cat]) {
-        const catObj = categoryNamesMap[cat];
-        document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catObj[currentLang] || catObj.en}`;
-      }
-    });
+  if (currentRoom && latestRoomData) {
+    const cat = latestRoomData.category;
+    if(cat && categoryNamesMap[cat]) {
+      const catObj = categoryNamesMap[cat];
+      const el = document.getElementById('roomCategoryDisplay');
+      if (el) el.innerText = `${dictionary[currentLang].categoryPrefix}${catObj[currentLang] || catObj.en}`;
+    }
 
-    db.ref(`spy_rooms/${currentRoom}/spies`).once('value', snap => {
-      const spies = snap.val();
-      const missionOngoing = !!(spies && spies.length > 0);
-      const banner = document.getElementById('missionInProgressBanner');
-      if(banner) banner.querySelector('span').innerText = dictionary[currentLang].missionInProgress;
-      const btn = document.getElementById('btnStartOrResume');
-      if (btn) btn.innerText = missionOngoing ? dictionary[currentLang].btnResumeGame : dictionary[currentLang].btnStartGame;
-    });
+    const missionOngoing = !!(latestRoomData.spies && latestRoomData.spies.length > 0);
+    const banner = document.getElementById('missionInProgressBanner');
+    if(banner) banner.querySelector('span').innerText = dictionary[currentLang].missionInProgress;
+    const btn = document.getElementById('btnStartOrResume');
+    if (btn) btn.innerText = missionOngoing ? dictionary[currentLang].btnResumeGame : dictionary[currentLang].btnStartGame;
   }
 }
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 let roomListener = null, annListener = null;
+let cameFromInGameSettings = false;
 
 // --- Server-synced timing -------------------------------------------------
-// The round/vote timers used to be decremented once a second by whichever
-// client happened to be "host", writing the new value to the database.
-// That's fragile on mobile: if the host's tab is backgrounded (switching
-// apps, locking the phone) browsers throttle/stop JS timers, so the clock
-// froze for everyone and votes were never resolved.
-// Instead we store an absolute end timestamp (server-time based) once, and
-// every connected client independently computes "time left" locally and can
-// trigger the phase transition. Firebase transactions make sure that even if
-// several clients notice the timeout at once, the transition only happens once.
+// Timers store an absolute end timestamp (server-time based) once, and every
+// connected client independently computes "time left" locally and can trigger
+// the phase transition. Firebase transactions make sure that even if several
+// clients notice the timeout at once, the transition only happens once.
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
 function serverNow() { return Date.now() + serverTimeOffset; }
@@ -677,18 +689,15 @@ setInterval(() => {
     const remaining = Math.max(0, Math.round((data.phaseEndTime - serverNow()) / 1000));
     updateGameTimerUI(data, remaining);
 
-    if (remaining <= 0 && !playingTransitionLock) {
+    const turnOrder = data.turnOrder || [];
+    const curUid = turnOrder[data.turnIndex || 0];
+    // If it's someone's turn but they're no longer in the room (disconnected),
+    // skip their turn immediately instead of waiting for the full timer.
+    const curPlayerGone = curUid && data.players && !data.players[curUid];
+
+    if ((remaining <= 0 || curPlayerGone) && !playingTransitionLock) {
       playingTransitionLock = true;
-      db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
-        if (!room || room.status !== 'playing') return room; // already handled by another client
-        room.status = 'voting';
-        room.phaseEndTime = serverNow() + 80000;
-        room.votes = null;
-        return room;
-      }, (err, committed) => {
-        playingTransitionLock = false;
-        if (committed) broadcastAnnouncement("🚨 Time's up! Voting phase started!", "danger");
-      });
+      advanceTurn(() => { playingTransitionLock = false; });
     }
   } else {
     playingTransitionLock = false;
@@ -710,15 +719,44 @@ setInterval(() => {
 
 function updateGameTimerUI(data, remainingOverride) {
   const timerEl = document.getElementById('timerDisplay');
+  const turnBanner = document.getElementById('turnBanner');
   if (!timerEl) return;
   const remaining = (remainingOverride !== undefined) ? remainingOverride
     : Math.max(0, Math.round(((data.phaseEndTime || 0) - serverNow()) / 1000));
-  timerEl.innerText = `⏳ Time left: ${remaining}s`;
+  timerEl.innerText = `⏳ ${remaining}s`;
+
+  const spectators = data.spectators || {};
+  const amSpectator = !!spectators[currentUser.uid];
+  const turnOrder = data.turnOrder || [];
+  const curUid = turnOrder[data.turnIndex || 0];
+  const curPlayer = curUid && data.players ? data.players[curUid] : null;
+  const isMyTurn = !amSpectator && curUid === currentUser.uid;
+
+  if (turnBanner) {
+    if (amSpectator) {
+      turnBanner.innerText = currentLang === 'ar' ? "👀 انت بتتفرج - مش هيجيلك دور الجولة دي" : "👀 You're spectating — you won't get a turn this game";
+    } else if (isMyTurn) {
+      turnBanner.innerText = currentLang === 'ar' ? "🎙️ دورك! اكتب حاجة عن الكلمة من غير ما توضحها" : "🎙️ Your turn! Say something about the word without giving it away";
+    } else if (curPlayer) {
+      turnBanner.innerText = currentLang === 'ar' ? `🎙️ دور: ${curPlayer.name}` : `🎙️ Turn: ${curPlayer.name}`;
+    } else {
+      turnBanner.innerText = "";
+    }
+  }
+
+  const chatInputGame = document.getElementById('chatInputGame');
+  const btnGameSend = document.getElementById('btnGameSend');
+  if (chatInputGame) {
+    chatInputGame.disabled = !isMyTurn;
+    chatInputGame.placeholder = isMyTurn
+      ? (currentLang === 'ar' ? "اكتب حاجة عن الكلمة..." : "Say something about the word...")
+      : (amSpectator ? (currentLang === 'ar' ? "بتتفرج..." : "Spectating...") : (currentLang === 'ar' ? "استنى دورك..." : "Wait for your turn..."));
+  }
+  if (btnGameSend) btnGameSend.disabled = !isMyTurn;
 
   const btnEmergency = document.getElementById('btnEmergencyVote');
   if (btnEmergency) {
-    const initial = data.initialTimer || data.roundTimer || 180;
-    btnEmergency.classList.toggle('hidden', remaining > initial / 2);
+    btnEmergency.classList.toggle('hidden', amSpectator || (data.round||1) < 2);
   }
 }
 
@@ -920,16 +958,41 @@ function updateAvatarPreview() { document.getElementById('settingAvatarPreview')
 
 function openCreateRoomModal(cat) {
   playSound(350, 'sine', 0.1);
+  cameFromInGameSettings = false;
   document.getElementById('categorySelect').value = cat;
+  document.getElementById('btnLeaveFromSettings').classList.add('hidden');
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('create-room-screen').classList.remove('hidden');
   toggleBottomNav(false);
 }
 
+// Opens the same station-configuration screen from the lobby OR from inside
+// an active game/voting screen (host only), pre-filled with the room's
+// current settings so the host can see what they're changing. Changes apply
+// to maxPlayers/spyCount/turnTimer/category/visibility for the NEXT round or
+// game — the currently assigned spies/word are untouched.
 function openRoomEditModal() {
+  const data = latestRoomData;
+  cameFromInGameSettings = !!(data && data.status !== 'waiting');
+  if(data) {
+    document.getElementById('roomVisibilitySelect').value = data.visibility || 'public';
+    document.getElementById('categorySelect').value = data.category || 'players';
+    document.getElementById('maxPlayersSelect').value = data.maxPlayers || 8;
+    document.getElementById('spyCountSelect').value = data.spyCount || 1;
+    document.getElementById('turnTimerInput').value = data.turnTimer || 30;
+  }
+  document.getElementById('btnLeaveFromSettings').classList.remove('hidden');
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
   document.getElementById('create-room-screen').classList.remove('hidden');
   toggleBottomNav(false);
+}
+
+function closeCreateRoomModal() {
+  if (!currentRoom) { switchTab('tab-home'); return; }
+  // Return to whatever screen the room is actually in right now, instead of
+  // always dumping the user back in the lobby.
+  if (latestRoomData) renderRoomScreen(latestRoomData);
+  else switchTab('tab-home');
 }
 
 function saveSettings() {
@@ -946,7 +1009,7 @@ async function confirmCreateOrUpdateRoom() {
   const cat = document.getElementById('categorySelect').value;
   const spies = parseInt(document.getElementById('spyCountSelect').value);
   const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
-  const timer = parseInt(document.getElementById('roundTimerSelect').value);
+  const turnTimer = parseInt(document.getElementById('turnTimerInput').value) || 30;
   const visibility = document.getElementById('roomVisibilitySelect').value;
 
   if(!currentRoom) {
@@ -959,12 +1022,12 @@ async function confirmCreateOrUpdateRoom() {
       category: cat, 
       spyCount: spies, 
       maxPlayers: maxPlayers,
-      roundTimer: timer, 
+      turnTimer: turnTimer, 
       visibility: visibility,
       createdAt: firebase.database.ServerValue.TIMESTAMP
     });
   } else {
-    await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, roundTimer: timer, visibility: visibility });
+    await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, turnTimer: turnTimer, visibility: visibility });
   }
   joinRoomProcess();
 }
@@ -1019,14 +1082,28 @@ function joinRoomProcess() {
   toggleBottomNav(false);
   localStorage.setItem('spy_station_room', currentRoom);
 
+  const roomRef = db.ref(`spy_rooms/${currentRoom}`);
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
+
   playerRef.once('value', snap => {
     if(!snap.exists()) {
-      playerRef.set({ 
-        uid: currentUser.uid,
-        name: currentUser.displayName, 
-        avatar: currentUser.photoURL, 
-        joinedAt: firebase.database.ServerValue.TIMESTAMP 
+      // Joining fresh (first time, or rejoining after having left mid-game):
+      // if a mission is currently in progress, the newcomer becomes a
+      // spectator for the rest of THIS game — they watch, they don't get a
+      // turn or a vote, so nobody can dodge suspicion by leaving and
+      // rejoining.
+      roomRef.once('value', roomSnap => {
+        const roomData = roomSnap.val() || {};
+        const gameInProgress = roomData.status && roomData.status !== 'waiting';
+        const updates = {};
+        updates[`players/${currentUser.uid}`] = {
+          uid: currentUser.uid,
+          name: currentUser.displayName,
+          avatar: currentUser.photoURL,
+          joinedAt: firebase.database.ServerValue.TIMESTAMP
+        };
+        if (gameInProgress) updates[`spectators/${currentUser.uid}`] = true;
+        roomRef.update(updates);
       });
     }
   });
@@ -1068,11 +1145,15 @@ function joinRoomProcess() {
     const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
     document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
 
+    const spectators = data.spectators || {};
+    const turnOrder = data.turnOrder || [];
+    const curTurnUid = data.status === 'playing' ? turnOrder[data.turnIndex || 0] : null;
+
     document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
-      <div class="player-item">
+      <div class="player-item ${spectators[p.uid] ? 'is-spectator' : ''} ${curTurnUid === p.uid ? 'is-my-turn' : ''}">
         <div style="display:flex; align-items:center; gap:8px;">
           <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
-          <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}</span>
+          <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''} ${spectators[p.uid] ? '👀' : ''}</span>
         </div>
         ${(isHost && p.uid !== currentUser.uid) ? `
           <div style="display:flex; gap:4px; width:auto;">
@@ -1083,28 +1164,35 @@ function joinRoomProcess() {
       </div>
     `).join('');
 
-    if(data.status === 'waiting') {
-      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-      document.getElementById('lobby-screen').classList.remove('hidden');
-
-      // If spies are still assigned, this "waiting" state is a pause mid-mission
-      // (e.g. an innocent was voted out, or one of several spies was caught but
-      // more remain) - not a fresh lobby. Show that clearly and let the host
-      // resume the SAME round instead of accidentally starting a brand new one.
-      const missionOngoing = !!(data.spies && data.spies.length > 0);
-      document.getElementById('missionInProgressBanner').classList.toggle('hidden', !missionOngoing);
-      const btnStartOrResume = document.getElementById('btnStartOrResume');
-      if(btnStartOrResume) {
-        btnStartOrResume.innerText = missionOngoing ? dictionary[currentLang].btnResumeGame : dictionary[currentLang].btnStartGame;
-      }
-    } else if(data.status === 'playing') {
-      showGameScreen(data);
-    } else if(data.status === 'voting' || data.status === 'resolving') {
-      showVotingScreen(data);
-    } else if(data.status === 'gameover') {
-      showGameOverScreen(data);
-    }
+    renderRoomScreen(data);
   });
+}
+
+// Draws whichever screen matches the room's current status. Pulled out of
+// the listener so the settings modal's Cancel button can also use it to
+// return to the right place instead of always dumping into the lobby.
+function renderRoomScreen(data) {
+  if(data.status === 'waiting') {
+    document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+    document.getElementById('lobby-screen').classList.remove('hidden');
+
+    // If spies are still assigned, this "waiting" state is a pause mid-mission
+    // (e.g. an innocent was voted out, or one of several spies was caught but
+    // more remain) - not a fresh lobby. Show that clearly and let the host
+    // resume the SAME round instead of accidentally starting a brand new one.
+    const missionOngoing = !!(data.spies && data.spies.length > 0);
+    document.getElementById('missionInProgressBanner').classList.toggle('hidden', !missionOngoing);
+    const btnStartOrResume = document.getElementById('btnStartOrResume');
+    if(btnStartOrResume) {
+      btnStartOrResume.innerText = missionOngoing ? dictionary[currentLang].btnResumeGame : dictionary[currentLang].btnStartGame;
+    }
+  } else if(data.status === 'playing') {
+    showGameScreen(data);
+  } else if(data.status === 'voting' || data.status === 'resolving') {
+    showVotingScreen(data);
+  } else if(data.status === 'gameover') {
+    showGameOverScreen(data);
+  }
 }
 
 function listenToSystemAnnouncements() {
@@ -1139,7 +1227,9 @@ function handleHostAssignment(data) {
     // several clients fire this at the same instant, only one write wins and
     // everyone converges on the same new host. This fires the moment the
     // room data changes (host left / disconnected / was kicked) - no click,
-    // no refresh, no re-entering the room required.
+    // no refresh, no re-entering the room required from ANY client that is
+    // already sitting in the room (every connected client's roomListener
+    // gets this data update and runs this check on its own).
     db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
       if(!room || !room.players) return room;
       const stillMissing = !room.hostUid || !room.players[room.hostUid];
@@ -1164,6 +1254,7 @@ function makeHost(uid) {
   db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid);
 }
 
+// Free-form chat used in the lobby (and as a fallback) - not turn gated.
 function sendChatMessage(screen) {
   const input = document.getElementById(`chatInput${screen}`);
   const msg = input.value.trim();
@@ -1173,6 +1264,38 @@ function sendChatMessage(screen) {
     sender: currentUser.displayName,
     text: msg
   });
+  input.value = '';
+}
+
+// Turn-gated chat used during an active game. Only the player whose turn it
+// currently is can send a message; sending it also consumes their turn and
+// advances to the next player. Spectators can chime in freely at any time
+// since they're just watching, not part of the round.
+function sendGameChatMessage() {
+  const input = document.getElementById('chatInputGame');
+  const msg = input.value.trim();
+  if(!msg) return;
+  const data = latestRoomData;
+  if(!data) return;
+
+  const spectators = data.spectators || {};
+  const amSpectator = !!spectators[currentUser.uid];
+
+  if(data.status === 'playing' && !amSpectator) {
+    const turnOrder = data.turnOrder || [];
+    const isMyTurn = turnOrder[data.turnIndex || 0] === currentUser.uid;
+    if(!isMyTurn) {
+      showToast(currentLang === 'ar' ? "مش دورك دلوقتي!" : "It's not your turn yet!", 'danger');
+      return;
+    }
+    db.ref(`spy_rooms/${currentRoom}/chat`).push({ sender: currentUser.displayName, text: msg });
+    input.value = '';
+    advanceTurn();
+    return;
+  }
+
+  // Spectators (or any other status) just chat freely.
+  db.ref(`spy_rooms/${currentRoom}/chat`).push({ sender: currentUser.displayName, text: msg });
   input.value = '';
 }
 
@@ -1200,11 +1323,25 @@ function startOrResumeGame() {
     const data = snap.val();
     if(data && data.spies && data.spies.length > 0) {
       // Resume the same round: keep the same secret word and the same
-      // remaining spies, just give the crew a fresh discussion timer.
+      // remaining spies, recompute the turn order from whoever is still an
+      // active (non-spectator) player, and bump the round counter — from
+      // round 2 onward the emergency vote button becomes available.
+      const spectators = data.spectators || {};
+      const activePlayers = Object.values(data.players || {})
+        .filter(p => !spectators[p.uid])
+        .sort((a,b) => (a.joinedAt||0) - (b.joinedAt||0));
+      const turnOrder = activePlayers.map(p => p.uid);
+      const turnTimer = data.turnTimer || 30;
+      const nextRound = (data.round || 1) + 1;
+
       db.ref(`spy_rooms/${currentRoom}`).update({
         status: 'playing',
-        phaseEndTime: serverNow() + ((data.roundTimer || 180) * 1000),
-        votes: null
+        round: nextRound,
+        turnOrder: turnOrder,
+        turnIndex: 0,
+        phaseEndTime: serverNow() + (turnTimer * 1000),
+        votes: null,
+        emergencyVoteBy: null
       });
       broadcastAnnouncement("🚀 Mission resumed! Keep hunting the remaining spy!", "normal");
     } else {
@@ -1234,13 +1371,22 @@ function startGame() {
         if(!spies.includes(randUid)) spies.push(randUid);
       }
 
+      // Fresh game: everyone starts active (no spectators), round 1 (no
+      // emergency vote allowed this round), turn order by join time.
+      const turnOrder = playersArr.slice().sort((a,b) => (a.joinedAt||0) - (b.joinedAt||0)).map(p => p.uid);
+      const turnTimer = data.turnTimer || 30;
+
       db.ref(`spy_rooms/${currentRoom}`).update({ 
         status: 'playing', 
         word: selectedWord, 
         spies: spies,
-        initialTimer: data.roundTimer,
-        phaseEndTime: serverNow() + ((data.roundTimer || 180) * 1000),
-        votes: null
+        spectators: null,
+        round: 1,
+        turnOrder: turnOrder,
+        turnIndex: 0,
+        phaseEndTime: serverNow() + (turnTimer * 1000),
+        votes: null,
+        emergencyVoteBy: null
       });
 
       broadcastAnnouncement("🚀 Mission started! Find the spy!", "normal");
@@ -1255,11 +1401,49 @@ function showGameScreen(data) {
   const isSpy = data.spies && data.spies.includes(currentUser.uid);
   document.getElementById('roleDisplay').innerText = isSpy ? "🕵️ You are the Spy!" : `The word is: ${data.word}`;
 
+  document.getElementById('gameSettingsBtn').classList.toggle('hidden', !isHost);
+
   updateGameTimerUI(data);
 }
 
+// Advances play to the next player's turn. If everyone in the turn order has
+// already gone, the round is complete and voting starts automatically
+// (this is how "round 1" always ends). Wrapped in a transaction so it's safe
+// no matter which client (or the 1s timeout tick) triggers it.
+function advanceTurn(callback) {
+  db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
+    if (!room || room.status !== 'playing') return room;
+    const order = room.turnOrder || [];
+    const nextIndex = (room.turnIndex || 0) + 1;
+    if (nextIndex >= order.length) {
+      room.status = 'voting';
+      room.phaseEndTime = serverNow() + 80000;
+      room.votes = null;
+      room.emergencyVoteBy = null;
+    } else {
+      room.turnIndex = nextIndex;
+      room.phaseEndTime = serverNow() + ((room.turnTimer || 30) * 1000);
+    }
+    return room;
+  }, (err, committed, snapshot) => {
+    if (callback) callback();
+    if (committed && snapshot) {
+      const room = snapshot.val();
+      if (room && room.status === 'voting') {
+        broadcastAnnouncement("🗳️ Round complete! Voting time!", "danger");
+      }
+    }
+  });
+}
+
 function triggerVotingPhase() {
-  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', phaseEndTime: serverNow() + 80000, votes: null });
+  const data = latestRoomData;
+  if (!data || data.status !== 'playing') return;
+  const spectators = data.spectators || {};
+  if (spectators[currentUser.uid]) return; // spectators can't call a vote
+  if ((data.round || 1) < 2) return; // emergency vote only from round 2 onward
+
+  db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', phaseEndTime: serverNow() + 80000, votes: null, emergencyVoteBy: currentUser.uid });
   broadcastAnnouncement("🚨 Emergency vote triggered!", "danger");
 }
 
@@ -1270,20 +1454,31 @@ function showVotingScreen(data) {
   const remaining = Math.max(0, Math.round(((data.phaseEndTime || 0) - serverNow()) / 1000));
   document.getElementById('voteTimerDisplay').innerText = `⏳ Vote Time: ${remaining}s`;
 
-  const players = data.players ? Object.values(data.players) : [];
+  const emergencyLine = document.getElementById('emergencyVoteByLine');
+  if (data.emergencyVoteBy && data.players && data.players[data.emergencyVoteBy]) {
+    emergencyLine.innerText = (currentLang === 'ar' ? '🚨 بدأ التصويت الطارئ: ' : '🚨 Emergency vote started by: ') + data.players[data.emergencyVoteBy].name;
+    emergencyLine.classList.remove('hidden');
+  } else {
+    emergencyLine.classList.add('hidden');
+  }
+
+  const spectators = data.spectators || {};
+  const allPlayers = data.players ? Object.values(data.players) : [];
+  // Only active (non-spectator) players can be voted for or can vote —
+  // someone already ejected is already out of the running.
+  const activePlayers = allPlayers.filter(p => !spectators[p.uid]);
   const votes = data.votes || {};
-  // While a client is finalizing the result ('resolving'), lock voting for everyone
-  // so no stray vote sneaks in after the outcome was already computed.
   const votingLocked = data.status === 'resolving';
-  const hasVoted = votingLocked || !!votes[currentUser.uid];
+  const amSpectator = !!spectators[currentUser.uid];
+  const hasVoted = votingLocked || amSpectator || !!votes[currentUser.uid];
 
   let voteHTML = '';
 
-  players.forEach(p => {
+  activePlayers.forEach(p => {
     let votersForThisPlayer = [];
     for(let voterUid in votes) {
-      if(votes[voterUid] === p.uid && players.find(pl => pl.uid === voterUid)) {
-        votersForThisPlayer.push(players.find(pl => pl.uid === voterUid));
+      if(votes[voterUid] === p.uid && allPlayers.find(pl => pl.uid === voterUid)) {
+        votersForThisPlayer.push(allPlayers.find(pl => pl.uid === voterUid));
       }
     }
 
@@ -1305,6 +1500,17 @@ function showVotingScreen(data) {
   });
 
   document.getElementById('voteListContainer').innerHTML = voteHTML;
+
+  // Show who voted to skip, same avatar-stack treatment as a regular candidate.
+  let skipVoters = [];
+  for(let voterUid in votes) {
+    if(votes[voterUid] === 'SKIP' && allPlayers.find(pl => pl.uid === voterUid)) {
+      skipVoters.push(allPlayers.find(pl => pl.uid === voterUid));
+    }
+  }
+  document.getElementById('skipVotersRow').innerHTML = skipVoters.map(v => `
+    <img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">
+  `).join('');
   
   const btnSkip = document.getElementById('btnSkipVote');
   btnSkip.classList.toggle('disabled', hasVoted);
@@ -1318,6 +1524,9 @@ function castVote(targetUid) {
     const room = roomSnap.val();
     if(!room || room.status !== 'voting') return; // voting already closed/resolving
 
+    const spectators = room.spectators || {};
+    if(spectators[currentUser.uid]) return; // spectators don't get a vote
+
     db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
       if(snap.exists()) return;
       db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid).then(() => {
@@ -1326,12 +1535,12 @@ function castVote(targetUid) {
         db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap2 => {
           const room2 = roomSnap2.val();
           if(room2 && room2.players && room2.votes && room2.status === 'voting') {
-            const pCount = Object.keys(room2.players).length;
+            const spec2 = room2.spectators || {};
+            // Only count active (non-spectator) players toward "everyone voted" —
+            // spectators never vote, so they must never be part of that total.
+            const activeCount = Object.keys(room2.players).filter(uid => !spec2[uid]).length;
             const vCount = Object.keys(room2.votes).length;
-            // Everyone has voted - resolve immediately instead of waiting for the
-            // timer to run out. Works no matter who casts the last vote (not just
-            // the host), so results are never stuck waiting on one specific client.
-            if(vCount >= pCount) {
+            if(vCount >= activeCount) {
               attemptProcessVoteResults();
             }
           }
@@ -1360,84 +1569,106 @@ function attemptProcessVoteResults(callback) {
   });
 }
 
+// Single unified tie-breaking rule that covers every case that was described:
+//  - Nobody voted -> nobody ejected, game continues.
+//  - Exactly one real candidate has strictly the most votes -> they're ejected
+//    (this also covers "not everyone voted, take whoever has the most").
+//  - Two (or more) candidates tie for the most votes -> nobody ejected.
+//  - SKIP is treated as a candidate too: if SKIP ties or beats the top real
+//    candidate, nobody is ejected (SKIP "wins" or ties = no elimination).
 function processVoteResults(room) {
   const votes = room.votes || {};
   const counts = {};
 
   Object.values(votes).forEach(target => {
-    if(target !== 'SKIP') counts[target] = (counts[target] || 0) + 1;
+    counts[target] = (counts[target] || 0) + 1;
   });
 
   let maxVotes = 0;
   let topCandidates = [];
 
-  for(let uid in counts) {
-    if(counts[uid] > maxVotes) {
-      maxVotes = counts[uid];
-      topCandidates = [uid];
-    } else if(counts[uid] === maxVotes && maxVotes > 0) {
-      topCandidates.push(uid);
+  for(let key in counts) {
+    if(counts[key] > maxVotes) {
+      maxVotes = counts[key];
+      topCandidates = [key];
+    } else if(counts[key] === maxVotes && maxVotes > 0) {
+      topCandidates.push(key);
     }
   }
 
-  let ejectedUid = (topCandidates.length === 1) ? topCandidates[0] : null;
+  const ejectedUid = (maxVotes > 0 && topCandidates.length === 1 && topCandidates[0] !== 'SKIP')
+    ? topCandidates[0]
+    : null;
+
+  if(!ejectedUid) {
+    db.ref(`spy_rooms/${currentRoom}`).update({ status: 'waiting', votes: null, emergencyVoteBy: null });
+    broadcastAnnouncement("⚖️ Nobody ejected! Back to the lobby...", "normal");
+    return;
+  }
+
+  // Whoever gets ejected becomes a spectator for the rest of this game,
+  // whether they were a spy or not — they keep watching, but never get
+  // another turn or another vote.
+  const spectators = Object.assign({}, room.spectators || {});
+  spectators[ejectedUid] = true;
+
   const currentSpies = room.spies || [];
   const playersObj = room.players || {};
 
-  if(ejectedUid) {
-    if(currentSpies.includes(ejectedUid)) {
-      const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
-      
-      if(updatedSpies.length === 0) {
-        db.ref(`spy_rooms/${currentRoom}`).update({ 
-          status: 'gameover', 
-          winnerTeam: 'crew',
-          finalSpies: room.spies,
-          finalPlayers: playersObj,
-          votes: null 
-        });
-        broadcastAnnouncement("🎉 Spy caught! All spies are out - Crew wins!", "success");
-        return;
-      } else {
-        db.ref(`spy_rooms/${currentRoom}`).update({ 
-          spies: updatedSpies, 
-          status: 'waiting',
-          votes: null 
-        });
-        broadcastAnnouncement("🕵️ A spy was ejected, but more spies remain! Back to the lobby...", "danger");
-        return;
-      }
-    } else {
-      const currentPlayers = Object.keys(playersObj);
-      const currentSpiesCount = currentSpies.filter(uid => currentPlayers.includes(uid)).length;
-      const remainingCrewCount = currentPlayers.filter(uid => !currentSpies.includes(uid) && uid !== ejectedUid).length;
+  if(currentSpies.includes(ejectedUid)) {
+    const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
 
-      if(currentSpiesCount >= remainingCrewCount) {
-        db.ref(`spy_rooms/${currentRoom}`).update({ 
-          status: 'gameover', 
-          winnerTeam: 'spies',
-          finalSpies: room.spies,
-          finalPlayers: playersObj,
-          votes: null 
-        });
-        broadcastAnnouncement("🕵️ Spies have taken over! Spies win!", "danger");
-        return;
-      } else {
-        db.ref(`spy_rooms/${currentRoom}`).update({ 
-          status: 'waiting',
-          votes: null 
-        });
-        broadcastAnnouncement("❌ An innocent person was ejected! Back to the lobby...", "danger");
-        return;
-      }
+    if(updatedSpies.length === 0) {
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'gameover', 
+        winnerTeam: 'crew',
+        finalSpies: room.spies,
+        finalPlayers: playersObj,
+        spectators: spectators,
+        votes: null,
+        emergencyVoteBy: null
+      });
+      broadcastAnnouncement("🎉 Spy caught! All spies are out - Crew wins!", "success");
+      return;
+    } else {
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        spies: updatedSpies, 
+        status: 'waiting',
+        spectators: spectators,
+        votes: null,
+        emergencyVoteBy: null
+      });
+      broadcastAnnouncement("🕵️ A spy was ejected, but more spies remain! Back to the lobby...", "danger");
+      return;
+    }
+  } else {
+    const activeUids = Object.keys(playersObj).filter(uid => !spectators[uid]);
+    const activeSpiesCount = currentSpies.filter(uid => activeUids.includes(uid)).length;
+    const activeCrewCount = activeUids.filter(uid => !currentSpies.includes(uid)).length;
+
+    if(activeSpiesCount >= activeCrewCount) {
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'gameover', 
+        winnerTeam: 'spies',
+        finalSpies: room.spies,
+        finalPlayers: playersObj,
+        spectators: spectators,
+        votes: null,
+        emergencyVoteBy: null
+      });
+      broadcastAnnouncement("🕵️ Spies have taken over! Spies win!", "danger");
+      return;
+    } else {
+      db.ref(`spy_rooms/${currentRoom}`).update({ 
+        status: 'waiting',
+        spectators: spectators,
+        votes: null,
+        emergencyVoteBy: null
+      });
+      broadcastAnnouncement("❌ An innocent person was ejected! Back to the lobby...", "danger");
+      return;
     }
   }
-
-  db.ref(`spy_rooms/${currentRoom}`).update({ 
-    status: 'waiting', 
-    votes: null 
-  });
-  broadcastAnnouncement("⚖️ Nobody ejected! Back to the lobby...", "normal");
 }
 
 function showGameOverScreen(data) {
@@ -1479,7 +1710,12 @@ function returnToLobbyFromResults() {
       winnerTeam: null,
       votes: null,
       spies: null,
-      word: null
+      word: null,
+      spectators: null,
+      round: null,
+      turnOrder: null,
+      turnIndex: null,
+      emergencyVoteBy: null
     });
   }
 }
