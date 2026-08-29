@@ -1,7 +1,7 @@
 {
   "name": "Spy Station",
   "short_name": "Spy Station",
-  "description": "Deep Space Tactics Game - Spy Station",
+  "description": "Deep Space Tactics Game",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#030712",
