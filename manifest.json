@@ -1,25 +1,20 @@
 {
   "name": "Spy Station",
   "short_name": "Spy Station",
-  "description": "Deep Space Tactics Game",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#030712",
-  "theme_color": "#38bdf8",
-  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#FFD700",
   "icons": [
     {
-      "src": "https://i.imgur.com/8mYpR2N.png",
+      "src": "https://i.postimg.cc/MTs324rX/IMG-20260317-190541.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "https://i.imgur.com/4xVq3wQ.png",
+      "src": "https://i.postimg.cc/MTs324rX/IMG-20260317-190541.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "splash_pages": null
+  ]
 }
