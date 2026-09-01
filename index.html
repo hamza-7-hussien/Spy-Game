@@ -1,2564 +1,1714 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Station 🚀</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#38bdf8">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Spy Station">
-    <link rel="apple-touch-icon" href="https://i.imgur.com/4xVq3wQ.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="https://i.imgur.com/4xVq3wQ.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="https://i.imgur.com/8mYpR2N.png">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700;900&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
-        
-        :root {
-            --bg-primary: #030712;
-            --accent-blue: #38bdf8;
-            --accent-purple: #c084fc;
-            --neon-glow: 0 0 25px rgba(56, 189, 248, 0.45);
-            --purple-glow: 0 0 25px rgba(192, 132, 252, 0.45);
-            --danger-red: #ef4444;
-            --glass-bg: rgba(15, 23, 42, 0.85);
-            --glass-border: rgba(56, 189, 248, 0.3);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Exo 2', 'Cairo', sans-serif;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-        }
-
-        body {
-            background: var(--bg-primary);
-            color: #f3f4f6;
-            min-height: 100vh;
-            width: 100vw;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at bottom, #1e1b4b 0%, #030712 100%);
-            z-index: -2;
-        }
-
-        .stars-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 160px 120px, #a855f7, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            opacity: 0.6;
-            animation: starsAnimation 100s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes starsAnimation {
-            from { background-position: 0 0; }
-            to { background-position: 1000px 1000px; }
-        }
-
-        .page-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 20px 15px;
-            z-index: 10;
-            overflow-y: auto;
-        }
-
-        .page-screen.has-nav {
-            height: calc(100vh - 75px);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        h1, h2, h3, .logo-title {
-            font-family: 'Chakra Petch', 'Cairo', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .logo-title {
-            font-size: 28px;
-            font-weight: 900;
-            background: linear-gradient(90deg, #38bdf8, #c084fc, #38bdf8);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 4s linear infinite;
-            text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        .auth-card-container {
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.75));
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(24px);
-            border-radius: 28px;
-            padding: 30px 24px;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), var(--neon-glow);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cyber-logo-badge {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 15px auto;
-            border-radius: 50%;
-            background: rgba(3, 7, 18, 0.8);
-            border: 2px solid var(--accent-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--neon-glow);
-            position: relative;
-        }
-
-        .cyber-logo-badge::after {
-            content: '';
-            position: absolute;
-            width: 108%;
-            height: 108%;
-            border-radius: 50%;
-            border: 2px dashed var(--accent-purple);
-            animation: rotateRing 12s linear infinite;
-        }
-
-        @keyframes rotateRing {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            border-radius: 14px;
-            border: none;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .auth-card-container input {
-            background: rgba(3, 7, 18, 0.85);
-            color: white;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            padding-inline: 18px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .auth-card-container input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: var(--neon-glow);
-            background: rgba(15, 23, 42, 0.95);
-        }
-
-        .btn-auth-primary {
-            background: linear-gradient(135deg, var(--accent-blue), #0284c7);
-            color: #030712;
-            font-weight: 900;
-            font-size: 15px;
-            margin-top: 15px;
-            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4);
-            text-transform: uppercase;
-        }
-
-        .btn-auth-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(56, 189, 248, 0.6);
-        }
-
-        .btn-google-auth {
-            background: #ffffff;
-            color: #0f172a;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-            margin-bottom: 20px;
-        }
-
-        .btn-google-auth:hover {
-            background: #f1f5f9;
-            transform: translateY(-2px);
-        }
-
-        .auth-divider {
-            display: flex;
-            align-items: center;
-            margin: 18px 0;
-            color: #64748b;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .auth-divider::before,
-        .auth-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .auth-divider span {
-            padding: 0 10px;
-        }
-
-        .container-box {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(16px);
-            border-radius: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            margin-bottom: 20px;
-        }
-
-        .header-profile-bar {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--glass-border);
-            padding: 12px 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .avatar-img {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent-blue);
-            box-shadow: var(--neon-glow);
-            transform: none !important;
-        }
-
-        .avatar-preview {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            margin: 15px auto;
-            border: 2px dashed var(--accent-purple);
-            display: block;
-            object-fit: cover;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
-            transform: none !important;
-        }
-
-        input:not(.auth-card-container input), select {
-            background: rgba(3, 7, 18, 0.8);
-            color: white;
-            border: 1px solid var(--glass-border);
-            text-align: start;
-            padding-inline: 14px;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--accent-blue);
-            box-shadow: var(--neon-glow);
-        }
-
-        button:not(.btn-auth-primary):not(.btn-google-auth) {
-            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
-            color: #030712;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger-red), #991b1b);
-            color: white;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-        }
-
-        .category-card {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid var(--glass-border);
-            padding: 16px 8px;
-            border-radius: 16px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .category-card:hover {
-            border-color: var(--accent-purple);
-            background: rgba(168, 85, 247, 0.15);
-            transform: translateY(-3px);
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
-        }
-
-        .category-card .icon {
-            font-size: 28px;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100vw;
-            height: 70px;
-            background: rgba(3, 7, 18, 0.9);
-            border-top: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 999;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            gap: 4px;
-            width: 33.3%;
-            height: 100%;
-        }
-
-        .nav-item .nav-icon {
-            font-size: 20px;
-        }
-
-        .nav-item.active {
-            color: var(--accent-blue);
-        }
-
-        .nav-item.active .nav-icon {
-            transform: scale(1.1);
-            text-shadow: 0 0 10px var(--accent-blue);
-        }
-
-        .player-grid {
-            display: grid;
-            grid-template-columns: repeat(1, 1fr);
-            gap: 10px;
-            margin: 12px 0;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .player-item {
-            background: rgba(3, 7, 18, 0.6);
-            padding: 10px 14px;
-            border-radius: 14px;
-            border: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .player-item.is-spectator {
-            opacity: 0.55;
-            border-style: dashed;
-        }
-
-        .public-rooms-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .public-room-card {
-            background: rgba(3, 7, 18, 0.6);
-            border: 1px solid var(--glass-border);
-            padding: 14px;
-            border-radius: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-container {
-            background: rgba(3, 7, 18, 0.8);
-            border: 1px solid var(--glass-border);
-            border-radius: 14px;
-            padding: 12px;
-            margin-top: 15px;
-            text-align: start;
-        }
-
-        .chat-messages {
-            height: 110px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        .chat-msg {
-            background: rgba(15, 23, 42, 0.8);
-            padding: 8px 12px;
-            border-radius: 10px;
-        }
-
-        .chat-msg .sender {
-            color: var(--accent-blue);
-            font-weight: bold;
-            margin-inline-end: 5px;
-        }
-
-        #top-notification {
-            position: fixed;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 99999;
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid var(--accent-blue);
-            color: #f8fafc;
-            padding: 12px 24px;
-            border-radius: 16px;
-            font-size: 14px;
-            font-weight: 700;
-            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35);
-            backdrop-filter: blur(16px);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            max-width: 90%;
-            text-align: center;
-        }
-
-        #top-notification.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateX(-50%) translateY(-20px);
-        }
-
-        #top-notification.toast-danger {
-            border-color: var(--danger-red);
-            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45);
-        }
-
-        #top-notification.toast-success {
-            border-color: #10b981;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45);
-        }
-
-        .vote-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .vote-card {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid var(--glass-border);
-            padding: 10px 14px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .vote-card:hover:not(.disabled) {
-            border-color: var(--accent-purple);
-            background: rgba(168, 85, 247, 0.15);
-        }
-
-        .vote-card.disabled {
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
-        .voters-overlay {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            flex-wrap: wrap;
-        }
-
-        .voter-mini-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-purple);
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
-            object-fit: cover;
-            background: #000;
-            transform: none !important;
-        }
-
-        .team-section {
-            background: rgba(3, 7, 18, 0.7);
-            border: 1px solid var(--glass-border);
-            border-radius: 14px;
-            padding: 14px;
-            margin: 10px 0;
-            text-align: start;
-        }
-
-        .team-members-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-
-        .team-member-chip {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(15, 23, 42, 0.9);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            font-size: 12px;
-        }
-
-        .team-member-chip img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            object-fit: cover;
-            transform: none !important;
-        }
-
-        .badge-inline {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 10px;
-            margin-inline-start: 6px;
-        }
-
-        .badge-spectator {
-            background: rgba(148,163,184,0.2);
-            color: #cbd5e1;
-            border: 1px solid rgba(148,163,184,0.4);
-        }
-
-        .badge-ingame {
-            background: rgba(239,68,68,0.2);
-            color: #fecaca;
-            border: 1px solid var(--danger-red);
-        }
-
-        .gear-fab {
-            position: absolute;
-            top: 14px;
-            inset-inline-end: 14px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(3,7,18,0.85);
-            border: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            z-index: 25;
-            padding: 0;
-            margin: 0;
-            box-shadow: none;
-        }
-
-        .round-intro-text {
-            font-family: 'Chakra Petch', 'Cairo', sans-serif;
-            font-size: 48px;
-            font-weight: 900;
-            text-transform: uppercase;
-            color: var(--accent-blue);
-            text-shadow: 0 0 30px rgba(56,189,248,0.7);
-            letter-spacing: 3px;
-            animation: roundPulse 1.1s ease-in-out infinite;
-            text-align: center;
-        }
-
-        @keyframes roundPulse {
-            0%,100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.85; }
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            background: rgba(3,7,18,0.92);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .spy-role-badge {
-            background: rgba(239,68,68,0.2);
-            color: #fecaca;
-            border: 1px solid var(--danger-red);
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-
-        .crew-role-badge {
-            background: rgba(56,189,248,0.2);
-            color: var(--accent-blue);
-            border: 1px solid var(--accent-blue);
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-
-        @media (max-width: 480px) {
-            .round-intro-text {
-                font-size: 32px;
-            }
-            .category-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .turn-indicator {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: rgba(56,189,248,0.2);
-            color: var(--accent-blue);
-            font-size: 12px;
-            font-weight: bold;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        [dir="rtl"] .chat-msg .sender {
-            margin-inline-end: 0;
-            margin-inline-start: 5px;
-        }
-        
-        [dir="rtl"] .team-member-chip {
-            flex-direction: row-reverse;
-        }
-
-        /* Splash Screen Animations */
-        .splash-pulse {
-            animation: splashPulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes splashPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-        }
-        
-        @keyframes dotPulse {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-            40% { transform: scale(1.2); opacity: 1; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spy Station 🚀</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#38bdf8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spy Station">
+
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700;900&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
+
+  :root {
+    --bg-primary: #030712;
+    --accent-blue: #38bdf8;
+    --accent-purple: #c084fc;
+    --neon-glow: 0 0 25px rgba(56, 189, 248, 0.45);
+    --purple-glow: 0 0 25px rgba(192, 132, 252, 0.45);
+    --danger-red: #ef4444;
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(56, 189, 248, 0.3);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Exo 2', 'Cairo', sans-serif;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+
+  body { background: var(--bg-primary); color: #f3f4f6; min-height: 100vh; width: 100vw; overflow-x: hidden; position: relative; }
+
+  body::before {
+    content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at bottom, #1e1b4b 0%, #030712 100%); z-index: -2;
+  }
+
+  .stars-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image:
+      radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 160px 120px, #a855f7, rgba(0,0,0,0));
+    background-repeat: repeat; background-size: 200px 200px; opacity: 0.6;
+    animation: starsAnimation 100s linear infinite; z-index: -1;
+  }
+
+  @keyframes starsAnimation { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
+
+  .page-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 20px 15px; z-index: 10; overflow-y: auto;
+  }
+
+  .page-screen.has-nav { height: calc(100vh - 75px); }
+  .hidden { display: none !important; }
+
+  h1, h2, h3, .logo-title { font-family: 'Chakra Petch', 'Cairo', sans-serif; text-transform: uppercase; letter-spacing: 1.5px; }
+
+  .logo-title {
+    font-size: 28px; font-weight: 900;
+    background: linear-gradient(90deg, #38bdf8, #c084fc, #38bdf8);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shine 4s linear infinite; text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+  }
+
+  @keyframes shine { to { background-position: 200% center; } }
+
+  .auth-card-container {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.75));
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px); border-radius: 28px; padding: 30px 24px;
+    width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), var(--neon-glow);
+    text-align: center; position: relative; overflow: hidden;
+  }
+
+  .cyber-logo-badge {
+    width: 90px; height: 90px; margin: 0 auto 15px auto; border-radius: 50%;
+    background: rgba(3, 7, 18, 0.8); border: 2px solid var(--accent-blue);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--neon-glow); position: relative;
+  }
+
+  .cyber-logo-badge::after {
+    content: ''; position: absolute; width: 108%; height: 108%; border-radius: 50%;
+    border: 2px dashed var(--accent-purple); animation: rotateRing 12s linear infinite;
+  }
+
+  @keyframes rotateRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .auth-input-group { position: relative; margin: 12px 0; }
+
+  input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 14px; border: none; font-size: 14px; outline: none; }
+
+  .auth-card-container input {
+    background: rgba(3, 7, 18, 0.85); color: white;
+    border: 1px solid rgba(56, 189, 248, 0.3); padding-inline: 18px;
+    font-size: 14px; transition: all 0.3s ease;
+  }
+
+  .auth-card-container input:focus {
+    border-color: var(--accent-blue); box-shadow: var(--neon-glow);
+    background: rgba(15, 23, 42, 0.95);
+  }
+
+  .btn-auth-primary {
+    background: linear-gradient(135deg, var(--accent-blue), #0284c7);
+    color: #030712; font-weight: 900; font-size: 15px; margin-top: 15px;
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); text-transform: uppercase;
+  }
+
+  .btn-auth-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(56, 189, 248, 0.6); }
+
+  .btn-google-auth {
+    background: #ffffff; color: #0f172a; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2); margin-bottom: 20px;
+  }
+
+  .btn-google-auth:hover { background: #f1f5f9; transform: translateY(-2px); }
+
+  .auth-divider {
+    display: flex; align-items: center; margin: 18px 0; color: #64748b; font-size: 12px; font-weight: bold;
+  }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.15); }
+  .auth-divider span { padding: 0 10px; }
+
+  .container-box {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px); border-radius: 20px; padding: 20px;
+    width: 100%; max-width: 600px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); margin-bottom: 20px;
+  }
+
+  .header-profile-bar {
+    width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between;
+    background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); padding: 12px 20px;
+    border-radius: 16px; margin-bottom: 20px; backdrop-filter: blur(10px);
+  }
+
+  .avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: var(--neon-glow); transform: none !important; }
+  .avatar-preview { width: 90px; height: 90px; border-radius: 50%; margin: 15px auto; border: 2px dashed var(--accent-purple); display: block; object-fit: cover; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); transform: none !important; }
+
+  input:not(.auth-card-container input), select { background: rgba(3, 7, 18, 0.8); color: white; border: 1px solid var(--glass-border); text-align: start; padding-inline: 14px; }
+  input:focus, select:focus { border-color: var(--accent-blue); box-shadow: var(--neon-glow); }
+  input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  button:not(.btn-auth-primary):not(.btn-google-auth) { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: #030712; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
+  button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+  .btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+  .btn-danger { background: linear-gradient(135deg, var(--danger-red), #991b1b); color: white; }
+
+  .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
+  .category-card { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); padding: 16px 8px; border-radius: 16px; cursor: pointer; text-align: center; }
+  .category-card:hover { border-color: var(--accent-purple); background: rgba(168, 85, 247, 0.15); transform: translateY(-3px); box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+  .category-card .icon { font-size: 28px; display: block; margin-bottom: 4px; }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100vw; height: 70px; background: rgba(3, 7, 18, 0.9); border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; gap: 4px; width: 33.3%; height: 100%; }
+  .nav-item .nav-icon { font-size: 20px; }
+  .nav-item.active { color: var(--accent-blue); }
+  .nav-item.active .nav-icon { transform: scale(1.1); text-shadow: 0 0 10px var(--accent-blue); }
+
+  .player-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin: 12px 0; max-height: 250px; overflow-y: auto; }
+  .player-item { background: rgba(3, 7, 18, 0.6); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; }
+
+  .public-rooms-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .public-room-card { background: rgba(3, 7, 18, 0.6); border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; }
+
+  .chat-container { background: rgba(3, 7, 18, 0.8); border: 1px solid var(--glass-border); border-radius: 14px; padding: 12px; margin-top: 15px; text-align: start; }
+  .chat-messages { height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .chat-msg { background: rgba(15, 23, 42, 0.8); padding: 8px 12px; border-radius: 10px; }
+  .chat-msg .sender { color: var(--accent-blue); font-weight: bold; margin-inline-end: 5px; }
+
+  #top-notification {
+    position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 99999;
+    background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); color: #f8fafc;
+    padding: 12px 24px; border-radius: 16px; font-size: 14px; font-weight: 700;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35); backdrop-filter: blur(16px);
+    display: flex; align-items: center; gap: 12px; transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 90%; text-align: center;
+  }
+  #top-notification.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(-20px); }
+  #top-notification.toast-danger { border-color: var(--danger-red); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45); }
+  #top-notification.toast-success { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45); }
+
+  .vote-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+  .vote-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .vote-card:hover { border-color: var(--accent-purple); }
+  .vote-card.disabled { pointer-events: none; opacity: 0.6; }
+
+  .voters-overlay { display: flex; align-items: center; gap: 3px; }
+  .voter-mini-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-purple); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); object-fit: cover; background: #000; transform: none !important; }
+
+  .team-section { background: rgba(3, 7, 18, 0.7); border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin: 10px 0; text-align: start; }
+  .team-members-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .team-member-chip { display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.9); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); font-size: 12px; }
+  .team-member-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; transform: none !important; }
+  .status-tag { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 8px; margin-inline-start: 2px; }
+  .status-tag.in-game { color: #4ade80; background: rgba(74, 222, 128, 0.12); }
+  .status-tag.spectating { color: #94a3b8; background: rgba(148, 163, 184, 0.12); }
+
+  .turn-indicator-box { background: rgba(192, 132, 252, 0.12); border: 1px solid var(--accent-purple); border-radius: 14px; padding: 10px 14px; font-size: 13px; font-weight: bold; margin: 10px 0; }
+  .turn-indicator-box.my-turn { background: rgba(56, 189, 248, 0.18); border-color: var(--accent-blue); box-shadow: var(--neon-glow); }
+
+  @keyframes roundPop {
+    0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+    55% { transform: scale(1.18) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  #roundAnnounceText {
+    font-family: 'Chakra Petch', 'Cairo', sans-serif; font-size: 56px; font-weight: 900;
+    background: linear-gradient(90deg, #38bdf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.6); animation: roundPop 0.55s cubic-bezier(.34,1.56,.64,1);
+    text-align: center;
+  }
+
+  .in-room-fab {
+    position: fixed; top: 15px; inset-inline-end: 15px; z-index: 45;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    cursor: pointer; box-shadow: var(--neon-glow);
+  }
+</style>
 </head>
 <body>
-    <div class="stars-overlay"></div>
 
-    <!-- Splash Screen -->
-    <div id="splash-screen" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: radial-gradient(ellipse at center, #1e1b4b 0%, #030712 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 999999;
-        transition: opacity 0.8s ease;
-    ">
-        <div style="
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: rgba(3, 7, 18, 0.8);
-            border: 3px solid #38bdf8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 50px rgba(56, 189, 248, 0.4);
-            animation: splashPulse 1.5s ease-in-out infinite;
-        ">
-            <span style="font-size: 60px;">🛸</span>
-        </div>
-        <div style="
-            margin-top: 30px;
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 32px;
-            font-weight: 900;
-            background: linear-gradient(90deg, #38bdf8, #c084fc, #38bdf8);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
-        ">
-            SPY STATION
-        </div>
-        <div style="
-            margin-top: 10px;
-            color: #38bdf8;
-            font-size: 12px;
-            letter-spacing: 4px;
-            font-weight: bold;
-            opacity: 0.7;
-        ">
-            DEEP SPACE TACTICS
-        </div>
-        <div style="
-            position: absolute;
-            bottom: 60px;
-            display: flex;
-            gap: 8px;
-        ">
-            <span style="
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: #38bdf8;
-                animation: dotPulse 1.2s ease-in-out infinite;
-            "></span>
-            <span style="
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: #c084fc;
-                animation: dotPulse 1.2s ease-in-out 0.3s infinite;
-            "></span>
-            <span style="
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: #38bdf8;
-                animation: dotPulse 1.2s ease-in-out 0.6s infinite;
-            "></span>
-        </div>
+<div class="stars-overlay"></div>
+<div id="top-notification" class="hidden">
+  <span id="notification-icon">🛰️</span>
+  <span id="notification-text">Station Message</span>
+</div>
+
+<!-- 1. AUTH SCREEN -->
+<div id="auth-screen" class="page-screen" style="justify-content:center;">
+  <div class="auth-card-container">
+
+    <div class="cyber-logo-badge">
+      <span style="font-size:42px;">🛸</span>
     </div>
 
-    <div id="top-notification" class="hidden">
-        <span id="notification-icon">🛰️</span>
-        <span id="notification-text">Station Message</span>
+    <div style="margin-bottom:20px;">
+      <div class="logo-title">SPY STATION</div>
+      <div style="font-size: 10px; color: var(--accent-blue); letter-spacing: 3.5px; margin-top:4px; font-weight:bold;">DEEP SPACE TACTICS</div>
     </div>
 
-    <!-- 1. AUTH SCREEN -->
-    <div id="auth-screen" class="page-screen" style="justify-content:center;">
-        <div class="auth-card-container">
-            <div class="cyber-logo-badge">
-                <span style="font-size:42px;">🛸</span>
-            </div>
-            <div style="margin-bottom:20px;">
-                <div class="logo-title">SPY STATION</div>
-                <div style="font-size: 10px; color: var(--accent-blue); letter-spacing: 3.5px; margin-top:4px; font-weight:bold;" data-key="subtitle">DEEP SPACE TACTICS</div>
-            </div>
-            <button class="btn-google-auth" onclick="signInWithGoogle()">
-                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.99 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
-                <span data-key="googleAuth">Sign in with Google 🚀</span>
-            </button>
-            <div class="auth-divider">
-                <span data-key="orEmail">OR EMAIL</span>
-            </div>
-            <h3 id="auth-title" data-key="login" style="margin-bottom:12px; font-size:16px; color:var(--accent-blue);">Login</h3>
-            <div class="auth-input-group">
-                <input type="email" id="authEmail" placeholder="Email Address 📧">
-            </div>
-            <div class="auth-input-group">
-                <input type="password" id="authPassword" placeholder="Password 🔑">
-            </div>
-            <div class="auth-input-group">
-                <input type="text" id="authUsername" placeholder="Username 👤" class="hidden">
-            </div>
-            <button onclick="handleAuth()" id="btn-auth" class="btn-auth-primary" data-key="loginBtn">Enter Station 🚀</button>
-            <div onclick="toggleAuthMode()" style="color: #94a3b8; cursor: pointer; font-size: 13px; margin-top: 16px; text-decoration: underline;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
-        </div>
+    <button class="btn-google-auth" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.99 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+      <span data-key="googleAuth">Sign in with Google 🚀</span>
+    </button>
+
+    <div class="auth-divider">
+      <span>OR EMAIL</span>
     </div>
 
-    <!-- 2. HOME TAB -->
-    <div id="tab-home" class="page-screen has-nav hidden">
-        <div class="header-profile-bar">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
-                <div>
-                    <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block; font-size:16px;">Player</span>
-                    <span id="userScoreDisplay" style="font-size:12px; color:#94a3b8;"><span data-key="scoreLabel">Score</span>: 0 pts</span>
-                </div>
-            </div>
-            <div class="logo-title" style="font-size: 18px;">SPY STATION</div>
-        </div>
-        <div class="container-box">
-            <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="chooseCategory">Create Station Room:</h3>
-            <div class="category-grid">
-                <div class="category-card" onclick="openCreateRoomModal('players')">
-                    <span class="icon">⚽</span>
-                    <span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span>
-                </div>
-                <div class="category-card" onclick="openCreateRoomModal('food')">
-                    <span class="icon">🍕</span>
-                    <span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span>
-                </div>
-                <div class="category-card" onclick="openCreateRoomModal('places')">
-                    <span class="icon">🗺️</span>
-                    <span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span>
-                </div>
-                <div class="category-card" onclick="openCreateRoomModal('movies')">
-                    <span class="icon">🎬</span>
-                    <span style="font-size:12px; font-weight:bold;" data-key="catMovies">Movies</span>
-                </div>
-                <div class="category-card" onclick="openCreateRoomModal('games')">
-                    <span class="icon">🎮</span>
-                    <span style="font-size:12px; font-weight:bold;" data-key="catGames">Games</span>
-                </div>
-                <div class="category-card" onclick="openCreateRoomModal('animals')">
-                    <span class="icon">🦁</span>
-                    <span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span>
-                </div>
-            </div>
-            <hr style="margin:20px 0; border-color:var(--glass-border);">
-            <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="lblJoinTitle">Join via 6-Digit Code:</h3>
-            <input type="text" id="roomCodeInput" data-key-placeholder="lblJoinPlaceholder" placeholder="Enter Station Code (e.g. X8K9P2)" style="text-transform:uppercase;">
-            <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Station 🛰️</button>
-        </div>
+    <h3 id="auth-title" data-key="login" style="margin-bottom:12px; font-size:16px; color:var(--accent-blue);">Login</h3>
+
+    <div class="auth-input-group">
+      <input type="email" id="authEmail" placeholder="Email Address 📧">
     </div>
 
-    <!-- 3. STATIONS TAB -->
-    <div id="tab-stations" class="page-screen has-nav hidden">
-        <div class="container-box">
-            <h3 style="margin-bottom:15px; color:var(--accent-blue);" data-key="activeStationsTitle">🌐 Active Public Stations</h3>
-            <div id="publicRoomsList" class="public-rooms-container">
-                <div style="font-size:13px; color:#64748b; padding:15px; text-align:center;" data-key="searchingStations">Searching for public stations...</div>
+    <div class="auth-input-group">
+      <input type="password" id="authPassword" placeholder="Password 🔑">
+    </div>
+
+    <div class="auth-input-group">
+      <input type="text" id="authUsername" placeholder="Username 👤" class="hidden">
+    </div>
+
+    <button onclick="handleAuth()" id="btn-auth" class="btn-auth-primary" data-key="loginBtn">Enter Station 🚀</button>
+
+    <div onclick="toggleAuthMode()" style="color: #94a3b8; cursor: pointer; font-size: 13px; margin-top: 16px; text-decoration: underline;" id="txt-toggleAuth" data-key="toggleAuth">Don't have an account? Sign Up</div>
+  </div>
+</div>
+
+<!-- 2. HOME TAB -->
+<div id="tab-home" class="page-screen has-nav hidden">
+  <div class="header-profile-bar">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
+      <div>
+        <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block; font-size:16px;">Player</span>
+        <span id="userScoreDisplay" style="font-size:12px; color:#94a3b8;">Score: 0 pts</span>
+      </div>
+    </div>
+    <div class="logo-title" style="font-size: 18px;">SPY STATION</div>
+  </div>
+
+  <div class="container-box">
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="chooseCategory">Create Station Room:</h3>
+    <div class="category-grid">
+      <div class="category-card" onclick="openCreateRoomModal('players')">
+        <span class="icon">⚽</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catFootball">Football</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('food')">
+        <span class="icon">🍕</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catFood">Food</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('places')">
+        <span class="icon">🗺️</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catPlaces">Places</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('movies')">
+        <span class="icon">🎬</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catMovies">Movies</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('games')">
+        <span class="icon">🎮</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catGames">Games</span>
+      </div>
+      <div class="category-card" onclick="openCreateRoomModal('animals')">
+        <span class="icon">🦁</span>
+        <span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span>
+      </div>
+    </div>
+
+    <hr style="margin:20px 0; border-color:var(--glass-border);">
+
+    <h3 style="font-size:14px; color:#94a3b8; margin-bottom:10px;" data-key="lblJoinTitle">Join via 6-Digit Code:</h3>
+    <input type="text" id="roomCodeInput" data-key-placeholder="lblJoinPlaceholder" placeholder="Enter Station Code (e.g. X8K9P2)" style="text-transform:uppercase;">
+    <button class="btn-secondary" onclick="joinRoomByInput()" data-key="joinRoom">Join Station 🛰️</button>
+  </div>
+</div>
+
+<!-- 3. STATIONS TAB -->
+<div id="tab-stations" class="page-screen has-nav hidden">
+  <div class="container-box">
+    <h3 style="margin-bottom:15px; color:var(--accent-blue);" data-key="activeStationsTitle">🌐 Active Public Stations</h3>
+    <div id="publicRoomsList" class="public-rooms-container">
+      <div style="font-size:13px; color:#64748b; padding:15px; text-align:center;" data-key="searchingStations">Searching for public stations...</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. SETTINGS TAB -->
+<div id="tab-settings" class="page-screen has-nav hidden">
+  <div class="container-box">
+    <h3 data-key="settingsTitle" style="margin-bottom:15px; text-align:center;">Profile & System Settings ⚙️</h3>
+    <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
+    <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
+    <input type="text" id="settingAvatarUrl" data-key-placeholder="lblAvatarUrlPlaceholder" placeholder="Or Image URL" onchange="updateAvatarPreview()">
+
+    <input type="text" id="settingUsername" data-key-placeholder="lblUsernamePlaceholder" placeholder="Change Username">
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblSound">Sound Volume 🔊:</label>
+    <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblLang">Language / اللغة:</label>
+    <select id="languageSelect" onchange="changeLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="ar">العربية</option>
+    </select>
+
+    <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:15px;">Save Changes 💾</button>
+    <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
+  </div>
+</div>
+
+<!-- 5. CREATE / EDIT ROOM SCREEN -->
+<div id="create-room-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box">
+    <h3 data-key="roomSettingsTitle" style="margin-bottom:15px; text-align:center;">Station Configuration ⚙️</h3>
+
+    <label style="font-size:12px; color:#94a3b8; display:block;" data-key="lblVisibility">Room Visibility 👁️:</label>
+    <select id="roomVisibilitySelect">
+      <option value="public" data-key="visPublic">🌐 Public (Visible to everyone)</option>
+      <option value="private" data-key="visPrivate">🔒 Private (Code only)</option>
+    </select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblCategory">Category:</label>
+    <select id="categorySelect">
+      <option value="players" data-key="catFootball">⚽ Football Players</option>
+      <option value="food" data-key="catFood">🍕 Food & Drinks</option>
+      <option value="places" data-key="catPlaces">🗺️ Famous Places</option>
+      <option value="movies" data-key="catMovies">🎬 Movies & Series</option>
+      <option value="games" data-key="catGames">🎮 Video Games</option>
+      <option value="animals" data-key="catAnimals">🦁 Animals</option>
+    </select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblMaxPlayers">Max Players (3 - 20):</label>
+    <select id="maxPlayersSelect"></select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count (1 - 8):</label>
+    <select id="spyCountSelect"></select>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblTurnSeconds">Seconds per Turn:</label>
+    <select id="turnSecondsSelect"></select>
+
+    <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Station 🚀</button>
+    <button class="btn-secondary" onclick="switchTab('tab-home')" data-key="btnCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- 6. LOBBY SCREEN -->
+<div id="lobby-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box" style="text-align:center;">
+    <p data-key="stationCode">Station Frequency Code:</p>
+    <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
+    <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">Category: --</div>
+
+    <div id="host-controls" class="hidden">
+      <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
+      <button onclick="startGame()" data-key="btnStartGame">Start Mission 🚀</button>
+    </div>
+
+    <div style="margin-top:15px; text-align:start;">
+      <b><span data-key="txtAstronauts">Crew Members</span> (<span id="playerCount">0</span> / <span id="maxPlayerCount">20</span>):</b>
+      <div id="playersContainer" class="player-grid"></div>
+    </div>
+
+    <div class="chat-container">
+      <div id="chatMessagesLobby" class="chat-messages"></div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputLobby" data-key-placeholder="lblChatPlaceholder" placeholder="Send transmission..." style="margin:0;">
+        <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 20px;">💬</button>
+      </div>
+    </div>
+
+    <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom(true)" data-key="btnLeaveStation">Leave Station 🚪</button>
+  </div>
+</div>
+
+<!-- 7. GAME SCREEN -->
+<div id="game-screen" class="page-screen hidden" style="z-index:20;">
+  <div class="container-box" style="text-align:center;">
+    <div id="roundIndicator" style="font-size:13px; color:var(--accent-purple); font-weight:bold; letter-spacing:1px;">Round 1</div>
+    <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:10px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
+
+    <div id="turnIndicatorBox" class="turn-indicator-box">...</div>
+    <div id="turnTimerDisplay" style="font-size:16px; color:var(--accent-blue); font-weight:bold;">⏳ --</div>
+
+    <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
+
+    <div id="gamePlayersStrip" class="team-members-row" style="justify-content:center; margin-top:12px;"></div>
+
+    <div class="chat-container">
+      <div id="chatMessagesGame" class="chat-messages"></div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputGame" data-key-placeholder="lblChatPlaceholder" placeholder="Discuss transmission..." style="margin:0;">
+        <button id="btnSendGameChat" onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. VOTING OVERLAY SCREEN -->
+<div id="voting-screen" class="page-screen hidden" style="z-index:30; background:rgba(3,7,18,0.95);">
+  <div class="container-box" style="text-align:center;">
+    <h3 style="color:var(--danger-red); font-size:22px;" data-key="voteTitle">🚨 EMERGENCY VOTING PROTOCOL</h3>
+    <div id="voteTimerDisplay" style="font-size:18px; color:var(--accent-blue); margin:8px 0; font-weight:bold;">⏳ Vote Time: 80s</div>
+
+    <div id="voteListContainer" class="vote-grid"></div>
+
+    <div style="margin-top:15px;">
+      <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')" data-key="btnSkipVote">⏩ Skip Vote</button>
+    </div>
+  </div>
+</div>
+
+<!-- 9. GAME OVER / RESULTS SCREEN -->
+<div id="gameover-screen" class="page-screen hidden" style="z-index:40; background:rgba(3,7,18,0.95);">
+  <div class="container-box" style="text-align:center;">
+    <h2 id="winnerTitle" style="color:var(--accent-blue); font-size:24px; margin-bottom:15px;">Mission Result</h2>
+
+    <div class="team-section">
+      <b style="color:var(--danger-red);" data-key="spiesTeamLabel">🕵️ Spies Team:</b>
+      <div id="spiesTeamList" class="team-members-row"></div>
+    </div>
+
+    <div class="team-section">
+      <b style="color:var(--accent-blue);" data-key="crewTeamLabel">🚀 Crew Team:</b>
+      <div id="crewTeamList" class="team-members-row"></div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button onclick="returnToLobbyFromResults()" style="flex:1;" class="btn-secondary" data-key="btnReturnLobby">Return to Lobby 🔄</button>
+      <button onclick="leaveRoom(true)" style="flex:1;" class="btn-danger" data-key="btnLeaveGame">Leave the game 🚪</button>
+    </div>
+  </div>
+</div>
+
+<!-- 10. ROUND ANNOUNCEMENT OVERLAY -->
+<div id="round-announce-screen" class="page-screen hidden" style="z-index:50; background:rgba(3,7,18,0.97); align-items:center; justify-content:center;">
+  <div id="roundAnnounceText">ROUND 1</div>
+</div>
+
+<!-- IN-ROOM SETTINGS (available to every player, not just host) -->
+<div id="in-room-settings-fab" class="in-room-fab hidden" onclick="openInRoomSettings()">⚙️</div>
+
+<div id="in-room-settings-panel" class="hidden" style="position:fixed; inset:0; background:rgba(3,7,18,0.9); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px;">
+  <div class="container-box" style="max-width:340px;">
+    <h3 style="text-align:center; margin-bottom:15px;" data-key="lblSettingsBtn">Settings</h3>
+    <label style="font-size:12px; color:#94a3b8; display:block;" data-key="lblSoundInGame">Sound Volume 🔊</label>
+    <input type="range" id="inRoomSoundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolumeInRoom()">
+    <button class="btn-secondary" onclick="closeInRoomSettings()" data-key="btnCancel">Cancel</button>
+    <button class="btn-danger" onclick="leaveRoom(true)" data-key="lblLeaveGameBtn">Leave Game 🚪</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAVIGATION BAR -->
+<div id="main-bottom-nav" class="bottom-nav hidden">
+  <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
+    <span class="nav-icon">🚀</span>
+    <span data-key="navHome">Home</span>
+  </div>
+  <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
+    <span class="nav-icon">🌐</span>
+    <span data-key="navStations">Stations</span>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
+    <span class="nav-icon">⚙️</span>
+    <span data-key="navSettings">Settings</span>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAmOPqQ1AV9YEJ4wU7jjW9_kIy4Gbby8Zs",
+  authDomain: "spy-game-4f727.firebaseapp.com",
+  databaseURL: "https://spy-game-4f727-default-rtdb.firebaseio.com",
+  projectId: "spy-game-4f727",
+  storageBucket: "spy-game-4f727.firebasestorage.app",
+  messagingSenderId: "567560688609",
+  appId: "1:567560688609:web:9a85e21fcf318e888d78a0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let soundVol = 0.5;
+
+function playSound(freq = 440, type = 'sine', duration = 0.15) {
+  if (soundVol <= 0) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = soundVol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e){}
+}
+
+function updateVolume() {
+  soundVol = parseFloat(document.getElementById('soundVolume').value);
+  const inRoomSlider = document.getElementById('inRoomSoundVolume');
+  if(inRoomSlider) inRoomSlider.value = soundVol;
+  playSound(520, 'sine', 0.1);
+}
+
+function updateVolumeInRoom() {
+  soundVol = parseFloat(document.getElementById('inRoomSoundVolume').value);
+  const mainSlider = document.getElementById('soundVolume');
+  if(mainSlider) mainSlider.value = soundVol;
+  playSound(520, 'sine', 0.1);
+}
+
+function openInRoomSettings() {
+  const slider = document.getElementById('inRoomSoundVolume');
+  if(slider) slider.value = soundVol;
+  document.getElementById('in-room-settings-panel').classList.remove('hidden');
+}
+
+function closeInRoomSettings() {
+  const panel = document.getElementById('in-room-settings-panel');
+  if(panel) panel.classList.add('hidden');
+}
+
+function toggleInRoomFab(show) {
+  const fab = document.getElementById('in-room-settings-fab');
+  if(!fab) return;
+  fab.classList.toggle('hidden', !show);
+}
+
+(function initSelectOptions() {
+  const maxPlayersSel = document.getElementById('maxPlayersSelect');
+  for(let i=3; i<=20; i++) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.innerText = `${i} Players`;
+    if(i === 8) opt.selected = true;
+    maxPlayersSel.appendChild(opt);
+  }
+
+  const spySel = document.getElementById('spyCountSelect');
+  for(let i=1; i<=8; i++) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.innerText = `${i} Spy ${i>1?'s':''} 🕵️`;
+    spySel.appendChild(opt);
+  }
+
+  const turnSecSel = document.getElementById('turnSecondsSelect');
+  [10, 15, 20, 25, 30, 45, 60].forEach(sec => {
+    const opt = document.createElement('option');
+    opt.value = sec; opt.innerText = `${sec}s`;
+    if(sec === 20) opt.selected = true;
+    turnSecSel.appendChild(opt);
+  });
+})();
+
+function generate6DigitCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0; i<6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+const dictionary = {
+  en: {
+    googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Enter Station 🚀", toggleAuth: "Don't have an account? Sign Up",
+    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals",
+    joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
+    lblTurnSeconds: "Seconds per Turn:", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
+    lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
+    stationCode: "Station Frequency Code:", btnEditRoom: "Edit Station Settings ⚙️", btnStartGame: "Start Mission 🚀", txtAstronauts: "Crew Members",
+    btnEmergencyVote: "Emergency Vote 🗳️", voteTitle: "🚨 EMERGENCY VOTING PROTOCOL",
+    lblJoinTitle: "Join via 6-Digit Code:", lblJoinPlaceholder: "Enter Station Code (e.g. X8K9P2)",
+    activeStationsTitle: "🌐 Active Public Stations", searchingStations: "Searching for public stations...",
+    lblAvatarUrlPlaceholder: "Or Image URL", lblUsernamePlaceholder: "Change Username",
+    lblVisibility: "Room Visibility 👁️:", visPublic: "🌐 Public (Visible to everyone)", visPrivate: "🔒 Private (Code only)",
+    lblMaxPlayers: "Max Players (3 - 20):", btnCancel: "Cancel", lblChatPlaceholder: "Send transmission...",
+    btnLeaveStation: "Leave Station 🚪", btnSkipVote: "⏩ Skip Vote",
+    spiesTeamLabel: "🕵️ Spies Team:", crewTeamLabel: "🚀 Crew Team:",
+    btnReturnLobby: "Return to Lobby 🔄", btnLeaveGame: "Leave the game 🚪",
+    navHome: "Home", navStations: "Stations", navSettings: "Settings",
+    categoryPrefix: "Category: ",
+    errFillFields: "Please fill in all fields!", errUsernameRequired: "Username is required!", errUsernameTaken: "Username is already taken!",
+    errInvalidCode: "Enter a valid 6-character code!", errStationFull: "Station is full!", errStationNotExist: "Station does not exist!",
+    msgLeftStation: "Left station successfully", msgRemovedFromStation: "You were removed from the station", msgSettingsSaved: "Settings saved successfully!",
+    errMinPlayers: "Minimum 3 players required to start!", errTooManySpies: "Too many spies for this player count!", msgVoteRecorded: "Vote recorded!",
+    annMissionStarted: "🚀 Mission started! Round 1 has begun.", annTimeUp: "🚨 Everyone has spoken - voting has started!",
+    annEmergencyVote: "🚨 Emergency vote triggered!", annCrewWins: "🎉 All spies caught! Crew wins!",
+    annSpyEjectedMoreRemain: "🕵️ A spy was caught! But more are still hiding...", annInnocentEjected: "❌ An innocent was voted out! The spy is still among you...",
+    annNobodyEjected: "⚖️ Nobody was ejected. The mission continues...", annSpiesWin: "🕵️ The spies have taken over! Spies win!",
+    crewWonTitle: "🎉 Crew Team Won! 🎉", spiesWonTitle: "🕵️ Spies Team Won! 🕵️",
+    lblRoomStatusWaiting: "Waiting for players", lblRoomStatusInProgress: "🔴 In progress", lblHostTag: "Host", lblRound: "Round",
+    lblYourTurn: "🎤 Your turn! Give a subtle clue...", lblWaitingForTurn: "⏳ Waiting for {name} to speak...",
+    lblSpectatorTag: "👁️ Spectating", lblInGameTag: "🎮 In Game", lblSettingsBtn: "Settings", lblLeaveGameBtn: "Leave Game 🚪",
+    lblSoundInGame: "Sound Volume 🔊", lblVoteTime: "Vote Time:", lblNone: "None",
+    youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️"
+  },
+  ar: {
+    googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
+    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات",
+    joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
+    lblTurnSeconds: "مدة كل دور (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
+    lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
+    stationCode: "تردد المحطة:", btnEditRoom: "تعديل إعدادات المحطة ⚙️", btnStartGame: "بدء المهمة 🚀", txtAstronauts: "أفراد الطاقم",
+    btnEmergencyVote: "تصويت طارئ 🗳️", voteTitle: "🚨 بروتوكول التصويت الطارئ",
+    lblJoinTitle: "الانضمام عبر كود مكون من 6 أرقام:", lblJoinPlaceholder: "أدخل كود المحطة (مثل X8K9P2)",
+    activeStationsTitle: "🌐 المحطات العامة النشطة", searchingStations: "جاري البحث عن المحطات العامة...",
+    lblAvatarUrlPlaceholder: "أو رابط الصورة", lblUsernamePlaceholder: "تغيير اسم المستخدم",
+    lblVisibility: "ظهور الروم 👁️:", visPublic: "🌐 عام (مرئي للجميع)", visPrivate: "🔒 خاص (بالكود فقط)",
+    lblMaxPlayers: "الحد الأقصى للاعبين (3 - 20):", btnCancel: "إلغاء", lblChatPlaceholder: "إرسال رسالة...",
+    btnLeaveStation: "مغادرة المحطة 🚪", btnSkipVote: "⏩ تخطي التصويت",
+    spiesTeamLabel: "🕵️ فريق الجواسيس:", crewTeamLabel: "🚀 فريق الطاقم:",
+    btnReturnLobby: "العودة للوبي 🔄", btnLeaveGame: "مغادرة اللعبة 🚪",
+    navHome: "الرئيسية", navStations: "المحطات", navSettings: "الإعدادات",
+    categoryPrefix: "فئة الروم: ",
+    errFillFields: "يرجى ملء جميع الحقول!", errUsernameRequired: "اسم المستخدم مطلوب!", errUsernameTaken: "اسم المستخدم مأخوذ بالفعل!",
+    errInvalidCode: "أدخل كود مكون من 6 أحرف صحيح!", errStationFull: "المحطة ممتلئة بالكامل!", errStationNotExist: "المحطة غير موجودة!",
+    msgLeftStation: "تم مغادرة المحطة بنجاح", msgRemovedFromStation: "تم إزالتك من المحطة", msgSettingsSaved: "تم حفظ الإعدادات بنجاح!",
+    errMinPlayers: "يجب أن يكون هناك 3 لاعبين على الأقل للبدء!", errTooManySpies: "عدد الجواسيس كبير جدًا بالنسبة لعدد اللاعبين!", msgVoteRecorded: "تم تسجيل صوتك!",
+    annMissionStarted: "🚀 بدأت المهمة! الجولة الأولى بدأت.", annTimeUp: "🚨 انتهى دور الجميع - بدأ التصويت!",
+    annEmergencyVote: "🚨 تم تفعيل تصويت طارئ!", annCrewWins: "🎉 تم كشف كل الجواسيس! فاز الطاقم!",
+    annSpyEjectedMoreRemain: "🕵️ تم كشف جاسوس! لكن لسه فيه جواسيس مختبئين...", annInnocentEjected: "❌ تم إخراج شخص بريء بالخطأ! الجاسوس لسه بينكم...",
+    annNobodyEjected: "⚖️ محدش خرج. المهمة مستمرة...", annSpiesWin: "🕵️ الجواسيس سيطروا على الموقف! فاز الجواسيس!",
+    crewWonTitle: "🎉 فاز فريق الطاقم! 🎉", spiesWonTitle: "🕵️ فاز فريق الجواسيس! 🕵️",
+    lblRoomStatusWaiting: "في انتظار اللاعبين", lblRoomStatusInProgress: "🔴 المهمة شغالة", lblHostTag: "المضيف", lblRound: "الجولة",
+    lblYourTurn: "🎤 دورك! اديهم تلميح بسيط من غير ما توضح...", lblWaitingForTurn: "⏳ في انتظار {name} عشان يتكلم...",
+    lblSpectatorTag: "👁️ بتتفرج", lblInGameTag: "🎮 لسه بيلعب", lblSettingsBtn: "الإعدادات", lblLeaveGameBtn: "الخروج من اللعبة 🚪",
+    lblSoundInGame: "مستوى الصوت 🔊", lblVoteTime: "وقت التصويت:", lblNone: "لا يوجد",
+    youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️"
+  }
+};
+
+let currentLang = localStorage.getItem('spy_station_lang') || 'en';
+
+function changeLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('spy_station_lang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const langSel = document.getElementById('languageSelect');
+  if(langSel) langSel.value = lang;
+
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.getAttribute('data-key');
+    if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
+  });
+
+  document.querySelectorAll('[data-key-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-key-placeholder');
+    if (dictionary[lang][key]) el.placeholder = dictionary[lang][key];
+  });
+
+  if (currentRoom) {
+    db.ref(`spy_rooms/${currentRoom}/category`).once('value', snap => {
+      const cat = snap.val();
+      if(cat && categoryNamesMap[cat]) {
+        const catObj = categoryNamesMap[cat];
+        document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catObj[currentLang] || catObj.en}`;
+      }
+    });
+  }
+}
+
+let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
+let turnInterval = null, voteInterval = null;
+let roomListener = null, annListener = null;
+let lastAnnouncedRound = 0;
+let lastDisconnectStatus = null;
+
+const categoryNamesMap = {
+  players: { en: "⚽ Football Players", ar: "⚽ كرة القدم" },
+  food: { en: "🍕 Food & Drinks", ar: "🍕 أكلات ومشروبات" },
+  places: { en: "🗺️ Famous Places", ar: "🗺️ أماكن ومعالم" },
+  movies: { en: "🎬 Movies & Series", ar: "🎬 أفلام ومسلسلات" },
+  games: { en: "🎮 Video Games", ar: "🎮 ألعاب فيديو" },
+  animals: { en: "🦁 Animals", ar: "🦁 حيوانات" }
+};
+
+const wordsDB = {
+  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne", "Benzema", "Vinicius"],
+  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream", "Koshary", "Crepe"],
+  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome", "Colosseum", "Big Ben"],
+  movies: ["Inception", "Avatar", "Titanic", "Spider-Man", "Batman", "Interstellar", "Joker", "Harry Potter", "Avengers"],
+  games: ["GTA V", "Minecraft", "PUBG", "FIFA", "Valorant", "Call of Duty", "Fortnite", "League of Legends", "Roblox"],
+  animals: ["Lion", "Tiger", "Elephant", "Falcon", "Dolphin", "Cheetah", "Wolf", "Eagle", "Bear"]
+};
+
+function toggleBottomNav(show) {
+  const nav = document.getElementById('main-bottom-nav');
+  if(show) nav.classList.remove('hidden');
+  else nav.classList.add('hidden');
+}
+
+function switchTab(tabId) {
+  playSound(400, 'sine', 0.08);
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById(tabId).classList.remove('hidden');
+
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
+  if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
+  if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
+
+  toggleBottomNav(true);
+  toggleInRoomFab(false);
+}
+
+let notificationTimeout = null;
+function showToast(msg, type = 'normal') {
+  if (type === 'danger') playSound(220, 'sawtooth', 0.3);
+  else if (type === 'success') playSound(750, 'sine', 0.2);
+  else playSound(550, 'triangle', 0.12);
+
+  const notifyBox = document.getElementById('top-notification');
+  const notifyText = document.getElementById('notification-text');
+  const notifyIcon = document.getElementById('notification-icon');
+
+  notifyText.innerText = msg;
+  notifyBox.className = '';
+  if (type === 'danger') {
+    notifyBox.classList.add('toast-danger');
+    notifyIcon.innerText = '🚨';
+  } else if (type === 'success') {
+    notifyBox.classList.add('toast-success');
+    notifyIcon.innerText = '🎉';
+  } else {
+    notifyIcon.innerText = '🛰️';
+  }
+
+  notifyBox.classList.remove('hidden');
+
+  if (notificationTimeout) clearTimeout(notificationTimeout);
+  notificationTimeout = setTimeout(() => {
+    notifyBox.classList.add('hidden');
+  }, 3500);
+}
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
+}
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  changeLanguage(currentLang);
+  document.getElementById('auth-title').innerText = isSignUpMode ? dictionary[currentLang].signup : dictionary[currentLang].login;
+  document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
+}
+
+function handleAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+  const username = document.getElementById('authUsername').value.trim();
+
+  if(!email || !password) return showToast(dictionary[currentLang].errFillFields, 'danger');
+
+  if(isSignUpMode) {
+    if(!username) return showToast(dictionary[currentLang].errUsernameRequired, 'danger');
+    db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
+      if(snap.exists()) return showToast(dictionary[currentLang].errUsernameTaken, 'danger');
+      auth.createUserWithEmailAndPassword(email, password).then(res => {
+        const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+        db.ref('usernames/' + username.toLowerCase()).set(true);
+        res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
+      }).catch(err => showToast(err.message, 'danger'));
+    });
+  } else {
+    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
+  }
+}
+
+auth.onAuthStateChanged(user => {
+  if(user) {
+    initUser(user);
+  } else {
+    document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+    document.getElementById('auth-screen').classList.remove('hidden');
+    toggleBottomNav(false);
+    toggleInRoomFab(false);
+  }
+});
+
+function initUser(user) {
+  currentUser = user;
+  changeLanguage(currentLang);
+  document.getElementById('userDisplay').innerText = user.displayName || user.email.split('@')[0];
+  document.getElementById('userAvatarDisplay').src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=astro`;
+
+  document.getElementById('settingUsername').value = currentUser.displayName || '';
+  document.getElementById('settingAvatarUrl').value = currentUser.photoURL || '';
+  document.getElementById('settingAvatarPreview').src = currentUser.photoURL || '';
+
+  db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
+    const score = snap.val() || 0;
+    document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
+  });
+
+  listenToPublicRooms();
+
+  const savedRoom = localStorage.getItem('spy_station_room');
+  if(savedRoom) {
+    currentRoom = savedRoom.toUpperCase();
+    db.ref('spy_rooms/' + currentRoom).once('value', snap => {
+      if(snap.exists()) {
+        joinRoomProcess();
+      } else {
+        currentRoom = null;
+        localStorage.removeItem('spy_station_room');
+        switchTab('tab-home');
+      }
+    });
+  } else {
+    switchTab('tab-home');
+  }
+}
+
+function listenToPublicRooms() {
+  db.ref('spy_rooms').on('value', snap => {
+    const rooms = snap.val() || {};
+    const listContainer = document.getElementById('publicRoomsList');
+    let publicRoomsHTML = '';
+
+    for(let code in rooms) {
+      const room = rooms[code];
+      const playersObj = room.players || {};
+      const activeCount = Object.values(playersObj).filter(p => !p.isSpectator).length;
+      const totalCount = Object.keys(playersObj).length;
+
+      let hostName = 'Unknown';
+      if (room.hostUid && playersObj[room.hostUid]) {
+        hostName = playersObj[room.hostUid].name;
+      }
+
+      if(room.visibility === 'public' && totalCount > 0) {
+        const catText = categoryNamesMap[room.category] ? categoryNamesMap[room.category][currentLang] || categoryNamesMap[room.category].en : room.category;
+        const statusText = room.status === 'waiting' ? dictionary[currentLang].lblRoomStatusWaiting : dictionary[currentLang].lblRoomStatusInProgress;
+        const joinLabel = room.status === 'waiting' ? dictionary[currentLang].joinRoom : dictionary[currentLang].btnJoinAsSpectator;
+
+        publicRoomsHTML += `
+          <div class="public-room-card">
+            <div style="text-align:start;">
+              <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span>
+              <span style="font-size:11px; color:#94a3b8;">(${catText})</span>
+              <div style="font-size:11px; color:#64748b; margin-top:2px;">${statusText} · ${activeCount}/${room.maxPlayers || 20} · ${dictionary[currentLang].lblHostTag}: ${hostName}</div>
             </div>
+            <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">${joinLabel}</button>
+          </div>
+        `;
+      }
+    }
+
+    listContainer.innerHTML = publicRoomsHTML || `<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">${dictionary[currentLang].searchingStations}</div>`;
+  });
+}
+
+function logout() { auth.signOut().then(() => location.reload()); }
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if(file) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      document.getElementById('settingAvatarUrl').value = evt.target.result;
+      document.getElementById('settingAvatarPreview').src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function updateAvatarPreview() { document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value; }
+
+function openCreateRoomModal(cat) {
+  playSound(350, 'sine', 0.1);
+  document.getElementById('categorySelect').value = cat;
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('create-room-screen').classList.remove('hidden');
+  toggleBottomNav(false);
+}
+
+async function openRoomEditModal() {
+  const snap = await db.ref('spy_rooms/' + currentRoom).once('value');
+  const room = snap.val();
+  if(room) {
+    document.getElementById('roomVisibilitySelect').value = room.visibility || 'public';
+    document.getElementById('categorySelect').value = room.category || 'players';
+    document.getElementById('maxPlayersSelect').value = room.maxPlayers || 8;
+    document.getElementById('spyCountSelect').value = room.spyCount || 1;
+    document.getElementById('turnSecondsSelect').value = room.turnSeconds || 20;
+  }
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('create-room-screen').classList.remove('hidden');
+  toggleBottomNav(false);
+}
+
+function saveSettings() {
+  const newName = document.getElementById('settingUsername').value.trim();
+  const newAvatar = document.getElementById('settingAvatarUrl').value.trim();
+
+  currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
+    initUser(currentUser);
+    showToast(dictionary[currentLang].msgSettingsSaved, 'success');
+  });
+}
+
+async function confirmCreateOrUpdateRoom() {
+  const cat = document.getElementById('categorySelect').value;
+  const spies = parseInt(document.getElementById('spyCountSelect').value);
+  const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
+  const turnSeconds = parseInt(document.getElementById('turnSecondsSelect').value);
+  const visibility = document.getElementById('roomVisibilitySelect').value;
+
+  if(!currentRoom) {
+    currentRoom = generate6DigitCode();
+    isHost = true;
+    await db.ref('spy_rooms/' + currentRoom).set({
+      status: 'waiting',
+      originalHostUid: currentUser.uid,
+      hostUid: currentUser.uid,
+      category: cat,
+      spyCount: spies,
+      maxPlayers: maxPlayers,
+      turnSeconds: turnSeconds,
+      visibility: visibility,
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    });
+  } else {
+    await db.ref('spy_rooms/' + currentRoom).update({ category: cat, spyCount: spies, maxPlayers: maxPlayers, turnSeconds: turnSeconds, visibility: visibility });
+  }
+  joinRoomProcess();
+}
+
+function joinRoomByInput() {
+  const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+  if(!code || code.length !== 6) return showToast(dictionary[currentLang].errInvalidCode, 'danger');
+  joinDirectRoom(code);
+}
+
+function joinDirectRoom(code) {
+  currentRoom = code.toUpperCase();
+  db.ref('spy_rooms/' + currentRoom).once('value', snap => {
+    if(snap.exists()) {
+      const room = snap.val();
+      const playersObj = room.players || {};
+      if(!playersObj[currentUser.uid]) {
+        const activeCount = Object.values(playersObj).filter(p => !p.isSpectator).length;
+        if(room.status === 'waiting' && activeCount >= (room.maxPlayers || 20)) {
+          return showToast(dictionary[currentLang].errStationFull, 'danger');
+        }
+      }
+      joinRoomProcess();
+    } else {
+      showToast(dictionary[currentLang].errStationNotExist, 'danger');
+    }
+  });
+}
+
+async function leaveRoom(manual = false) {
+  localStorage.removeItem('spy_station_room');
+  toggleInRoomFab(false);
+  closeInRoomSettings();
+
+  if(currentRoom && currentUser) {
+    const rCode = currentRoom;
+    if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
+    if (annListener) db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener);
+    currentRoom = null;
+    lastAnnouncedRound = 0;
+    lastDisconnectStatus = null;
+    clearInterval(turnInterval); turnInterval = null;
+    clearInterval(voteInterval); voteInterval = null;
+
+    const statusSnap = await db.ref(`spy_rooms/${rCode}/status`).once('value');
+    const roomStatus = statusSnap.val();
+
+    if(roomStatus && roomStatus !== 'waiting') {
+      // A mission is in progress - stay on record as a spectator instead of
+      // vanishing, so the current round's turn order / spy counts stay consistent.
+      await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).update({ isSpectator: true });
+      const allPlayersSnap = await db.ref(`spy_rooms/${rCode}/players`).once('value');
+      const allPlayersObj = allPlayersSnap.val() || {};
+      const anyoneStillActive = Object.values(allPlayersObj).some(p => !p.isSpectator);
+      if(!anyoneStillActive) {
+        await db.ref(`spy_rooms/${rCode}`).remove();
+      }
+    } else {
+      await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove();
+      const remaining = await db.ref(`spy_rooms/${rCode}/players`).once('value');
+      if(!remaining.exists() || !remaining.val()) {
+        await db.ref(`spy_rooms/${rCode}`).remove();
+      }
+    }
+  }
+
+  switchTab('tab-home');
+  if(manual) showToast(dictionary[currentLang].msgLeftStation);
+}
+
+function updateDisconnectBehavior(status) {
+  if(!currentUser || !currentRoom) return;
+  if(status === lastDisconnectStatus) return;
+  lastDisconnectStatus = status;
+  const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
+  if(status === 'waiting') {
+    playerRef.onDisconnect().remove();
+  } else {
+    playerRef.onDisconnect().update({ isSpectator: true });
+  }
+}
+
+async function joinRoomProcess() {
+  toggleBottomNav(false);
+  toggleInRoomFab(true);
+  localStorage.setItem('spy_station_room', currentRoom);
+  lastAnnouncedRound = 0;
+  lastDisconnectStatus = null;
+
+  const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
+  const existing = await playerRef.once('value');
+  if(!existing.exists()) {
+    const statusSnap = await db.ref(`spy_rooms/${currentRoom}/status`).once('value');
+    const roomStatus = statusSnap.val();
+    await playerRef.set({
+      uid: currentUser.uid,
+      name: currentUser.displayName,
+      avatar: currentUser.photoURL,
+      joinedAt: firebase.database.ServerValue.TIMESTAMP,
+      isSpectator: !!(roomStatus && roomStatus !== 'waiting')
+    });
+  }
+
+  listenToChat();
+  listenToSystemAnnouncements();
+
+  if(roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
+
+  roomListener = db.ref('spy_rooms/' + currentRoom).on('value', snap => {
+    const data = snap.val();
+
+    if(!data) {
+      if(currentRoom) leaveRoom(false);
+      return;
+    }
+
+    handleHostAssignment(data);
+    ensureHostTimersRunning(data);
+    updateDisconnectBehavior(data.status);
+
+    const playersObj = data.players || {};
+    const playersArr = Object.values(playersObj);
+
+    if(!playersObj[currentUser.uid]) {
+      showToast(dictionary[currentLang].msgRemovedFromStation, 'danger');
+      leaveRoom(false);
+      return;
+    }
+
+    document.getElementById('roomCodeDisplay').innerText = currentRoom;
+    document.getElementById('playerCount').innerText = playersArr.length;
+    document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+
+    const catObj = categoryNamesMap[data.category];
+    const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
+    document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
+
+    document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
+      <div class="player-item">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}</span>
         </div>
+        ${(isHost && p.uid !== currentUser.uid) ? `
+          <div style="display:flex; gap:4px; width:auto;">
+            <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
+            <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+
+    if(data.status === 'waiting') {
+      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+      document.getElementById('lobby-screen').classList.remove('hidden');
+      toggleInRoomFab(true);
+    } else if(data.status === 'playing') {
+      showGameScreen(data);
+      toggleInRoomFab(true);
+    } else if(data.status === 'voting') {
+      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+      document.getElementById('voting-screen').classList.remove('hidden');
+      showVotingScreen(data);
+      toggleInRoomFab(true);
+    } else if(data.status === 'gameover') {
+      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+      document.getElementById('gameover-screen').classList.remove('hidden');
+      showGameOverScreen(data);
+      toggleInRoomFab(true);
+    }
+  });
+}
+
+function listenToSystemAnnouncements() {
+  if(annListener) db.ref(`spy_rooms/${currentRoom}/announcement`).off('value', annListener);
+
+  annListener = db.ref(`spy_rooms/${currentRoom}/announcement`).on('value', snap => {
+    const ann = snap.val();
+    if(ann && ann.msg && ann.timestamp) {
+      if(Date.now() - ann.timestamp < 3000) {
+        showToast(ann.msg, ann.type);
+      }
+    }
+  });
+}
+
+function broadcastAnnouncement(msg, type = 'normal') {
+  db.ref(`spy_rooms/${currentRoom}/announcement`).set({
+    msg: msg,
+    type: type,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+function handleHostAssignment(data) {
+  const playersObj = data.players || {};
+  const hostStillPresent = data.hostUid && playersObj[data.hostUid];
+
+  if(!hostStillPresent && Object.keys(playersObj).length > 0) {
+    // ANY remaining client can trigger this - it does not depend on any specific
+    // player's browser being the one to notice. The transaction runs against the
+    // live server data, so even if several clients fire this at once, only one
+    // write wins and everyone converges on the same new host automatically.
+    db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
+      if(!room || !room.players) return room;
+      const stillMissing = !room.hostUid || !room.players[room.hostUid];
+      if(!stillMissing) return room;
+      const sorted = Object.values(room.players).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+      if(sorted.length > 0) {
+        room.hostUid = sorted[0].uid;
+      }
+      return room;
+    });
+  }
+
+  isHost = !!(data.hostUid && data.hostUid === currentUser.uid);
+  const hostControls = document.getElementById('host-controls');
+  if(hostControls) hostControls.classList.toggle('hidden', !isHost);
+}
+
+function ensureHostTimersRunning(data) {
+  if(isHost && data.status === 'playing' && data.turnOrder && data.turnOrder.length > 0) {
+    if(!turnInterval) startTurnTimerSync();
+  } else if(turnInterval) {
+    clearInterval(turnInterval);
+    turnInterval = null;
+  }
+
+  if(isHost && data.status === 'voting') {
+    if(!voteInterval) startVoteTimerSync();
+  } else if(voteInterval) {
+    clearInterval(voteInterval);
+    voteInterval = null;
+  }
+}
+
+async function kickPlayer(uid) {
+  const statusSnap = await db.ref(`spy_rooms/${currentRoom}/status`).once('value');
+  const roomStatus = statusSnap.val();
+  if(roomStatus && roomStatus !== 'waiting') {
+    await db.ref(`spy_rooms/${currentRoom}/players/${uid}`).update({ isSpectator: true });
+  } else {
+    await db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
+  }
+}
+
+async function makeHost(uid) {
+  const snap = await db.ref(`spy_rooms/${currentRoom}/players/${uid}`).once('value');
+  const p = snap.val();
+  if(p && p.isSpectator) return;
+  db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid);
+}
+
+async function sendChatMessage(screen) {
+  const input = document.getElementById(`chatInput${screen}`);
+  const msg = input.value.trim();
+  if(!msg) return;
+
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+  const room = roomSnap.val();
+  if(!room) return;
+
+  const inTurnPhase = room.status === 'playing' && room.turnOrder && room.turnOrder.length > 0;
+  if(inTurnPhase) {
+    const currentTurnUid = room.turnOrder[room.turnIndex || 0];
+    if(currentTurnUid !== currentUser.uid) return; // not your turn - safety net, input is disabled too
+  }
+
+  await db.ref(`spy_rooms/${currentRoom}/chat`).push({
+    sender: currentUser.displayName,
+    text: msg
+  });
+  input.value = '';
+
+  if(inTurnPhase) {
+    await advanceTurn();
+  }
+}
+
+function listenToChat() {
+  db.ref(`spy_rooms/${currentRoom}/chat`).on('value', snap => {
+    const data = snap.val();
+    if(!data) return;
+    const msgs = Object.values(data);
+    const html = msgs.map(m => `
+      <div class="chat-msg">
+        <span class="sender">${m.sender}:</span><span>${m.text}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('chatMessagesLobby').innerHTML = html;
+    document.getElementById('chatMessagesGame').innerHTML = html;
+
+    document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
+    document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
+  });
+}
+
+async function startGame() {
+  const playersSnap = await db.ref(`spy_rooms/${currentRoom}/players`).once('value');
+  const playersObj = playersSnap.val() || {};
+  const playersArr = Object.values(playersObj);
+  if(playersArr.length < 3) return showToast(dictionary[currentLang].errMinPlayers, 'danger');
+
+  const roomSnap = await db.ref('spy_rooms/' + currentRoom).once('value');
+  const data = roomSnap.val();
+  if(data.spyCount >= Math.ceil(playersArr.length / 2)) {
+    return showToast(dictionary[currentLang].errTooManySpies, 'danger');
+  }
+
+  const wordList = wordsDB[data.category] || wordsDB.players;
+  const selectedWord = wordList[Math.floor(Math.random() * wordList.length)];
+
+  let spies = [];
+  while(spies.length < Math.min(data.spyCount, playersArr.length - 1)) {
+    let randUid = playersArr[Math.floor(Math.random() * playersArr.length)].uid;
+    if(!spies.includes(randUid)) spies.push(randUid);
+  }
+
+  const resetPlayers = {};
+  playersArr.forEach(p => { resetPlayers[p.uid] = { ...p, isSpectator: false }; });
+  const shuffledOrder = playersArr.map(p => p.uid).sort(() => Math.random() - 0.5);
+
+  await db.ref(`spy_rooms/${currentRoom}`).update({
+    status: 'playing',
+    word: selectedWord,
+    spies: spies,
+    round: 1,
+    turnOrder: shuffledOrder,
+    turnIndex: 0,
+    turnTimeLeft: data.turnSeconds || 20,
+    votes: null,
+    winnerTeam: null,
+    players: resetPlayers
+  });
+
+  broadcastAnnouncement(dictionary[currentLang].annMissionStarted, 'normal');
+}
+
+async function transitionToRound(newRoundNumber, playersObj, turnSeconds) {
+  const activeUids = Object.values(playersObj || {}).filter(p => !p.isSpectator).map(p => p.uid);
+  await db.ref(`spy_rooms/${currentRoom}`).update({
+    status: 'playing',
+    round: newRoundNumber,
+    turnOrder: activeUids,
+    turnIndex: 0,
+    turnTimeLeft: turnSeconds || 20,
+    votes: null
+  });
+}
+
+async function advanceTurn() {
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+  const room = roomSnap.val();
+  if(!room || room.status !== 'playing' || !room.turnOrder) return;
+
+  const playersObj = room.players || {};
+  let nextIndex = (room.turnIndex || 0) + 1;
+  while(nextIndex < room.turnOrder.length && playersObj[room.turnOrder[nextIndex]] && playersObj[room.turnOrder[nextIndex]].isSpectator) {
+    nextIndex++;
+  }
+
+  if(nextIndex >= room.turnOrder.length) {
+    const currentRoundNum = room.round || 1;
+    if(currentRoundNum <= 1) {
+      // Round 1 never triggers a vote - everyone has only just met the word/role.
+      await transitionToRound(2, playersObj, room.turnSeconds);
+    } else {
+      await db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+      broadcastAnnouncement(dictionary[currentLang].annTimeUp, 'danger');
+    }
+  } else {
+    await db.ref(`spy_rooms/${currentRoom}`).update({
+      turnIndex: nextIndex,
+      turnTimeLeft: room.turnSeconds || 20
+    });
+  }
+}
+
+function startTurnTimerSync() {
+  if(!isHost) return;
+  clearInterval(turnInterval);
+
+  turnInterval = setInterval(async () => {
+    const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+    const room = snap.val();
+    if(!room || room.status !== 'playing' || !room.turnOrder || room.turnOrder.length === 0) {
+      clearInterval(turnInterval);
+      turnInterval = null;
+      return;
+    }
+
+    const timeLeft = room.turnTimeLeft != null ? room.turnTimeLeft : (room.turnSeconds || 20);
+    if(timeLeft <= 1) {
+      await advanceTurn();
+    } else {
+      await db.ref(`spy_rooms/${currentRoom}/turnTimeLeft`).set(timeLeft - 1);
+    }
+  }, 1000);
+}
+
+async function triggerVotingPhase() {
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+  const room = roomSnap.val();
+  if(!room || (room.round || 1) < 2) return; // emergency vote only from round 2 onward
+
+  const myPlayer = (room.players || {})[currentUser.uid];
+  if(!myPlayer || myPlayer.isSpectator) return;
+
+  await db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+  broadcastAnnouncement(dictionary[currentLang].annEmergencyVote, 'danger');
+}
+
+function startVoteTimerSync() {
+  if(!isHost) return;
+  clearInterval(voteInterval);
+
+  voteInterval = setInterval(async () => {
+    const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+    const room = snap.val();
+    if(!room || room.status !== 'voting') {
+      clearInterval(voteInterval);
+      voteInterval = null;
+      return;
+    }
+
+    const activeCount = room.players ? Object.values(room.players).filter(p => !p.isSpectator).length : 0;
+    const votesCount = room.votes ? Object.keys(room.votes).length : 0;
+
+    if(room.voteTimeLeft <= 1 || (activeCount > 0 && votesCount >= activeCount)) {
+      clearInterval(voteInterval);
+      voteInterval = null;
+      await processVoteResults(room);
+    } else {
+      await db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
+    }
+  }, 1000);
+}
+
+function maybeShowRoundAnnounce(round, thenShow) {
+  if(round && round !== lastAnnouncedRound) {
+    lastAnnouncedRound = round;
+    const screen = document.getElementById('round-announce-screen');
+    document.getElementById('roundAnnounceText').innerText = `${dictionary[currentLang].lblRound} ${round}`.toUpperCase();
+    document.querySelectorAll('.page-screen').forEach(s => s.classList.add('hidden'));
+    screen.classList.remove('hidden');
+    playSound(660, 'triangle', 0.25);
+    setTimeout(() => {
+      screen.classList.add('hidden');
+      thenShow();
+    }, 1500);
+  } else {
+    thenShow();
+  }
+}
+
+function renderInGamePlayerStrip(data) {
+  const playersObj = data.players || {};
+  const strip = document.getElementById('gamePlayersStrip');
+  if(!strip) return;
+  strip.innerHTML = Object.values(playersObj).map(p => `
+    <div class="team-member-chip">
+      <img src="${p.avatar}" alt="a">
+      <span>${p.name}</span>
+      <span class="status-tag ${p.isSpectator ? 'spectating' : 'in-game'}">${p.isSpectator ? dictionary[currentLang].lblSpectatorTag : dictionary[currentLang].lblInGameTag}</span>
     </div>
+  `).join('');
+}
 
-    <!-- 4. SETTINGS TAB -->
-    <div id="tab-settings" class="page-screen has-nav hidden">
-        <div class="container-box">
-            <h3 data-key="settingsTitle" style="margin-bottom:15px; text-align:center;">Profile & System Settings ⚙️</h3>
-            <img id="settingAvatarPreview" class="avatar-preview" src="" alt="preview">
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblUploadAvatar">Upload Avatar Image:</label>
-            <input type="file" id="settingAvatarFile" accept="image/*" onchange="handleFileUpload(event)">
-            <input type="text" id="settingAvatarUrl" data-key-placeholder="lblAvatarUrlPlaceholder" placeholder="Or Image URL" onchange="updateAvatarPreview()">
-            <input type="text" id="settingUsername" data-key-placeholder="lblUsernamePlaceholder" placeholder="Change Username">
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblSound">Sound Volume 🔊:</label>
-            <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume()">
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:10px;" data-key="lblLang">Language / اللغة:</label>
-            <select id="languageSelect" onchange="changeLanguage(this.value)">
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
-            </select>
-            <button onclick="saveSettings()" data-key="btnSaveSettings" style="margin-top:15px;">Save Changes 💾</button>
-            <button class="btn-danger" style="margin-top:10px;" onclick="logout()" data-key="logout">Logout 🚪</button>
+function showGameScreen(data) {
+  maybeShowRoundAnnounce(data.round, () => {
+    document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+    document.getElementById('game-screen').classList.remove('hidden');
+  });
+
+  const playersObj = data.players || {};
+  const myPlayer = playersObj[currentUser.uid] || {};
+  const amSpectator = !!myPlayer.isSpectator;
+  const isSpy = data.spies && data.spies.includes(currentUser.uid);
+
+  document.getElementById('roundIndicator').innerText = `${dictionary[currentLang].lblRound} ${data.round || 1}`;
+
+  document.getElementById('roleDisplay').innerText = amSpectator
+    ? dictionary[currentLang].lblSpectatorTag
+    : (isSpy ? dictionary[currentLang].youAreSpy : `${dictionary[currentLang].theWordIs} ${data.word}`);
+
+  const turnOrder = data.turnOrder || [];
+  const turnIndex = data.turnIndex || 0;
+  const currentTurnUid = turnOrder[turnIndex];
+  const currentTurnName = (playersObj[currentTurnUid] || {}).name || '...';
+  const isMyTurn = !amSpectator && currentTurnUid === currentUser.uid;
+
+  const turnBox = document.getElementById('turnIndicatorBox');
+  turnBox.innerText = isMyTurn ? dictionary[currentLang].lblYourTurn : dictionary[currentLang].lblWaitingForTurn.replace('{name}', currentTurnName);
+  turnBox.classList.toggle('my-turn', isMyTurn);
+
+  document.getElementById('turnTimerDisplay').innerText = `⏳ ${data.turnTimeLeft != null ? data.turnTimeLeft : (data.turnSeconds || 20)}s`;
+
+  const chatInput = document.getElementById('chatInputGame');
+  const chatBtn = document.getElementById('btnSendGameChat');
+  chatInput.disabled = !isMyTurn;
+  chatBtn.disabled = !isMyTurn;
+  chatInput.placeholder = isMyTurn ? dictionary[currentLang].lblChatPlaceholder : dictionary[currentLang].lblWaitingForTurn.replace('{name}', currentTurnName);
+
+  const btnEmergency = document.getElementById('btnEmergencyVote');
+  if(!amSpectator && (data.round || 1) >= 2) {
+    btnEmergency.classList.remove('hidden');
+  } else {
+    btnEmergency.classList.add('hidden');
+  }
+
+  renderInGamePlayerStrip(data);
+}
+
+function showVotingScreen(data) {
+  document.getElementById('voteTimerDisplay').innerText = `⏳ ${dictionary[currentLang].lblVoteTime} ${data.voteTimeLeft || 80}s`;
+
+  const allPlayers = data.players ? Object.values(data.players) : [];
+  const activePlayers = allPlayers.filter(p => !p.isSpectator);
+  const votes = data.votes || {};
+  const myPlayer = (data.players || {})[currentUser.uid] || {};
+  const amSpectator = !!myPlayer.isSpectator;
+  const hasVoted = !!votes[currentUser.uid];
+  const canVote = !amSpectator && !hasVoted;
+
+  let voteHTML = '';
+  activePlayers.forEach(p => {
+    let votersForThisPlayer = [];
+    for(let voterUid in votes) {
+      if(votes[voterUid] === p.uid) {
+        const voter = data.players[voterUid];
+        if(voter) votersForThisPlayer.push(voter);
+      }
+    }
+    const votersAvatarsHTML = votersForThisPlayer.map(v => `<img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">`).join('');
+
+    voteHTML += `
+      <div class="vote-card ${canVote ? '' : 'disabled'}" ${canVote ? `onclick="castVote('${p.uid}')"` : ''}>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-weight:bold; font-size:13px;">${p.name}</span>
         </div>
-    </div>
+        <div class="voters-overlay">${votersAvatarsHTML}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById('voteListContainer').innerHTML = voteHTML;
+
+  const btnSkip = document.getElementById('btnSkipVote');
+  btnSkip.classList.toggle('disabled', !canVote);
+  btnSkip.onclick = canVote ? () => castVote('SKIP') : null;
+}
+
+async function castVote(targetUid) {
+  const myPlayerSnap = await db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`).once('value');
+  const myPlayer = myPlayerSnap.val();
+  if(!myPlayer || myPlayer.isSpectator) return;
+
+  const existing = await db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value');
+  if(existing.exists()) return;
+
+  await db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid);
+  showToast(dictionary[currentLang].msgVoteRecorded, 'success');
+
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+  const room = roomSnap.val();
+  if(room && room.players && room.votes) {
+    const activeCount = Object.values(room.players).filter(p => !p.isSpectator).length;
+    const voteCount = Object.keys(room.votes).length;
+    if(activeCount > 0 && voteCount >= activeCount && isHost) {
+      processVoteResults(room);
+    }
+  }
+}
+
+async function processVoteResults(room) {
+  if(!isHost) return;
+
+  const votes = room.votes || {};
+  const counts = {};
+  Object.values(votes).forEach(target => {
+    const key = target || 'SKIP';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  let maxVotes = 0;
+  let topCandidates = [];
+  for(let key in counts) {
+    if(counts[key] > maxVotes) { maxVotes = counts[key]; topCandidates = [key]; }
+    else if(counts[key] === maxVotes) { topCandidates.push(key); }
+  }
+
+  // Only a single, strict, non-SKIP leader gets ejected. Ties (between two
+  // people, or a person and SKIP), SKIP winning outright, or no votes at all
+  // all mean nobody is ejected and the mission just continues.
+  const ejectedUid = (maxVotes > 0 && topCandidates.length === 1 && topCandidates[0] !== 'SKIP') ? topCandidates[0] : null;
+  const currentSpies = room.spies || [];
+  const playersObj = { ...(room.players || {}) };
+  const nextRound = (room.round || 1) + 1;
+
+  if(!ejectedUid) {
+    await transitionToRound(nextRound, playersObj, room.turnSeconds);
+    broadcastAnnouncement(dictionary[currentLang].annNobodyEjected, 'normal');
+    return;
+  }
+
+  if(playersObj[ejectedUid]) {
+    playersObj[ejectedUid] = { ...playersObj[ejectedUid], isSpectator: true };
+  }
+
+  if(currentSpies.includes(ejectedUid)) {
+    const updatedSpies = currentSpies.filter(s => s !== ejectedUid);
+
+    if(updatedSpies.length === 0) {
+      await db.ref(`spy_rooms/${currentRoom}`).update({
+        status: 'gameover',
+        winnerTeam: 'crew',
+        finalSpies: room.spies,
+        finalPlayers: playersObj,
+        players: playersObj,
+        spies: updatedSpies,
+        votes: null
+      });
+      broadcastAnnouncement(dictionary[currentLang].annCrewWins, 'success');
+      return;
+    }
+
+    await db.ref(`spy_rooms/${currentRoom}/players`).set(playersObj);
+    await db.ref(`spy_rooms/${currentRoom}/spies`).set(updatedSpies);
+    broadcastAnnouncement(dictionary[currentLang].annSpyEjectedMoreRemain, 'danger');
+    await transitionToRound(nextRound, playersObj, room.turnSeconds);
+    return;
+  }
+
+  // An innocent player was ejected by mistake.
+  await db.ref(`spy_rooms/${currentRoom}/players`).set(playersObj);
+  const remainingActiveUids = Object.values(playersObj).filter(p => !p.isSpectator).map(p => p.uid);
+  const remainingSpiesCount = currentSpies.filter(uid => remainingActiveUids.includes(uid)).length;
+  const remainingInnocentCount = remainingActiveUids.length - remainingSpiesCount;
+
+  if(remainingSpiesCount >= remainingInnocentCount) {
+    await db.ref(`spy_rooms/${currentRoom}`).update({
+      status: 'gameover',
+      winnerTeam: 'spies',
+      finalSpies: room.spies,
+      finalPlayers: playersObj,
+      votes: null
+    });
+    broadcastAnnouncement(dictionary[currentLang].annSpiesWin, 'danger');
+    return;
+  }
+
+  broadcastAnnouncement(dictionary[currentLang].annInnocentEjected, 'danger');
+  await transitionToRound(nextRound, playersObj, room.turnSeconds);
+}
+
+function showGameOverScreen(data) {
+  const winner = data.winnerTeam;
+  document.getElementById('winnerTitle').innerText = winner === 'crew' ? dictionary[currentLang].crewWonTitle : dictionary[currentLang].spiesWonTitle;
+
+  const allPlayers = data.finalPlayers || data.players || {};
+  const spyUids = data.finalSpies || data.spies || [];
+
+  let spiesHTML = '';
+  let crewHTML = '';
+
+  for(let uid in allPlayers) {
+    const p = allPlayers[uid];
+    const chip = `
+      <div class="team-member-chip">
+        <img src="${p.avatar}" alt="img">
+        <span>${p.name}</span>
+      </div>
+    `;
+    if(spyUids.includes(uid)) {
+      spiesHTML += chip;
+    } else {
+      crewHTML += chip;
+    }
+  }
+
+  document.getElementById('spiesTeamList').innerHTML = spiesHTML || `<span style="font-size:12px; color:#64748b;">${dictionary[currentLang].lblNone}</span>`;
+  document.getElementById('crewTeamList').innerHTML = crewHTML || `<span style="font-size:12px; color:#64748b;">${dictionary[currentLang].lblNone}</span>`;
+}
+
+async function returnToLobbyFromResults() {
+  // Any player can bring the room back to a fresh lobby - not just the host.
+  const snap = await db.ref(`spy_rooms/${currentRoom}/players`).once('value');
+  const playersObj = snap.val() || {};
+  const resetPlayers = {};
+  Object.keys(playersObj).forEach(uid => {
+    resetPlayers[uid] = { ...playersObj[uid], isSpectator: false };
+  });
+
+  await db.ref(`spy_rooms/${currentRoom}`).update({
+    status: 'waiting',
+    winnerTeam: null,
+    votes: null,
+    spies: null,
+    word: null,
+    round: null,
+    turnOrder: null,
+    turnIndex: null,
+    turnTimeLeft: null,
+    players: resetPlayers
+  });
+}
+</script>
 
-    <!-- 5. CREATE / EDIT ROOM SCREEN -->
-    <div id="create-room-screen" class="page-screen hidden" style="z-index:20;">
-        <div class="container-box">
-            <h3 data-key="roomSettingsTitle" style="margin-bottom:15px; text-align:center;">Station Configuration ⚙️</h3>
-            <label style="font-size:12px; color:#94a3b8; display:block;" data-key="lblVisibility">Room Visibility 👁️:</label>
-            <select id="roomVisibilitySelect">
-                <option value="public" data-key="visPublic">🌐 Public (Visible to everyone)</option>
-                <option value="private" data-key="visPrivate">🔒 Private (Code only)</option>
-            </select>
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblCategory">Category:</label>
-            <select id="categorySelect">
-                <option value="players" data-key="catFootball">⚽ Football Players</option>
-                <option value="food" data-key="catFood">🍕 Food & Drinks</option>
-                <option value="places" data-key="catPlaces">🗺️ Famous Places</option>
-                <option value="movies" data-key="catMovies">🎬 Movies & Series</option>
-                <option value="games" data-key="catGames">🎮 Video Games</option>
-                <option value="animals" data-key="catAnimals">🦁 Animals</option>
-            </select>
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblMaxPlayers">Max Players (3 - 20):</label>
-            <select id="maxPlayersSelect"></select>
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblSpies">Spies Count (1 - 8):</label>
-            <select id="spyCountSelect"></select>
-            <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblTurnDuration">Turn Duration (Seconds per player):</label>
-            <input type="number" id="turnDurationInput" value="30" min="10" max="120">
-            <button onclick="confirmCreateOrUpdateRoom()" data-key="btnConfirmRoom" style="margin-top:15px;">Launch Station 🚀</button>
-            <button class="btn-secondary" onclick="switchTab('tab-home')" data-key="btnCancel">Cancel</button>
-        </div>
-    </div>
-
-    <!-- 6. LOBBY SCREEN -->
-    <div id="lobby-screen" class="page-screen hidden" style="z-index:20;">
-        <button class="gear-fab" onclick="openInRoomSettings()">⚙️</button>
-        <div class="container-box" style="text-align:center;">
-            <p data-key="stationCode">Station Frequency Code:</p>
-            <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
-            <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">Category: --</div>
-            <div id="host-controls" class="hidden">
-                <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
-                <button id="btnStartOrResume" onclick="startGame()" data-key="btnStartGame">Start Mission 🚀</button>
-            </div>
-            <div style="margin-top:15px; text-align:start;">
-                <b><span data-key="txtAstronauts">Crew Members</span> (<span id="playerCount">0</span> / <span id="maxPlayerCount">20</span>):</b>
-                <div id="playersContainer" class="player-grid"></div>
-            </div>
-            <div class="chat-container">
-                <div id="chatMessagesLobby" class="chat-messages"></div>
-                <div style="display:flex; gap:6px; margin-top:8px;">
-                    <input type="text" id="chatInputLobby" data-key-placeholder="lblChatPlaceholder" placeholder="Send transmission..." style="margin:0;">
-                    <button onclick="sendChatMessage('Lobby')" style="width:auto; padding:0 20px;">💬</button>
-                </div>
-            </div>
-            <button class="btn-danger" style="margin-top:15px;" onclick="leaveRoom(true)" data-key="btnLeaveStation">Leave Station 🚪</button>
-        </div>
-    </div>
-
-    <!-- 6b. ROUND INTRO SCREEN -->
-    <div id="round-intro-screen" class="page-screen hidden" style="z-index:32; align-items:center; justify-content:center;">
-        <div class="round-intro-text" id="roundIntroText">ROUND 1</div>
-    </div>
-
-    <!-- 7. GAME SCREEN -->
-    <div id="game-screen" class="page-screen hidden" style="z-index:20;">
-        <button class="gear-fab" onclick="openInRoomSettings()">⚙️</button>
-        <div class="container-box" style="text-align:center;">
-            <div id="timerDisplay" style="font-size:16px; color:var(--accent-blue); font-weight:bold;">⏳ --</div>
-            <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:15px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
-            <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
-            <div class="chat-container">
-                <div id="chatMessagesGame" class="chat-messages"></div>
-                <div style="display:flex; gap:6px; margin-top:8px;">
-                    <input type="text" id="chatInputGame" data-key-placeholder="lblChatPlaceholder" placeholder="Discuss transmission..." style="margin:0;">
-                    <button id="btnSendGameChat" onclick="sendGameChatMessage()" style="width:auto; padding:0 20px;">💬</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 8. VOTING OVERLAY SCREEN -->
-    <div id="voting-screen" class="page-screen hidden" style="z-index:30; background:rgba(3,7,18,0.95);">
-        <div class="container-box" style="text-align:center;">
-            <h3 style="color:var(--danger-red); font-size:22px;" data-key="voteTitle">🚨 EMERGENCY VOTING PROTOCOL</h3>
-            <div id="voteTimerDisplay" style="font-size:18px; color:var(--accent-blue); margin:8px 0; font-weight:bold;">⏳ Vote Time: 80s</div>
-            <div id="voteListContainer" class="vote-grid"></div>
-            <div style="margin-top:15px;">
-                <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')" data-key="btnSkipVote">⏩ Skip Vote</button>
-                <div id="skipVotersRow" class="voters-overlay" style="justify-content:center; margin-top:6px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 9. GAME OVER / RESULTS SCREEN -->
-    <div id="gameover-screen" class="page-screen hidden" style="z-index:40; background:rgba(3,7,18,0.95);">
-        <div class="container-box" style="text-align:center;">
-            <h2 id="winnerTitle" style="color:var(--accent-blue); font-size:24px; margin-bottom:15px;">Mission Result</h2>
-            <div class="team-section">
-                <b style="color:var(--danger-red);" data-key="spiesTeamLabel">🕵️ Spies Team:</b>
-                <div id="spiesTeamList" class="team-members-row"></div>
-            </div>
-            <div class="team-section">
-                <b style="color:var(--accent-blue);" data-key="crewTeamLabel">🚀 Crew Team:</b>
-                <div id="crewTeamList" class="team-members-row"></div>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button onclick="returnToLobbyFromResults()" style="flex:1;" class="btn-secondary" data-key="btnReturnLobby">Return to Lobby 🔄</button>
-                <button onclick="leaveRoom(true)" style="flex:1;" class="btn-danger" data-key="btnLeaveGame">Leave the game 🚪</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 10. IN-ROOM QUICK SETTINGS MODAL -->
-    <div id="inroom-settings-modal" class="hidden modal-overlay">
-        <div class="container-box" style="max-width:360px;">
-            <h3 style="text-align:center; margin-bottom:10px;" data-key="inRoomSettingsTitle">Quick Settings ⚙️</h3>
-            <label style="font-size:12px; color:#94a3b8; display:block;" data-key="lblSound">Sound Volume 🔊:</label>
-            <input type="range" id="inroomSoundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolumeFromModal()">
-            <button class="btn-danger" style="margin-top:12px;" onclick="leaveRoom(true)" data-key="btnLeaveStation">Leave Station 🚪</button>
-            <button class="btn-secondary" style="margin-top:8px;" onclick="closeInRoomSettings()" data-key="btnCancel">Cancel</button>
-        </div>
-    </div>
-
-    <!-- BOTTOM NAVIGATION BAR -->
-    <div id="main-bottom-nav" class="bottom-nav hidden">
-        <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
-            <span class="nav-icon">🚀</span>
-            <span data-key="navHome">Home</span>
-        </div>
-        <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
-            <span class="nav-icon">🌐</span>
-            <span data-key="navStations">Stations</span>
-        </div>
-        <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
-            <span class="nav-icon">⚙️</span>
-            <span data-key="navSettings">Settings</span>
-        </div>
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAmOPqQ1AV9YEJ4wU7jjW9_kIy4Gbby8Zs",
-            authDomain: "spy-game-4f727.firebaseapp.com",
-            databaseURL: "https://spy-game-4f727-default-rtdb.firebaseio.com",
-            projectId: "spy-game-4f727",
-            storageBucket: "spy-game-4f727.firebasestorage.app",
-            messagingSenderId: "567560688609",
-            appId: "1:567560688609:web:9a85e21fcf318e888d78a0"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
-        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-        // تسجيل Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
-                    console.log('Service Worker registered successfully:', registration);
-                })
-                .catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
-        }
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let soundVol = 0.5;
-
-        function playSound(freq = 440, type = 'sine', duration = 0.15) {
-            if (soundVol <= 0) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.value = freq;
-                gain.gain.value = soundVol;
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
-        }
-
-        function updateVolume() {
-            soundVol = parseFloat(document.getElementById('soundVolume').value);
-            const inroom = document.getElementById('inroomSoundVolume');
-            if(inroom) inroom.value = soundVol;
-            playSound(520, 'sine', 0.1);
-        }
-
-        function updateVolumeFromModal() {
-            soundVol = parseFloat(document.getElementById('inroomSoundVolume').value);
-            const main = document.getElementById('soundVolume');
-            if(main) main.value = soundVol;
-            playSound(520, 'sine', 0.1);
-        }
-
-        function openInRoomSettings() {
-            document.getElementById('inroomSoundVolume').value = soundVol;
-            document.getElementById('inroom-settings-modal').classList.remove('hidden');
-        }
-
-        function closeInRoomSettings() {
-            document.getElementById('inroom-settings-modal').classList.add('hidden');
-        }
-
-        (function initSelectOptions() {
-            const maxPlayersSel = document.getElementById('maxPlayersSelect');
-            for(let i = 3; i <= 20; i++) {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.innerText = `${i} Players`;
-                if(i === 8) opt.selected = true;
-                maxPlayersSel.appendChild(opt);
-            }
-            const spySel = document.getElementById('spyCountSelect');
-            for(let i = 1; i <= 8; i++) {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.innerText = `${i} Spy ${i > 1 ? 's' : ''} 🕵️`;
-                spySel.appendChild(opt);
-            }
-        })();
-
-        function generate6DigitCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let code = '';
-            for(let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        }
-
-        function shuffleArray(arr) {
-            const a = [...arr];
-            for(let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-
-        const dictionary = {
-            en: {
-                subtitle: "DEEP SPACE TACTICS",
-                googleAuth: "Sign in with Google 🚀",
-                login: "Login",
-                signup: "Sign Up",
-                loginBtn: "Enter Station 🚀",
-                toggleAuth: "Don't have an account? Sign Up",
-                chooseCategory: "Create Station Room:",
-                catFootball: "Football",
-                catFood: "Food",
-                catPlaces: "Places",
-                catMovies: "Movies",
-                catGames: "Games",
-                catAnimals: "Animals",
-                joinRoom: "Join Station 🛰️",
-                logout: "Logout 🚪",
-                roomSettingsTitle: "Station Configuration ⚙️",
-                lblCategory: "Category:",
-                lblSpies: "Spies Count:",
-                lblTurnDuration: "Turn Duration (Seconds per player):",
-                btnConfirmRoom: "Launch Station 🚀",
-                settingsTitle: "Profile & System Settings ⚙️",
-                lblUploadAvatar: "Upload Avatar Image:",
-                lblSound: "Sound Volume 🔊:",
-                lblLang: "Language / اللغة:",
-                btnSaveSettings: "Save Changes 💾",
-                stationCode: "Station Frequency Code:",
-                btnEditRoom: "Edit Station Settings ⚙️",
-                btnStartGame: "Start Mission 🚀",
-                txtAstronauts: "Crew Members",
-                btnEmergencyVote: "Emergency Vote 🗳️",
-                voteTitle: "🚨 EMERGENCY VOTING PROTOCOL",
-                lblJoinTitle: "Join via 6-Digit Code:",
-                lblJoinPlaceholder: "Enter Station Code (e.g. X8K9P2)",
-                activeStationsTitle: "🌐 Active Public Stations",
-                searchingStations: "Searching for public stations...",
-                lblAvatarUrlPlaceholder: "Or Image URL",
-                lblUsernamePlaceholder: "Change Username",
-                lblVisibility: "Room Visibility 👁️:",
-                visPublic: "🌐 Public (Visible to everyone)",
-                visPrivate: "🔒 Private (Code only)",
-                lblMaxPlayers: "Max Players (3 - 20):",
-                btnCancel: "Cancel",
-                lblChatPlaceholder: "Send transmission...",
-                btnLeaveStation: "Leave Station 🚪",
-                btnSkipVote: "⏩ Skip Vote",
-                spiesTeamLabel: "🕵️ Spies Team:",
-                crewTeamLabel: "🚀 Crew Team:",
-                btnReturnLobby: "Return to Lobby 🔄",
-                btnLeaveGame: "Leave the game 🚪",
-                navHome: "Home",
-                navStations: "Stations",
-                navSettings: "Settings",
-                categoryPrefix: "Category: ",
-                inRoomSettingsTitle: "Quick Settings ⚙️",
-                toastFillFields: "Please fill in all fields!",
-                toastUsernameRequired: "Username is required!",
-                toastUsernameTaken: "Username already taken!",
-                toastInvalidCode: "Enter a valid 6-character code!",
-                toastStationFull: "Station is full!",
-                toastStationNotExist: "Station does not exist!",
-                toastLeftStation: "Left station successfully",
-                toastRemovedFromStation: "You were removed from the station",
-                toastSettingsSaved: "Settings saved successfully!",
-                toastVoteRecorded: "Vote recorded!",
-                toastMinPlayers: "Minimum 3 players required to start!",
-                toastTooManySpies: "Too many spies for this player count!",
-                toastNotYourTurn: "It's not your turn yet!",
-                annMissionStarted: "🚀 Mission started! Round 1 begins.",
-                annEmergencyVote: "🚨 Emergency vote triggered!",
-                annPlayerEjected: "🚀 {name} was voted out of the mission!",
-                annNobodyEjected: "⚖️ Nobody was ejected this round. The mission continues...",
-                annCrewWins: "🎉 All spies caught! Crew wins!",
-                annSpiesWin: "🕵️ Spies have taken over! Spies win!",
-                roleSpy: "🕵️ You are the Spy!",
-                roleWordPrefix: "The word is:",
-                spectatorRole: "👁️ You are spectating this mission.",
-                turnTimeLabel: "Time",
-                turnOf: "Turn",
-                waitYourTurn: "Waiting for your turn...",
-                voteTimeLabel: "Vote Time",
-                roundLabel: "ROUND",
-                inGameBadge: "IN GAME",
-                spectatorBadge: "SPECTATOR",
-                roomStatusLobby: "In Lobby",
-                roomStatusInProgress: "Mission In Progress",
-                playersLabel: "Players",
-                hostLabel: "Host",
-                btnJoinShort: "Join 🚀",
-                authErrEmailInUse: "This email is already registered.",
-                authErrInvalidEmail: "Please enter a valid email address.",
-                authErrWrongPassword: "Incorrect email or password.",
-                authErrUserNotFound: "No account found with this email.",
-                authErrWeakPassword: "Password is too weak (min 6 characters).",
-                scoreLabel: "Score",
-                skipVotes: "skip votes",
-                crewWinSubtitle: "All spies have been eliminated!",
-                spiesWinSubtitle: "Only one crew member remains!",
-                orEmail: "OR EMAIL"
-            },
-            ar: {
-                subtitle: "تكتيكات الفضاء العميق",
-                googleAuth: "الدخول بـ Google 🚀",
-                login: "تسجيل الدخول",
-                signup: "إنشاء حساب جديد",
-                loginBtn: "دخول المحطة 🚀",
-                toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
-                chooseCategory: "إنشاء محطة جديدة:",
-                catFootball: "كرة القدم",
-                catFood: "أكلات ومشروبات",
-                catPlaces: "أماكن ومعالم",
-                catMovies: "أفلام ومسلسلات",
-                catGames: "ألعاب فيديو",
-                catAnimals: "حيوانات",
-                joinRoom: "انضمام للمحطة 🛰️",
-                logout: "تسجيل الخروج 🚪",
-                roomSettingsTitle: "إعدادات المحطة ⚙️",
-                lblCategory: "الفئة:",
-                lblSpies: "عدد الجواسيس:",
-                lblTurnDuration: "مدة الدور (بالثواني لكل لاعب):",
-                btnConfirmRoom: "إطلاق المحطة 🚀",
-                settingsTitle: "الملف الشخصي والنظام ⚙️",
-                lblUploadAvatar: "رفع صورة شخصية:",
-                lblSound: "مستوى الصوت 🔊:",
-                lblLang: "اللغة / Language:",
-                btnSaveSettings: "حفظ التغييرات 💾",
-                stationCode: "تردد المحطة:",
-                btnEditRoom: "تعديل إعدادات المحطة ⚙️",
-                btnStartGame: "بدء المهمة 🚀",
-                txtAstronauts: "أفراد الطاقم",
-                btnEmergencyVote: "تصويت طارئ 🗳️",
-                voteTitle: "🚨 بروتوكول التصويت الطارئ",
-                lblJoinTitle: "الانضمام عبر كود مكون من 6 أرقام:",
-                lblJoinPlaceholder: "أدخل كود المحطة (مثل X8K9P2)",
-                activeStationsTitle: "🌐 المحطات العامة النشطة",
-                searchingStations: "جاري البحث عن المحطات العامة...",
-                lblAvatarUrlPlaceholder: "أو رابط الصورة",
-                lblUsernamePlaceholder: "تغيير اسم المستخدم",
-                lblVisibility: "ظهور الروم 👁️:",
-                visPublic: "🌐 عام (مرئي للجميع)",
-                visPrivate: "🔒 خاص (بالكود فقط)",
-                lblMaxPlayers: "الحد الأقصى للاعبين (3 - 20):",
-                btnCancel: "إلغاء",
-                lblChatPlaceholder: "إرسال رسالة...",
-                btnLeaveStation: "مغادرة المحطة 🚪",
-                btnSkipVote: "⏩ تخطي التصويت",
-                spiesTeamLabel: "🕵️ فريق الجواسيس:",
-                crewTeamLabel: "🚀 فريق الطاقم:",
-                btnReturnLobby: "العودة للوبي 🔄",
-                btnLeaveGame: "مغادرة اللعبة 🚪",
-                navHome: "الرئيسية",
-                navStations: "المحطات",
-                navSettings: "الإعدادات",
-                categoryPrefix: "فئة الروم: ",
-                inRoomSettingsTitle: "إعدادات سريعة ⚙️",
-                toastFillFields: "من فضلك املأ جميع الحقول!",
-                toastUsernameRequired: "اسم المستخدم مطلوب!",
-                toastUsernameTaken: "اسم المستخدم مأخوذ بالفعل!",
-                toastInvalidCode: "من فضلك أدخل كود مكون من 6 حروف صحيح!",
-                toastStationFull: "الغرفة ممتلئة!",
-                toastStationNotExist: "الغرفة غير موجودة!",
-                toastLeftStation: "تم مغادرة المحطة بنجاح",
-                toastRemovedFromStation: "تم إزالتك من المحطة",
-                toastSettingsSaved: "تم حفظ الإعدادات بنجاح!",
-                toastVoteRecorded: "تم تسجيل صوتك!",
-                toastMinPlayers: "لازم 3 لاعبين على الأقل عشان تبدأ!",
-                toastTooManySpies: "عدد الجواسيس كبير قوي بالنسبة لعدد اللاعبين!",
-                toastNotYourTurn: "لسه مش دورك!",
-                annMissionStarted: "🚀 المهمة بدأت! الجولة الأولى تبدأ.",
-                annEmergencyVote: "🚨 تم تفعيل تصويت طارئ!",
-                annPlayerEjected: "🚀 تم طرد {name} من المهمة!",
-                annNobodyEjected: "⚖️ محدش طلع الجولة دي. المهمة مستمرة...",
-                annCrewWins: "🎉 كل الجواسيس اتمسكوا! الطاقم كسب!",
-                annSpiesWin: "🕵️ الجواسيس سيطروا على المهمة! الجواسيس كسبوا!",
-                roleSpy: "🕵️ أنت الجاسوس!",
-                roleWordPrefix: "الكلمة هي:",
-                spectatorRole: "👁️ أنت بتتفرج على المهمة دي.",
-                turnTimeLabel: "الوقت",
-                turnOf: "دور",
-                waitYourTurn: "مستني دورك...",
-                voteTimeLabel: "وقت التصويت",
-                roundLabel: "الجولة",
-                inGameBadge: "لسه في اللعبة",
-                spectatorBadge: "متفرج",
-                roomStatusLobby: "في اللوبي",
-                roomStatusInProgress: "المهمة شغالة",
-                playersLabel: "اللاعبين",
-                hostLabel: "الهوست",
-                btnJoinShort: "انضمام 🚀",
-                authErrEmailInUse: "الإيميل ده متسجل بالفعل.",
-                authErrInvalidEmail: "من فضلك أدخل إيميل صحيح.",
-                authErrWrongPassword: "الإيميل أو كلمة السر غلط.",
-                authErrUserNotFound: "مفيش حساب بالإيميل ده.",
-                authErrWeakPassword: "كلمة السر ضعيفة قوي (6 أحرف على الأقل).",
-                scoreLabel: "النقاط",
-                skipVotes: "أصوات تخطي",
-                crewWinSubtitle: "كل الجواسيس اتمسكوا!",
-                spiesWinSubtitle: "متبقي واحد بس من الطاقم!",
-                orEmail: "أو الإيميل"
-            }
-        };
-
-        function t(key, params = {}) {
-            let str = (dictionary[currentLang] && dictionary[currentLang][key]) || key;
-            Object.keys(params).forEach(p => {
-                str = str.split(`{${p}}`).join(params[p]);
-            });
-            return str;
-        }
-
-        function translateAuthError(err) {
-            const map = {
-                'auth/email-already-in-use': 'authErrEmailInUse',
-                'auth/invalid-email': 'authErrInvalidEmail',
-                'auth/wrong-password': 'authErrWrongPassword',
-                'auth/user-not-found': 'authErrUserNotFound',
-                'auth/weak-password': 'authErrWeakPassword',
-                'auth/invalid-credential': 'authErrWrongPassword'
-            };
-            const key = map[err.code];
-            return key ? t(key) : err.message;
-        }
-
-        let currentLang = localStorage.getItem('spy_station_lang') || 'en';
-
-        function changeLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('spy_station_lang', lang);
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            const langSel = document.getElementById('languageSelect');
-            if(langSel) langSel.value = lang;
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.getAttribute('data-key');
-                if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
-            });
-            document.querySelectorAll('[data-key-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-key-placeholder');
-                if (dictionary[lang][key]) el.placeholder = dictionary[lang][key];
-            });
-            if (currentRoom) {
-                db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                    const data = snap.val();
-                    if(!data) return;
-                    if(data.category && categoryNamesMap[data.category]) {
-                        const catObj = categoryNamesMap[data.category];
-                        document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catObj[currentLang] || catObj.en}`;
-                    }
-                    renderRoomState(data);
-                });
-            }
-        }
-
-        let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
-        let gameInterval = null, voteInterval = null, introTimeout = null;
-        let roomListener = null, annListener = null;
-        let localViewingLobbyOverride = false;
-
-        const categoryNamesMap = {
-            players: { en: "⚽ Football Players", ar: "⚽ كرة القدم" },
-            food: { en: "🍕 Food & Drinks", ar: "🍕 أكلات ومشروبات" },
-            places: { en: "🗺️ Famous Places", ar: "🗺️ أماكن ومعالم" },
-            movies: { en: "🎬 Movies & Series", ar: "🎬 أفلام ومسلسلات" },
-            games: { en: "🎮 Video Games", ar: "🎮 ألعاب فيديو" },
-            animals: { en: "🦁 Animals", ar: "🦁 حيوانات" }
-        };
-
-        const wordsDB = {
-            players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne", "Benzema", "Vinicius"],
-            food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream", "Koshary", "Crepe"],
-            places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome", "Colosseum", "Big Ben"],
-            movies: ["Inception", "Avatar", "Titanic", "Spider-Man", "Batman", "Interstellar", "Joker", "Harry Potter", "Avengers"],
-            games: ["GTA V", "Minecraft", "PUBG", "FIFA", "Valorant", "Call of Duty", "Fortnite", "League of Legends", "Roblox"],
-            animals: ["Lion", "Tiger", "Elephant", "Falcon", "Dolphin", "Cheetah", "Wolf", "Eagle", "Bear"]
-        };
-
-        function toggleBottomNav(show) {
-            const nav = document.getElementById('main-bottom-nav');
-            if(show) nav.classList.remove('hidden');
-            else nav.classList.add('hidden');
-        }
-
-        function switchTab(tabId) {
-            playSound(400, 'sine', 0.08);
-            document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
-            if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
-            if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
-            toggleBottomNav(true);
-        }
-
-        let notificationTimeout = null;
-
-        function showToast(msg, type = 'normal') {
-            if (type === 'danger') playSound(220, 'sawtooth', 0.3);
-            else if (type === 'success') playSound(750, 'sine', 0.2);
-            else playSound(550, 'triangle', 0.12);
-            const notifyBox = document.getElementById('top-notification');
-            const notifyText = document.getElementById('notification-text');
-            const notifyIcon = document.getElementById('notification-icon');
-            notifyText.innerText = msg;
-            notifyBox.className = '';
-            if (type === 'danger') {
-                notifyBox.classList.add('toast-danger');
-                notifyIcon.innerText = '🚨';
-            } else if (type === 'success') {
-                notifyBox.classList.add('toast-success');
-                notifyIcon.innerText = '🎉';
-            } else {
-                notifyIcon.innerText = '🛰️';
-            }
-            notifyBox.classList.remove('hidden');
-            if (notificationTimeout) clearTimeout(notificationTimeout);
-            notificationTimeout = setTimeout(() => {
-                notifyBox.classList.add('hidden');
-            }, 3500);
-        }
-
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.setCustomParameters({
-                'prompt': 'select_account'
-            });
-            auth.signInWithPopup(provider)
-                .then(res => initUser(res.user))
-                .catch(err => {
-                    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-                        auth.signInWithRedirect(provider);
-                    } else {
-                        showToast(translateAuthError(err), 'danger');
-                    }
-                });
-        }
-
-        function toggleAuthMode() {
-            isSignUpMode = !isSignUpMode;
-            changeLanguage(currentLang);
-            document.getElementById('auth-title').innerText = isSignUpMode ? dictionary[currentLang].signup : dictionary[currentLang].login;
-            document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
-        }
-
-        function handleAuth() {
-            const email = document.getElementById('authEmail').value.trim();
-            const password = document.getElementById('authPassword').value.trim();
-            const username = document.getElementById('authUsername').value.trim();
-            if(!email || !password) return showToast(t('toastFillFields'), 'danger');
-            if(isSignUpMode) {
-                if(!username) return showToast(t('toastUsernameRequired'), 'danger');
-                db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
-                    if(snap.exists()) return showToast(t('toastUsernameTaken'), 'danger');
-                    auth.createUserWithEmailAndPassword(email, password).then(res => {
-                        const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
-                        db.ref('usernames/' + username.toLowerCase()).set(true);
-                        res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
-                    }).catch(err => showToast(translateAuthError(err), 'danger'));
-                });
-            } else {
-                auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(translateAuthError(err), 'danger'));
-            }
-        }
-
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                initUser(user);
-            } else {
-                document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-                document.getElementById('auth-screen').classList.remove('hidden');
-                toggleBottomNav(false);
-            }
-        });
-
-        function initUser(user) {
-            currentUser = user;
-            changeLanguage(currentLang);
-            const displayName = user.displayName || user.email?.split('@')[0] || 'Player';
-            const photoURL = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`;
-            document.getElementById('userDisplay').innerText = displayName;
-            document.getElementById('userAvatarDisplay').src = photoURL;
-            document.getElementById('settingUsername').value = displayName;
-            document.getElementById('settingAvatarUrl').value = photoURL;
-            document.getElementById('settingAvatarPreview').src = photoURL;
-            db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
-                const score = snap.val() || 0;
-                document.getElementById('userScoreDisplay').innerHTML = `<span data-key="scoreLabel">${t('scoreLabel')}</span>: ${score} pts`;
-            });
-            listenToPublicRooms();
-            const savedRoom = localStorage.getItem('spy_station_room');
-            if(savedRoom) {
-                currentRoom = savedRoom.toUpperCase();
-                db.ref('spy_rooms/' + currentRoom).once('value', snap => {
-                    if(snap.exists()) {
-                        joinRoomProcess();
-                    } else {
-                        currentRoom = null;
-                        localStorage.removeItem('spy_station_room');
-                        switchTab('tab-home');
-                    }
-                });
-            } else {
-                switchTab('tab-home');
-            }
-        }
-
-        function listenToPublicRooms() {
-            db.ref('spy_rooms').on('value', snap => {
-                const rooms = snap.val() || {};
-                const listContainer = document.getElementById('publicRoomsList');
-                let html = '';
-                for(let code in rooms) {
-                    const room = rooms[code];
-                    const playersObj = room.players || {};
-                    const pCount = Object.keys(playersObj).length;
-                    let hostName = t('hostLabel') + ': ?';
-                    if (room.hostUid && playersObj[room.hostUid]) {
-                        hostName = playersObj[room.hostUid].name;
-                    }
-                    if(room.visibility === 'public' && pCount > 0 && room.status !== 'gameover') {
-                        const catText = categoryNamesMap[room.category] ? categoryNamesMap[room.category][currentLang] || categoryNamesMap[room.category].en : room.category;
-                        const statusLabel = (!room.status || room.status === 'waiting') ? t('roomStatusLobby') : t('roomStatusInProgress');
-                        html += `
-                            <div class="public-room-card">
-                                <div style="text-align:start;">
-                                    <span style="font-weight:bold; color:var(--accent-blue);">#${code}</span>
-                                    <span style="font-size:11px; color:#94a3b8;">(${catText})</span>
-                                    <div style="font-size:11px; color:#64748b; margin-top:2px;">${t('playersLabel')}: ${pCount}/${room.maxPlayers || 20} | ${t('hostLabel')}: ${hostName} | ${statusLabel}</div>
-                                </div>
-                                <button onclick="joinDirectRoom('${code}')" style="width:auto; padding:8px 16px; font-size:12px;">${t('btnJoinShort')}</button>
-                            </div>
-                        `;
-                    }
-                }
-                listContainer.innerHTML = html || `<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">${t('searchingStations')}</div>`;
-            });
-        }
-
-        function logout() {
-            localStorage.removeItem('spy_station_room');
-            auth.signOut().then(() => location.reload());
-        }
-
-        function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    document.getElementById('settingAvatarUrl').value = evt.target.result;
-                    document.getElementById('settingAvatarPreview').src = evt.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function updateAvatarPreview() {
-            document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value;
-        }
-
-        function openCreateRoomModal(cat) {
-            playSound(350, 'sine', 0.1);
-            document.getElementById('categorySelect').value = cat;
-            document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-            document.getElementById('create-room-screen').classList.remove('hidden');
-            toggleBottomNav(false);
-        }
-
-        function openRoomEditModal() {
-            document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-            document.getElementById('create-room-screen').classList.remove('hidden');
-            toggleBottomNav(false);
-        }
-
-        function saveSettings() {
-            const newName = document.getElementById('settingUsername').value.trim();
-            const newAvatar = document.getElementById('settingAvatarUrl').value.trim();
-            if (!newName && !newAvatar) {
-                showToast(t('toastFillFields'), 'danger');
-                return;
-            }
-            const updates = {};
-            if (newName) updates.displayName = newName;
-            if (newAvatar) updates.photoURL = newAvatar;
-            currentUser.updateProfile(updates)
-                .then(() => {
-                    return db.ref(`users/${currentUser.uid}/profile`).update({
-                        displayName: newName || currentUser.displayName,
-                        photoURL: newAvatar || currentUser.photoURL,
-                        updatedAt: firebase.database.ServerValue.TIMESTAMP
-                    });
-                })
-                .then(() => {
-                    initUser(currentUser);
-                    showToast(t('toastSettingsSaved'), 'success');
-                })
-                .catch(err => {
-                    showToast(err.message, 'danger');
-                });
-        }
-
-        async function confirmCreateOrUpdateRoom() {
-            const cat = document.getElementById('categorySelect').value;
-            const spies = parseInt(document.getElementById('spyCountSelect').value);
-            const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
-            const turnDuration = parseInt(document.getElementById('turnDurationInput').value) || 30;
-            const visibility = document.getElementById('roomVisibilitySelect').value;
-            if(!currentRoom) {
-                currentRoom = generate6DigitCode();
-                isHost = true;
-                await db.ref('spy_rooms/' + currentRoom).set({
-                    status: 'waiting',
-                    originalHostUid: currentUser.uid,
-                    hostUid: currentUser.uid,
-                    category: cat,
-                    spyCount: spies,
-                    maxPlayers: maxPlayers,
-                    turnDuration: turnDuration,
-                    visibility: visibility,
-                    createdAt: firebase.database.ServerValue.TIMESTAMP
-                });
-            } else {
-                await db.ref('spy_rooms/' + currentRoom).update({
-                    category: cat,
-                    spyCount: spies,
-                    maxPlayers: maxPlayers,
-                    turnDuration: turnDuration,
-                    visibility: visibility
-                });
-            }
-            joinRoomProcess();
-        }
-
-        function joinRoomByInput() {
-            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-            if(!code || code.length !== 6) return showToast(t('toastInvalidCode'), 'danger');
-            joinDirectRoom(code);
-        }
-
-        function joinDirectRoom(code) {
-            currentRoom = code.toUpperCase();
-            db.ref('spy_rooms/' + currentRoom).once('value', snap => {
-                if(snap.exists()) {
-                    const room = snap.val();
-                    const playersObj = room.players || {};
-                    const activeCount = Object.values(playersObj).filter(p => !p.isSpectator).length;
-                    const gameActive = room.status && room.status !== 'waiting' && room.status !== 'gameover';
-                    if(!playersObj[currentUser.uid] && !gameActive) {
-                        if(activeCount >= (room.maxPlayers || 20)) {
-                            return showToast(t('toastStationFull'), 'danger');
-                        }
-                    }
-                    joinRoomProcess();
-                } else {
-                    showToast(t('toastStationNotExist'), 'danger');
-                }
-            });
-        }
-
-        function leaveRoom(manual = false) {
-            localStorage.removeItem('spy_station_room');
-            closeInRoomSettings();
-            
-            if (currentRoom && currentUser) {
-                const rCode = currentRoom;
-                const uid = currentUser.uid;
-                
-                if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
-                if (annListener) db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener);
-                
-                const roomCode = currentRoom;
-                currentRoom = null;
-                
-                db.ref(`spy_rooms/${roomCode}`).once('value', snap => {
-                    const roomData = snap.val();
-                    if (!roomData) return;
-                    
-                    db.ref(`spy_rooms/${roomCode}/players/${uid}`).remove().then(() => {
-                        db.ref(`spy_rooms/${roomCode}/players`).once('value', playersSnap => {
-                            const players = playersSnap.val();
-                            if (!players || Object.keys(players).length === 0) {
-                                db.ref(`spy_rooms/${roomCode}`).remove();
-                            } else {
-                                if (roomData.status === 'playing' || roomData.status === 'voting' || roomData.status === 'intro') {
-                                    db.ref(`spy_rooms/${roomCode}`).once('value', updatedSnap => {
-                                        const updatedRoom = updatedSnap.val();
-                                        if (updatedRoom) {
-                                            const ended = checkAndApplyWinCondition(updatedRoom);
-                                            if (!ended && (updatedRoom.status === 'intro' || updatedRoom.status === 'playing')) {
-                                                if (updatedRoom.status === 'intro') {
-                                                    if (!introTimeout) {
-                                                        introTimeout = setTimeout(() => {
-                                                            introTimeout = null;
-                                                            db.ref(`spy_rooms/${roomCode}`).transaction(room => {
-                                                                if (!room || room.status !== 'intro') return room;
-                                                                const activeUids = Object.keys(room.players || {}).filter(uid => !room.players[uid].isSpectator);
-                                                                room.turnOrder = shuffleArray(activeUids);
-                                                                room.turnIndex = 0;
-                                                                room.turnTimeLeft = room.turnDuration || 30;
-                                                                room.status = 'playing';
-                                                                return room;
-                                                            });
-                                                        }, 2600);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    });
-                });
-            }
-            
-            clearInterval(gameInterval);
-            gameInterval = null;
-            clearInterval(voteInterval);
-            voteInterval = null;
-            if (introTimeout) {
-                clearTimeout(introTimeout);
-                introTimeout = null;
-            }
-            
-            switchTab('tab-home');
-            if (manual) showToast(t('toastLeftStation'));
-        }
-
-        function joinRoomProcess() {
-            toggleBottomNav(false);
-            localStorage.setItem('spy_station_room', currentRoom);
-            
-            const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
-            const roomRef = db.ref(`spy_rooms/${currentRoom}`);
-            
-            Promise.all([
-                playerRef.once('value'),
-                roomRef.child('status').once('value')
-            ]).then(([pSnap, sSnap]) => {
-                const existed = pSnap.exists();
-                const status = sSnap.val();
-                const gameActive = status && status !== 'waiting' && status !== 'gameover';
-                
-                if (!existed) {
-                    playerRef.set({
-                        uid: currentUser.uid,
-                        name: currentUser.displayName || 'Player',
-                        avatar: currentUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${Date.now()}`,
-                        joinedAt: firebase.database.ServerValue.TIMESTAMP,
-                        isSpectator: gameActive
-                    }).catch(err => {
-                        showToast('Failed to join room: ' + err.message, 'danger');
-                        leaveRoom(false);
-                    });
-                } else if (gameActive) {
-                    playerRef.update({ isSpectator: true });
-                }
-            }).catch(err => {
-                showToast('Error joining room: ' + err.message, 'danger');
-                leaveRoom(false);
-            });
-            
-            playerRef.onDisconnect().remove();
-            listenToChat();
-            listenToSystemAnnouncements();
-            
-            if (roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
-            roomListener = db.ref('spy_rooms/' + currentRoom).on('value', snap => {
-                const data = snap.val();
-                if (!data) {
-                    if (currentRoom) leaveRoom(false);
-                    return;
-                }
-                renderRoomState(data);
-            });
-        }
-
-        function renderRoomState(data) {
-            if (!data || !data.players) return;
-            handleHostAssignment(data);
-            ensureHostPhaseEngine(data);
-            if(data.status !== 'gameover') localViewingLobbyOverride = false;
-            
-            const playersObj = data.players || {};
-            const playersArr = Object.values(playersObj);
-            if(!playersObj[currentUser.uid]) {
-                showToast(t('toastRemovedFromStation'), 'danger');
-                leaveRoom(false);
-                return;
-            }
-            
-            document.getElementById('roomCodeDisplay').innerText = currentRoom;
-            document.getElementById('playerCount').innerText = playersArr.length;
-            document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
-            
-            const catObj = categoryNamesMap[data.category];
-            const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
-            document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
-            
-            document.getElementById('playersContainer').innerHTML = playersArr.map(p => {
-                const stillInResults = data.status === 'gameover' && p.viewingResults !== false;
-                const badges = `${p.isSpectator ? `<span class="badge-inline badge-spectator">${t('spectatorBadge')}</span>` : ''}${stillInResults ? `<span class="badge-inline badge-ingame">${t('inGameBadge')}</span>` : ''}`;
-                return `
-                    <div class="player-item ${p.isSpectator ? 'is-spectator' : ''}">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
-                            <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}${badges}</span>
-                        </div>
-                        ${(isHost && p.uid !== currentUser.uid) ? `
-                            <div style="display:flex; gap:4px; width:auto;">
-                                <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
-                                <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            }).join('');
-            
-            const effectiveShowLobby = data.status === 'waiting' || (data.status === 'gameover' && localViewingLobbyOverride);
-            if(effectiveShowLobby) {
-                document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-                document.getElementById('lobby-screen').classList.remove('hidden');
-            } else if(data.status === 'intro') {
-                document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-                document.getElementById('round-intro-screen').classList.remove('hidden');
-                document.getElementById('roundIntroText').innerText = `${t('roundLabel')} ${data.currentRound || 1}`;
-            } else if(data.status === 'playing') {
-                showGameScreen(data);
-            } else if(data.status === 'voting') {
-                showVotingScreen(data);
-            } else if(data.status === 'gameover') {
-                showGameOverScreen(data);
-            }
-        }
-
-        function listenToSystemAnnouncements() {
-            if(annListener) db.ref(`spy_rooms/${currentRoom}/announcement`).off('value', annListener);
-            annListener = db.ref(`spy_rooms/${currentRoom}/announcement`).on('value', snap => {
-                const ann = snap.val();
-                if(ann && ann.key && ann.timestamp) {
-                    if(Date.now() - ann.timestamp < 3000) {
-                        showToast(t(ann.key, ann.params || {}), ann.type);
-                    }
-                }
-            });
-        }
-
-        function broadcastAnnouncement(key, params = {}, type = 'normal') {
-            db.ref(`spy_rooms/${currentRoom}/announcement`).set({
-                key: key,
-                params: params,
-                type: type,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-        }
-
-        function handleHostAssignment(data) {
-            const playersObj = data.players || {};
-            const hostStillPresent = data.hostUid && playersObj[data.hostUid];
-            if(!hostStillPresent && Object.keys(playersObj).length > 0) {
-                db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
-                    if(!room || !room.players) return room;
-                    const stillMissing = !room.hostUid || !room.players[room.hostUid];
-                    if(!stillMissing) return room;
-                    const sorted = Object.values(room.players).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-                    if(sorted.length > 0) {
-                        room.hostUid = sorted[0].uid;
-                    }
-                    return room;
-                });
-            }
-            isHost = !!(data.hostUid && data.hostUid === currentUser.uid);
-            document.getElementById('host-controls').classList.toggle('hidden', !isHost);
-        }
-
-        function checkAndApplyWinCondition(room) {
-            if (!room || room.status === 'gameover' || room.status === 'waiting') return false;
-            
-            const players = room.players || {};
-            const activeUids = Object.keys(players).filter(uid => !players[uid].isSpectator);
-            const spies = room.spies || [];
-            
-            const activeSpies = spies.filter(uid => activeUids.includes(uid));
-            const activeInnocents = activeUids.filter(uid => !spies.includes(uid));
-            
-            let winner = null;
-            
-            if (activeSpies.length === 0 && activeInnocents.length > 0) {
-                winner = 'crew';
-            } else if (activeInnocents.length === 1 && activeSpies.length > 0) {
-                winner = 'spies';
-            }
-            
-            if (winner) {
-                const updates = {
-                    status: 'gameover',
-                    winnerTeam: winner,
-                    finalSpies: spies,
-                    finalPlayers: players,
-                    votes: null
-                };
-                
-                Object.keys(players).forEach(uid => {
-                    updates[`players/${uid}/viewingResults`] = true;
-                });
-                
-                db.ref(`spy_rooms/${currentRoom}`).update(updates);
-                
-                broadcastAnnouncement(
-                    winner === 'crew' ? 'annCrewWins' : 'annSpiesWin',
-                    {},
-                    winner === 'crew' ? 'success' : 'danger'
-                );
-                
-                return true;
-            }
-            
-            return false;
-        }
-
-        function ensureHostPhaseEngine(data) {
-            if(!isHost) {
-                clearInterval(gameInterval);
-                gameInterval = null;
-                clearInterval(voteInterval);
-                voteInterval = null;
-                if(introTimeout) {
-                    clearTimeout(introTimeout);
-                    introTimeout = null;
-                }
-                return;
-            }
-            
-            if(data.status === 'playing' || data.status === 'voting') {
-                if(checkAndApplyWinCondition(data)) return;
-            }
-            
-            if(data.status === 'intro') {
-                if(!introTimeout) {
-                    introTimeout = setTimeout(() => {
-                        introTimeout = null;
-                        db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
-                            if(!room || room.status !== 'intro') return room;
-                            const activeUids = Object.keys(room.players || {}).filter(uid => !room.players[uid].isSpectator);
-                            room.turnOrder = shuffleArray(activeUids);
-                            room.turnIndex = 0;
-                            room.turnTimeLeft = room.turnDuration || 30;
-                            room.status = 'playing';
-                            return room;
-                        });
-                    }, 2600);
-                }
-            } else if(introTimeout) {
-                clearTimeout(introTimeout);
-                introTimeout = null;
-            }
-            
-            if(data.status === 'playing') {
-                if(!gameInterval) {
-                    gameInterval = setInterval(() => {
-                        db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                            const room = snap.val();
-                            if(!room || room.status !== 'playing') {
-                                clearInterval(gameInterval);
-                                gameInterval = null;
-                                return;
-                            }
-                            if(checkAndApplyWinCondition(room)) {
-                                clearInterval(gameInterval);
-                                gameInterval = null;
-                                return;
-                            }
-                            if((room.turnTimeLeft || 0) <= 1) {
-                                advanceTurn();
-                            } else {
-                                db.ref(`spy_rooms/${currentRoom}/turnTimeLeft`).set(room.turnTimeLeft - 1);
-                            }
-                        });
-                    }, 1000);
-                }
-            } else if(gameInterval) {
-                clearInterval(gameInterval);
-                gameInterval = null;
-            }
-            
-            if(data.status === 'voting') {
-                if(!voteInterval) {
-                    voteInterval = setInterval(() => {
-                        db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                            const room = snap.val();
-                            if(!room || room.status !== 'voting') {
-                                clearInterval(voteInterval);
-                                voteInterval = null;
-                                return;
-                            }
-                            const activeUids = Object.keys(room.players || {}).filter(uid => !room.players[uid].isSpectator);
-                            const votesCount = room.votes ? Object.keys(room.votes).filter(uid => activeUids.includes(uid)).length : 0;
-                            if((room.voteTimeLeft || 0) <= 1 || (activeUids.length > 0 && votesCount >= activeUids.length)) {
-                                clearInterval(voteInterval);
-                                voteInterval = null;
-                                processVoteResults(room);
-                            } else {
-                                db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
-                            }
-                        });
-                    }, 1000);
-                }
-            } else if(voteInterval) {
-                clearInterval(voteInterval);
-                voteInterval = null;
-            }
-        }
-
-        function kickPlayer(uid) {
-            db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
-        }
-
-        function makeHost(uid) {
-            db.ref(`spy_rooms/${currentRoom}/hostUid`).set(uid);
-        }
-
-        function sendChatMessage(screen) {
-            const input = document.getElementById(`chatInput${screen}`);
-            const msg = input.value.trim();
-            if(!msg) return;
-            db.ref(`spy_rooms/${currentRoom}/chat`).push({
-                sender: currentUser.displayName,
-                text: msg
-            });
-            input.value = '';
-        }
-
-        function sendGameChatMessage() {
-            const input = document.getElementById('chatInputGame');
-            const msg = input.value.trim();
-            if(!msg) return;
-            db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                const room = snap.val();
-                if(!room || room.status !== 'playing') return;
-                const order = room.turnOrder || [];
-                const currentTurnUid = order[room.turnIndex || 0];
-                if(currentTurnUid !== currentUser.uid) {
-                    showToast(t('toastNotYourTurn'), 'danger');
-                    return;
-                }
-                db.ref(`spy_rooms/${currentRoom}/chat`).push({
-                    sender: currentUser.displayName,
-                    text: msg
-                });
-                input.value = '';
-                advanceTurn();
-            });
-        }
-
-        function listenToChat() {
-            db.ref(`spy_rooms/${currentRoom}/chat`).on('value', snap => {
-                const data = snap.val();
-                if(!data) return;
-                const msgs = Object.values(data);
-                const html = msgs.map(m => `
-                    <div class="chat-msg">
-                        <span class="sender">${m.sender}:</span><span>${m.text}</span>
-                    </div>
-                `).join('');
-                document.getElementById('chatMessagesLobby').innerHTML = html;
-                document.getElementById('chatMessagesGame').innerHTML = html;
-                document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
-                document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
-            });
-        }
-
-        function advanceTurn() {
-            db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
-                if (!room || room.status !== 'playing') return room;
-                
-                const order = room.turnOrder || [];
-                if (order.length === 0) return room;
-                
-                const nextIndex = (room.turnIndex || 0) + 1;
-                
-                if (nextIndex >= order.length) {
-                    const currentRound = room.currentRound || 1;
-                    const firstRound = currentRound === 1 && room.firstRoundNoVote !== false;
-                    
-                    if (firstRound) {
-                        room.status = 'intro';
-                        room.currentRound = 2;
-                        room.firstRoundNoVote = false;
-                    } else {
-                        room.status = 'voting';
-                        room.voteTimeLeft = 80;
-                        room.votes = null;
-                    }
-                } else {
-                    room.turnIndex = nextIndex;
-                    room.turnTimeLeft = room.turnDuration || 30;
-                }
-                
-                return room;
-            }).catch(err => {
-                console.error('Error advancing turn:', err);
-                showToast('Error advancing turn', 'danger');
-            });
-        }
-
-        function startGame() {
-            db.ref(`spy_rooms/${currentRoom}`).once('value', roomSnap => {
-                const data = roomSnap.val();
-                const playersObj = data.players || {};
-                const allUids = Object.keys(playersObj);
-                
-                if (allUids.length < 3) {
-                    showToast(t('toastMinPlayers'), 'danger');
-                    return;
-                }
-                
-                const maxSpies = Math.floor((allUids.length - 1) / 2);
-                const requestedSpies = Math.min(data.spyCount || 1, maxSpies);
-                
-                if (requestedSpies < 1) {
-                    showToast('Not enough players for a spy!', 'danger');
-                    return;
-                }
-                
-                const wordList = wordsDB[data.category] || wordsDB.players;
-                let availableWords = wordList;
-                if (data.lastWord) {
-                    availableWords = wordList.filter(w => w !== data.lastWord);
-                }
-                if (availableWords.length === 0) availableWords = wordList;
-                
-                const selectedWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-                
-                let spies = [];
-                const pool = [...allUids];
-                while (spies.length < requestedSpies && pool.length) {
-                    const idx = Math.floor(Math.random() * pool.length);
-                    spies.push(pool.splice(idx, 1)[0]);
-                }
-                
-                const turnDuration = data.turnDuration || 30;
-                
-                const updates = {
-                    status: 'intro',
-                    currentRound: 1,
-                    word: selectedWord,
-                    lastWord: selectedWord,
-                    spies: spies,
-                    turnOrder: shuffleArray(allUids),
-                    turnIndex: 0,
-                    turnDuration: turnDuration,
-                    turnTimeLeft: turnDuration,
-                    votes: null,
-                    voteTimeLeft: 80,
-                    winnerTeam: null,
-                    finalSpies: null,
-                    finalPlayers: null,
-                    firstRoundNoVote: true
-                };
-                
-                allUids.forEach(uid => {
-                    updates[`players/${uid}/isSpectator`] = false;
-                    updates[`players/${uid}/viewingResults`] = null;
-                });
-                
-                db.ref(`spy_rooms/${currentRoom}`).update(updates)
-                    .then(() => {
-                        broadcastAnnouncement('annMissionStarted', {}, 'normal');
-                        playSound(800, 'sine', 0.3);
-                    })
-                    .catch(err => {
-                        showToast('Failed to start game: ' + err.message, 'danger');
-                    });
-            });
-        }
-
-        function showGameScreen(data) {
-            document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-            document.getElementById('game-screen').classList.remove('hidden');
-            
-            const players = data.players || {};
-            const me = players[currentUser.uid] || {};
-            const iAmSpectator = !!me.isSpectator;
-            const isSpy = !iAmSpectator && data.spies && data.spies.includes(currentUser.uid);
-            
-            document.getElementById('roleDisplay').innerHTML = iAmSpectator 
-                ? t('spectatorRole') 
-                : (isSpy 
-                    ? `<span class="spy-role-badge">${t('roleSpy')}</span>` 
-                    : `<span class="crew-role-badge">${t('roleWordPrefix')} ${data.word}</span>`);
-            
-            const order = data.turnOrder || [];
-            const turnUid = order[data.turnIndex || 0];
-            const turnPlayer = players[turnUid];
-            const isMyTurn = turnUid === currentUser.uid && !iAmSpectator;
-            
-            document.getElementById('timerDisplay').innerHTML = `
-                ⏳ ${t('turnTimeLabel')}: ${data.turnTimeLeft || 0}s 
-                — ${t('turnOf')}: ${turnPlayer ? turnPlayer.name : '-'}
-                ${isMyTurn ? ' <span class="turn-indicator">🎯 YOUR TURN</span>' : ''}
-            `;
-            
-            const chatInput = document.getElementById('chatInputGame');
-            const sendBtn = document.getElementById('btnSendGameChat');
-            chatInput.disabled = !isMyTurn;
-            sendBtn.disabled = !isMyTurn;
-            chatInput.placeholder = isMyTurn 
-                ? dictionary[currentLang].lblChatPlaceholder 
-                : t('waitYourTurn');
-            
-            const btnEmergency = document.getElementById('btnEmergencyVote');
-            if ((data.currentRound || 1) >= 2 && !iAmSpectator) {
-                btnEmergency.classList.remove('hidden');
-            } else {
-                btnEmergency.classList.add('hidden');
-            }
-        }
-
-        function triggerVotingPhase() {
-            db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                const room = snap.val();
-                if (!room || room.status !== 'playing') return;
-                
-                if ((room.currentRound || 1) < 2) {
-                    showToast('Emergency vote is only available from Round 2!', 'danger');
-                    return;
-                }
-                
-                db.ref(`spy_rooms/${currentRoom}`).update({
-                    status: 'voting',
-                    voteTimeLeft: 80,
-                    votes: null
-                });
-                
-                broadcastAnnouncement('annEmergencyVote', {}, 'danger');
-            });
-        }
-
-        function showVotingScreen(data) {
-            document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-            document.getElementById('voting-screen').classList.remove('hidden');
-            
-            document.getElementById('voteTimerDisplay').innerText = `⏳ ${t('voteTimeLabel')}: ${data.voteTimeLeft || 80}s`;
-            
-            const allPlayers = data.players || {};
-            const activePlayers = Object.values(allPlayers).filter(p => !p.isSpectator);
-            const votes = data.votes || {};
-            const iAmSpectator = !!(allPlayers[currentUser.uid] && allPlayers[currentUser.uid].isSpectator);
-            const hasVoted = !!votes[currentUser.uid];
-            const disableVoting = hasVoted || iAmSpectator;
-            
-            let voteHTML = '';
-            activePlayers.forEach(p => {
-                const votersForThisPlayer = Object.keys(votes)
-                    .filter(voterUid => votes[voterUid] === p.uid && allPlayers[voterUid])
-                    .map(uid => allPlayers[uid]);
-                
-                const votersAvatarsHTML = votersForThisPlayer.map(v => 
-                    `<img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">`
-                ).join('');
-                
-                voteHTML += `
-                    <div class="vote-card ${disableVoting ? 'disabled' : ''}" 
-                         ${!disableVoting ? `onclick="castVote('${p.uid}')"` : ''}>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
-                            <span style="font-weight:bold; font-size:13px;">${p.name}</span>
-                            ${votersForThisPlayer.length > 0 ? ` <span style="font-size:11px; color:var(--accent-purple);">(${votersForThisPlayer.length} votes)</span>` : ''}
-                        </div>
-                        <div class="voters-overlay">
-                            ${votersAvatarsHTML}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('voteListContainer').innerHTML = voteHTML;
-            
-            const skipVoters = Object.keys(votes)
-                .filter(uid => votes[uid] === 'SKIP' && allPlayers[uid])
-                .map(uid => allPlayers[uid]);
-            
-            document.getElementById('skipVotersRow').innerHTML = skipVoters.map(v => 
-                `<img src="${v.avatar}" class="voter-mini-avatar" title="${v.name}">`
-            ).join('');
-            
-            if (skipVoters.length > 0) {
-                document.getElementById('skipVotersRow').innerHTML += 
-                    `<span style="font-size:11px; color:#94a3b8; margin-left:4px;">(${skipVoters.length} ${t('skipVotes')})</span>`;
-            }
-            
-            const btnSkip = document.getElementById('btnSkipVote');
-            btnSkip.classList.toggle('disabled', disableVoting);
-            btnSkip.disabled = disableVoting;
-            if (!disableVoting) {
-                btnSkip.onclick = () => castVote('SKIP');
-            }
-        }
-
-        function castVote(targetUid) {
-            db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`).once('value', pSnap => {
-                const me = pSnap.val();
-                if(me && me.isSpectator) {
-                    showToast('Spectators cannot vote', 'danger');
-                    return;
-                }
-                
-                db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).once('value', snap => {
-                    if(snap.exists()) {
-                        showToast('You already voted!', 'danger');
-                        return;
-                    }
-                    
-                    if(targetUid !== 'SKIP') {
-                        db.ref(`spy_rooms/${currentRoom}/players/${targetUid}`).once('value', targetSnap => {
-                            if(!targetSnap.exists() || targetSnap.val().isSpectator) {
-                                showToast('Invalid target', 'danger');
-                                return;
-                            }
-                            recordVote(targetUid);
-                        });
-                    } else {
-                        recordVote(targetUid);
-                    }
-                });
-            });
-        }
-
-        function recordVote(targetUid) {
-            db.ref(`spy_rooms/${currentRoom}/votes/${currentUser.uid}`).set(targetUid)
-                .then(() => {
-                    showToast(t('toastVoteRecorded'), 'success');
-                    playSound(600, 'sine', 0.15);
-                })
-                .catch(err => {
-                    showToast(err.message, 'danger');
-                });
-        }
-
-        function processVoteResults(room) {
-            if (!isHost) return;
-            
-            const votes = room.votes || {};
-            const players = room.players || {};
-            const activeUids = Object.keys(players).filter(uid => !players[uid].isSpectator);
-            
-            const counts = {};
-            Object.keys(votes).forEach(voterUid => {
-                if (!activeUids.includes(voterUid)) return;
-                const target = votes[voterUid];
-                counts[target] = (counts[target] || 0) + 1;
-            });
-            
-            let maxVotes = 0;
-            let topKeys = [];
-            for (const key in counts) {
-                if (counts[key] > maxVotes) {
-                    maxVotes = counts[key];
-                    topKeys = [key];
-                } else if (counts[key] === maxVotes) {
-                    topKeys.push(key);
-                }
-            }
-            
-            let ejectedUid = null;
-            
-            if (maxVotes > 0 && topKeys.length === 1 && topKeys[0] !== 'SKIP') {
-                ejectedUid = topKeys[0];
-            }
-            
-            const updates = { votes: null };
-            
-            if (ejectedUid) {
-                updates[`players/${ejectedUid}/isSpectator`] = true;
-                broadcastAnnouncement(
-                    'annPlayerEjected',
-                    { name: players[ejectedUid] ? players[ejectedUid].name : '?' },
-                    'danger'
-                );
-            } else {
-                broadcastAnnouncement('annNobodyEjected', {}, 'normal');
-            }
-            
-            db.ref(`spy_rooms/${currentRoom}`).update(updates).then(() => {
-                db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                    const freshRoom = snap.val();
-                    if (!freshRoom) return;
-                    
-                    const ended = checkAndApplyWinCondition(freshRoom);
-                    
-                    if (!ended) {
-                        db.ref(`spy_rooms/${currentRoom}`).update({
-                            status: 'intro',
-                            currentRound: (freshRoom.currentRound || 1) + 1
-                        });
-                    }
-                });
-            });
-        }
-
-        function showGameOverScreen(data) {
-            document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-            document.getElementById('gameover-screen').classList.remove('hidden');
-            
-            const winner = data.winnerTeam;
-            const winnerText = winner === 'crew' 
-                ? `🎉 ${t('crewTeamLabel').replace(':','')}` 
-                : `🕵️ ${t('spiesTeamLabel').replace(':','')}`;
-            
-            document.getElementById('winnerTitle').innerHTML = `
-                ${winnerText}
-                <span style="font-size:14px; display:block; margin-top:5px; color:#94a3b8;">
-                    ${winner === 'crew' ? t('crewWinSubtitle') : t('spiesWinSubtitle')}
-                </span>
-            `;
-            
-            const allPlayers = data.finalPlayers || data.players || {};
-            const spyUids = data.finalSpies || data.spies || [];
-            
-            let spiesHTML = '';
-            let crewHTML = '';
-            
-            for (let uid in allPlayers) {
-                const p = allPlayers[uid];
-                const isSpy = spyUids.includes(uid);
-                const chip = `
-                    <div class="team-member-chip">
-                        <img src="${p.avatar}" alt="img">
-                        <span>${p.name}</span>
-                        ${isSpy ? ' 🕵️' : ' 🚀'}
-                    </div>
-                `;
-                if (isSpy) {
-                    spiesHTML += chip;
-                } else {
-                    crewHTML += chip;
-                }
-            }
-            
-            document.getElementById('spiesTeamList').innerHTML = spiesHTML || '<span style="font-size:12px; color:#64748b;">-</span>';
-            document.getElementById('crewTeamList').innerHTML = crewHTML || '<span style="font-size:12px; color:#64748b;">-</span>';
-        }
-
-        function returnToLobbyFromResults() {
-            localViewingLobbyOverride = true;
-            db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}/viewingResults`).set(false);
-            db.ref(`spy_rooms/${currentRoom}`).once('value', snap => {
-                const data = snap.val();
-                if(data) renderRoomState(data);
-            });
-        }
-
-        // إخفاء Splash Screen
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(function() {
-                        splash.style.display = 'none';
-                    }, 800);
-                }
-            }, 1500);
-        });
-
-        auth.onAuthStateChanged(function(user) {
-            const splash = document.getElementById('splash-screen');
-            if (splash) {
-                setTimeout(function() {
-                    splash.style.opacity = '0';
-                    setTimeout(function() {
-                        splash.style.display = 'none';
-                    }, 800);
-                }, 500);
-            }
-        });
-    </script>
 </body>
 </html>
