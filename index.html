@@ -220,6 +220,10 @@
 
   .spectator-badge { font-size: 12px; color: #94a3b8; margin-top: 8px; background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.25); border-radius: 10px; padding: 4px 10px; display: inline-block; }
 
+  .skip-voters-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+  .skip-voters-row .voter-mini-avatar { width: 24px; height: 24px; }
+  .skip-voters-label { font-size: 11px; color: #94a3b8; margin-inline-end: 4px; }
+
   @keyframes roundPop {
     0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
     55% { transform: scale(1.18) rotate(2deg); opacity: 1; }
@@ -474,6 +478,7 @@
 
     <div style="margin-top:15px;">
       <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')" data-key="btnSkipVote">⏩ Skip Vote</button>
+      <div id="skipVotersRow" class="skip-voters-row"></div>
     </div>
 
     <div id="spectatorBadgeVoting" class="spectator-badge hidden">👁️ <span class="spectator-count">0</span></div>
@@ -695,7 +700,8 @@ const dictionary = {
     lblYourTurn: "🎤 Your turn! Give a subtle clue...", lblWaitingForTurn: "⏳ Waiting for {name} to speak...",
     lblSpectatorTag: "👁️ Spectating", lblInGameTag: "🎮 In Game", lblInLobbyTag: "🏠 In Lobby", lblSettingsBtn: "Settings", lblLeaveGameBtn: "Leave Game 🚪",
     lblSoundInGame: "Sound Volume 🔊", lblVoteTime: "Vote Time:", lblNone: "None",
-    youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️"
+    youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️",
+    lblSkippedBy: "Skipped by:"
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -731,7 +737,8 @@ const dictionary = {
     lblYourTurn: "🎤 دورك! اديهم تلميح بسيط من غير ما توضح...", lblWaitingForTurn: "⏳ في انتظار {name} عشان يتكلم...",
     lblSpectatorTag: "👁️ بتتفرج", lblInGameTag: "🎮 لسه بيلعب", lblInLobbyTag: "🏠 في اللوبي", lblSettingsBtn: "الإعدادات", lblLeaveGameBtn: "الخروج من اللعبة 🚪",
     lblSoundInGame: "مستوى الصوت 🔊", lblVoteTime: "وقت التصويت:", lblNone: "لا يوجد",
-    youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️"
+    youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️",
+    lblSkippedBy: "تخطى:"
   }
 };
 
@@ -1059,49 +1066,87 @@ function joinDirectRoom(code) {
   });
 }
 
-async function leaveRoom(manual = false) {
-  localStorage.removeItem('spy_station_room');
-  toggleInRoomFab(false);
-  closeInRoomSettings();
-
-  if(currentRoom && currentUser) {
-    const rCode = currentRoom;
-    if (roomListener) db.ref(`spy_rooms/${rCode}`).off('value', roomListener);
-    if (annListener) db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener);
-    currentRoom = null;
-    lastAnnouncedRound = 0;
-    lastDisconnectStatus = null;
-    clearInterval(turnInterval); turnInterval = null;
-    clearInterval(voteInterval); voteInterval = null;
-
-    const statusSnap = await db.ref(`spy_rooms/${rCode}/status`).once('value');
-    const roomStatus = statusSnap.val();
-
-    if(roomStatus && roomStatus !== 'waiting') {
-      // A mission is in progress (or we're on the results screen) - stay on
-      // record instead of vanishing, so turn order / spy counts / the
-      // "who's still deciding" list all stay consistent for everyone else.
-      const updates = { isSpectator: true };
-      if(roomStatus === 'gameover') updates.postGame = 'inLobby';
-      await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).update(updates);
-
-      const allPlayersSnap = await db.ref(`spy_rooms/${rCode}/players`).once('value');
-      const allPlayersObj = allPlayersSnap.val() || {};
-      const anyoneStillActive = Object.values(allPlayersObj).some(p => !p.isSpectator);
-      if(!anyoneStillActive) {
-        await db.ref(`spy_rooms/${rCode}`).remove();
-      }
-    } else {
-      await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove();
-      const remaining = await db.ref(`spy_rooms/${rCode}/players`).once('value');
-      if(!remaining.exists() || !remaining.val()) {
-        await db.ref(`spy_rooms/${rCode}`).remove();
-      }
-    }
+// Shared host-handoff logic. Re-checks whether the room's current host is
+// still an active (non-spectator) player and, if not, promotes the
+// longest-standing active player to host. Runs as a Firebase transaction so
+// it's safe no matter how many clients try to trigger it at once - only one
+// write wins and everyone converges on the same result.
+async function reassignHostIfNeeded(rCode) {
+  if(!rCode) return;
+  try {
+    await db.ref(`spy_rooms/${rCode}`).transaction(room => {
+      if(!room || !room.players) return room;
+      const hp = room.hostUid ? room.players[room.hostUid] : null;
+      const hostStillActive = hp && !hp.isSpectator;
+      if(hostStillActive) return room;
+      const activeSorted = Object.values(room.players)
+        .filter(p => !p.isSpectator)
+        .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+      room.hostUid = activeSorted.length > 0 ? activeSorted[0].uid : null;
+      return room;
+    });
+  } catch(e) {
+    console.warn('reassignHostIfNeeded failed', e);
   }
+}
 
+async function leaveRoom(manual = false) {
+  const rCode = currentRoom;
+  const wasInRoom = !!(rCode && currentUser);
+
+  // Tear down local listeners/timers and switch the screen back to Home
+  // FIRST, synchronously - before any network round trip. This guarantees
+  // the game/voting/lobby screens are hidden and the bottom nav reappears
+  // immediately, instead of waiting on the database cleanup below (which is
+  // what used to leave the game screen visible underneath the nav bar).
+  if (roomListener) { db.ref(`spy_rooms/${rCode}`).off('value', roomListener); roomListener = null; }
+  if (annListener) { db.ref(`spy_rooms/${rCode}/announcement`).off('value', annListener); annListener = null; }
+  clearInterval(turnInterval); turnInterval = null;
+  clearInterval(voteInterval); voteInterval = null;
+  currentRoom = null;
+  lastAnnouncedRound = 0;
+  lastDisconnectStatus = null;
+  isHost = false;
+
+  localStorage.removeItem('spy_station_room');
+  closeInRoomSettings();
+  toggleInRoomFab(false);
   switchTab('tab-home');
   if(manual) showToast(dictionary[currentLang].msgLeftStation);
+
+  if(wasInRoom) {
+    try {
+      const statusSnap = await db.ref(`spy_rooms/${rCode}/status`).once('value');
+      const roomStatus = statusSnap.val();
+
+      if(roomStatus && roomStatus !== 'waiting') {
+        // A mission is in progress (or we're on the results screen) - stay on
+        // record instead of vanishing, so turn order / spy counts / the
+        // "who's still deciding" list all stay consistent for everyone else.
+        const updates = { isSpectator: true };
+        if(roomStatus === 'gameover') updates.postGame = 'inLobby';
+        await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).update(updates);
+
+        await reassignHostIfNeeded(rCode);
+
+        const allPlayersSnap = await db.ref(`spy_rooms/${rCode}/players`).once('value');
+        const allPlayersObj = allPlayersSnap.val() || {};
+        const anyoneStillActive = Object.values(allPlayersObj).some(p => !p.isSpectator);
+        if(!anyoneStillActive) {
+          await db.ref(`spy_rooms/${rCode}`).remove();
+        }
+      } else {
+        await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove();
+        await reassignHostIfNeeded(rCode);
+        const remaining = await db.ref(`spy_rooms/${rCode}/players`).once('value');
+        if(!remaining.exists() || !remaining.val()) {
+          await db.ref(`spy_rooms/${rCode}`).remove();
+        }
+      }
+    } catch(e) {
+      console.warn('leaveRoom cleanup failed', e);
+    }
+  }
 }
 
 function updateDisconnectBehavior(status) {
@@ -1166,6 +1211,7 @@ async function joinRoomProcess() {
     }
 
     if(data.status === 'waiting') {
+      toggleBottomNav(false);
       document.getElementById('roomCodeDisplay').innerText = currentRoom;
       document.getElementById('playerCount').innerText = playersArr.length;
       document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
@@ -1194,14 +1240,17 @@ async function joinRoomProcess() {
       document.getElementById('lobby-screen').classList.remove('hidden');
       toggleInRoomFab(true);
     } else if(data.status === 'playing') {
+      toggleBottomNav(false);
       showGameScreen(data);
       toggleInRoomFab(true);
     } else if(data.status === 'voting') {
+      toggleBottomNav(false);
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('voting-screen').classList.remove('hidden');
       showVotingScreen(data);
       toggleInRoomFab(true);
     } else if(data.status === 'gameover') {
+      toggleBottomNav(false);
       const myPlayer = playersObj[currentUser.uid] || {};
       if(myPlayer.postGame === 'inLobby') {
         renderPostGameLocalLobby(data);
@@ -1246,22 +1295,14 @@ function handleHostAssignment(data) {
   const hostStillActive = currentHostPlayer && !currentHostPlayer.isSpectator;
 
   if(!hostStillActive && Object.keys(playersObj).length > 0) {
-    // ANY remaining client can trigger this - the transaction runs against the
-    // live server data, so even if several clients notice at once, only one
-    // write wins and everyone converges on the same new host automatically.
-    db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
-      if(!room || !room.players) return room;
-      const hp = room.hostUid ? room.players[room.hostUid] : null;
-      const stillActive = hp && !hp.isSpectator;
-      if(stillActive) return room;
-      const activeSorted = Object.values(room.players)
-        .filter(p => !p.isSpectator)
-        .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-      if(activeSorted.length > 0) {
-        room.hostUid = activeSorted[0].uid;
-      }
-      return room;
-    });
+    // ANY remaining client can trigger this - reassignHostIfNeeded runs as a
+    // transaction against the live server data, so even if several clients
+    // notice at once, only one write wins and everyone converges on the
+    // same new host automatically. This is the fallback path for cases
+    // where the old host disconnected ungracefully (closed the tab/lost
+    // network) instead of clicking "Leave" - leaveRoom() already handles
+    // the graceful case directly.
+    reassignHostIfNeeded(currentRoom);
   }
 
   isHost = !!(data.hostUid && data.hostUid === currentUser.uid);
@@ -1269,7 +1310,7 @@ function handleHostAssignment(data) {
 
 function ensureHostTimersRunning(data) {
   if(isHost && data.status === 'playing' && data.turnOrder && data.turnOrder.length > 0) {
-    if(!turnInterval) startTurnTimerSync();
+    if(!turnInterval) startTurnTimerSync(data);
   } else if(turnInterval) {
     clearInterval(turnInterval);
     turnInterval = null;
@@ -1291,6 +1332,7 @@ async function kickPlayer(uid) {
   } else {
     await db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
   }
+  await reassignHostIfNeeded(currentRoom);
 }
 
 async function makeHost(uid) {
@@ -1437,39 +1479,59 @@ async function advanceTurn() {
   }
 }
 
-function startTurnTimerSync() {
-  if(!isHost) return;
-  clearInterval(turnInterval);
-  turnInterval = null;
+// --- Turn timer -------------------------------------------------------
+// IMPORTANT: turnInterval must be assigned SYNCHRONOUSLY, in the same tick
+// that this function runs. ensureHostTimersRunning() only calls this when
+// `!turnInterval`, and it is invoked on every single room snapshot (which
+// includes snapshots caused by this very timer ticking). If the interval ID
+// were assigned only after an `await`/`.then()`, several snapshots could
+// slip through that "not yet running" window before the first setInterval
+// was actually stored, each starting its OWN interval - and only the LAST
+// one's ID would ever end up in `turnInterval`, so the earlier ones could
+// never be cleared. That was the root cause of the timer running way too
+// fast / erratically: multiple overlapping intervals were all decrementing
+// turnTimeLeft at once. Keeping the assignment synchronous closes that gap.
+function startTurnTimerSync(data) {
+  if(!isHost || turnInterval) return;
 
+  let tickBusy = false;
   const tick = async () => {
-    const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
-    const room = snap.val();
-    if(!room || room.status !== 'playing' || !room.turnOrder || room.turnOrder.length === 0) {
-      clearInterval(turnInterval);
-      turnInterval = null;
-      return;
-    }
-    const timeLeft = room.turnTimeLeft != null ? room.turnTimeLeft : (room.turnSeconds || 20);
-    if(timeLeft <= 1) {
-      await advanceTurn();
-    } else {
-      await db.ref(`spy_rooms/${currentRoom}/turnTimeLeft`).set(timeLeft - 1);
+    if(tickBusy) return; // guard against overlapping ticks if a round trip runs long
+    tickBusy = true;
+    try {
+      const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+      const room = snap.val();
+      if(!room || room.status !== 'playing' || !room.turnOrder || room.turnOrder.length === 0 || !isHost) {
+        clearInterval(turnInterval);
+        turnInterval = null;
+        return;
+      }
+      const timeLeft = room.turnTimeLeft != null ? room.turnTimeLeft : (room.turnSeconds || 20);
+      if(timeLeft <= 1) {
+        await advanceTurn();
+      } else {
+        await db.ref(`spy_rooms/${currentRoom}/turnTimeLeft`).set(timeLeft - 1);
+      }
+    } finally {
+      tickBusy = false;
     }
   };
 
-  db.ref(`spy_rooms/${currentRoom}`).once('value').then(snap => {
-    const room = snap.val();
-    const isFreshRoundStart = room && room.status === 'playing' && (room.turnIndex || 0) === 0;
-    if(isFreshRoundStart) {
-      // Hold the countdown at its full value while the "Round N" announcement
-      // is on screen, so nobody loses a couple of seconds before they can
-      // even see the timer start.
-      setTimeout(() => { turnInterval = setInterval(tick, 1000); }, ROUND_ANNOUNCE_MS);
-    } else {
+  const isFreshRoundStart = data && data.status === 'playing' && (data.turnIndex || 0) === 0;
+
+  if(isFreshRoundStart) {
+    // Hold the countdown at its full value while the "Round N" announcement
+    // is on screen, so nobody loses a couple of seconds before they can even
+    // see the timer start. The setTimeout id is stored in turnInterval as a
+    // guard (clearInterval() also cancels a pending setTimeout in browsers),
+    // then swapped for the real interval id once it actually starts.
+    turnInterval = setTimeout(() => {
+      if(!isHost) { turnInterval = null; return; }
       turnInterval = setInterval(tick, 1000);
-    }
-  });
+    }, ROUND_ANNOUNCE_MS);
+  } else {
+    turnInterval = setInterval(tick, 1000);
+  }
 }
 
 async function triggerVotingPhase() {
@@ -1485,27 +1547,33 @@ async function triggerVotingPhase() {
 }
 
 function startVoteTimerSync() {
-  if(!isHost) return;
-  clearInterval(voteInterval);
+  if(!isHost || voteInterval) return;
 
+  let tickBusy = false;
   voteInterval = setInterval(async () => {
-    const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
-    const room = snap.val();
-    if(!room || room.status !== 'voting') {
-      clearInterval(voteInterval);
-      voteInterval = null;
-      return;
-    }
+    if(tickBusy) return;
+    tickBusy = true;
+    try {
+      const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+      const room = snap.val();
+      if(!room || room.status !== 'voting' || !isHost) {
+        clearInterval(voteInterval);
+        voteInterval = null;
+        return;
+      }
 
-    const activeCount = room.players ? Object.values(room.players).filter(p => !p.isSpectator).length : 0;
-    const votesCount = room.votes ? Object.keys(room.votes).length : 0;
+      const activeCount = room.players ? Object.values(room.players).filter(p => !p.isSpectator).length : 0;
+      const votesCount = room.votes ? Object.keys(room.votes).length : 0;
 
-    if(room.voteTimeLeft <= 1 || (activeCount > 0 && votesCount >= activeCount)) {
-      clearInterval(voteInterval);
-      voteInterval = null;
-      await processVoteResults(room);
-    } else {
-      await db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
+      if(room.voteTimeLeft <= 1 || (activeCount > 0 && votesCount >= activeCount)) {
+        clearInterval(voteInterval);
+        voteInterval = null;
+        await processVoteResults(room);
+      } else {
+        await db.ref(`spy_rooms/${currentRoom}/voteTimeLeft`).set(room.voteTimeLeft - 1);
+      }
+    } finally {
+      tickBusy = false;
     }
   }, 1000);
 }
@@ -1601,6 +1669,7 @@ function showVotingScreen(data) {
   const canVote = !amSpectator && !hasVoted;
 
   let voteHTML = '';
+  let skipVotersHTML = '';
   activePlayers.forEach(p => {
     let votersForThisPlayer = [];
     for(let voterUid in votes) {
@@ -1622,7 +1691,20 @@ function showVotingScreen(data) {
     `;
   });
 
+  // Who voted to Skip - previously this information was silently dropped;
+  // now it's shown as little avatars under the Skip button, same as the
+  // per-suspect voter avatars above.
+  for(let voterUid in votes) {
+    if(votes[voterUid] === 'SKIP') {
+      const voter = data.players[voterUid];
+      if(voter) skipVotersHTML += `<img src="${voter.avatar}" class="voter-mini-avatar" title="${voter.name}">`;
+    }
+  }
+
   document.getElementById('voteListContainer').innerHTML = voteHTML;
+
+  const skipRow = document.getElementById('skipVotersRow');
+  skipRow.innerHTML = skipVotersHTML ? `<span class="skip-voters-label">${dictionary[currentLang].lblSkippedBy}</span>${skipVotersHTML}` : '';
 
   const btnSkip = document.getElementById('btnSkipVote');
   btnSkip.classList.toggle('disabled', !canVote);
