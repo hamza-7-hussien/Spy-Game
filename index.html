@@ -12,7 +12,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spy Station">
 
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700;900&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
@@ -210,12 +211,14 @@
   .team-members-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .team-member-chip { display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.9); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); font-size: 12px; }
   .team-member-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; transform: none !important; }
-  .status-tag { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 8px; margin-inline-start: 2px; }
+  .status-tag { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 8px; margin-inline-start: 2px; white-space: nowrap; }
   .status-tag.in-game { color: #4ade80; background: rgba(74, 222, 128, 0.12); }
-  .status-tag.spectating { color: #94a3b8; background: rgba(148, 163, 184, 0.12); }
+  .status-tag.in-lobby { color: #94a3b8; background: rgba(148, 163, 184, 0.12); }
 
   .turn-indicator-box { background: rgba(192, 132, 252, 0.12); border: 1px solid var(--accent-purple); border-radius: 14px; padding: 10px 14px; font-size: 13px; font-weight: bold; margin: 10px 0; }
   .turn-indicator-box.my-turn { background: rgba(56, 189, 248, 0.18); border-color: var(--accent-blue); box-shadow: var(--neon-glow); }
+
+  .spectator-badge { font-size: 12px; color: #94a3b8; margin-top: 8px; background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.25); border-radius: 10px; padding: 4px 10px; display: inline-block; }
 
   @keyframes roundPop {
     0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
@@ -225,7 +228,7 @@
   #roundAnnounceText {
     font-family: 'Chakra Petch', 'Cairo', sans-serif; font-size: 56px; font-weight: 900;
     background: linear-gradient(90deg, #38bdf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 40px rgba(56, 189, 248, 0.6); animation: roundPop 0.55s cubic-bezier(.34,1.56,.64,1);
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.6); animation: roundPop 0.6s cubic-bezier(.34,1.56,.64,1);
     text-align: center;
   }
 
@@ -449,7 +452,7 @@
 
     <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
-    <div id="gamePlayersStrip" class="team-members-row" style="justify-content:center; margin-top:12px;"></div>
+    <div id="spectatorBadgeGame" class="spectator-badge hidden">👁️ <span class="spectator-count">0</span></div>
 
     <div class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
@@ -472,6 +475,8 @@
     <div style="margin-top:15px;">
       <button class="btn-secondary" id="btnSkipVote" onclick="castVote('SKIP')" data-key="btnSkipVote">⏩ Skip Vote</button>
     </div>
+
+    <div id="spectatorBadgeVoting" class="spectator-badge hidden">👁️ <span class="spectator-count">0</span></div>
   </div>
 </div>
 
@@ -553,6 +558,11 @@ const db = firebase.database();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
+// How long the full-screen "Round N" announcement stays visible (ms). The
+// host also uses this exact value to hold off decrementing the first turn's
+// timer, so the countdown everyone sees never starts partway depleted.
+const ROUND_ANNOUNCE_MS = 3200;
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let soundVol = 0.5;
 
@@ -569,6 +579,20 @@ function playSound(freq = 440, type = 'sine', duration = 0.15) {
     osc.start();
     osc.stop(audioCtx.currentTime + duration);
   } catch(e){}
+}
+
+function speakRoundAnnouncement(text) {
+  if (soundVol <= 0) return;
+  try {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
+    utter.rate = 0.95;
+    utter.pitch = 1.05;
+    utter.volume = Math.min(1, soundVol + 0.3);
+    window.speechSynthesis.speak(utter);
+  } catch(e) {}
 }
 
 function updateVolume() {
@@ -660,13 +684,16 @@ const dictionary = {
     msgLeftStation: "Left station successfully", msgRemovedFromStation: "You were removed from the station", msgSettingsSaved: "Settings saved successfully!",
     errMinPlayers: "Minimum 3 players required to start!", errTooManySpies: "Too many spies for this player count!", msgVoteRecorded: "Vote recorded!",
     annMissionStarted: "🚀 Mission started! Round 1 has begun.", annTimeUp: "🚨 Everyone has spoken - voting has started!",
-    annEmergencyVote: "🚨 Emergency vote triggered!", annCrewWins: "🎉 All spies caught! Crew wins!",
-    annSpyEjectedMoreRemain: "🕵️ A spy was caught! But more are still hiding...", annInnocentEjected: "❌ An innocent was voted out! The spy is still among you...",
-    annNobodyEjected: "⚖️ Nobody was ejected. The mission continues...", annSpiesWin: "🕵️ The spies have taken over! Spies win!",
+    annEmergencyVote: "🚨 Emergency vote triggered!",
+    annCrewWins: "🎉 {name} was the last spy! Crew wins! 🎉",
+    annSpyEjectedMoreRemain: "🕵️ {name} was a spy! More are still hiding...",
+    annInnocentEjected: "❌ {name} was voted out. The mission continues...",
+    annNobodyEjected: "⚖️ Nobody was ejected. The mission continues...",
+    annSpiesWin: "🕵️ {name} was voted out. The spies have won!",
     crewWonTitle: "🎉 Crew Team Won! 🎉", spiesWonTitle: "🕵️ Spies Team Won! 🕵️",
     lblRoomStatusWaiting: "Waiting for players", lblRoomStatusInProgress: "🔴 In progress", lblHostTag: "Host", lblRound: "Round",
     lblYourTurn: "🎤 Your turn! Give a subtle clue...", lblWaitingForTurn: "⏳ Waiting for {name} to speak...",
-    lblSpectatorTag: "👁️ Spectating", lblInGameTag: "🎮 In Game", lblSettingsBtn: "Settings", lblLeaveGameBtn: "Leave Game 🚪",
+    lblSpectatorTag: "👁️ Spectating", lblInGameTag: "🎮 In Game", lblInLobbyTag: "🏠 In Lobby", lblSettingsBtn: "Settings", lblLeaveGameBtn: "Leave Game 🚪",
     lblSoundInGame: "Sound Volume 🔊", lblVoteTime: "Vote Time:", lblNone: "None",
     youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️"
   },
@@ -693,13 +720,16 @@ const dictionary = {
     msgLeftStation: "تم مغادرة المحطة بنجاح", msgRemovedFromStation: "تم إزالتك من المحطة", msgSettingsSaved: "تم حفظ الإعدادات بنجاح!",
     errMinPlayers: "يجب أن يكون هناك 3 لاعبين على الأقل للبدء!", errTooManySpies: "عدد الجواسيس كبير جدًا بالنسبة لعدد اللاعبين!", msgVoteRecorded: "تم تسجيل صوتك!",
     annMissionStarted: "🚀 بدأت المهمة! الجولة الأولى بدأت.", annTimeUp: "🚨 انتهى دور الجميع - بدأ التصويت!",
-    annEmergencyVote: "🚨 تم تفعيل تصويت طارئ!", annCrewWins: "🎉 تم كشف كل الجواسيس! فاز الطاقم!",
-    annSpyEjectedMoreRemain: "🕵️ تم كشف جاسوس! لكن لسه فيه جواسيس مختبئين...", annInnocentEjected: "❌ تم إخراج شخص بريء بالخطأ! الجاسوس لسه بينكم...",
-    annNobodyEjected: "⚖️ محدش خرج. المهمة مستمرة...", annSpiesWin: "🕵️ الجواسيس سيطروا على الموقف! فاز الجواسيس!",
+    annEmergencyVote: "🚨 تم تفعيل تصويت طارئ!",
+    annCrewWins: "🎉 {name} كان آخر جاسوس! فاز الطاقم! 🎉",
+    annSpyEjectedMoreRemain: "🕵️ {name} كان جاسوس! لسه فيه جواسيس مختبئين...",
+    annInnocentEjected: "❌ تم إخراج {name}. المهمة مستمرة...",
+    annNobodyEjected: "⚖️ محدش خرج. المهمة مستمرة...",
+    annSpiesWin: "🕵️ تم إخراج {name}. فاز الجواسيس!",
     crewWonTitle: "🎉 فاز فريق الطاقم! 🎉", spiesWonTitle: "🕵️ فاز فريق الجواسيس! 🕵️",
     lblRoomStatusWaiting: "في انتظار اللاعبين", lblRoomStatusInProgress: "🔴 المهمة شغالة", lblHostTag: "المضيف", lblRound: "الجولة",
     lblYourTurn: "🎤 دورك! اديهم تلميح بسيط من غير ما توضح...", lblWaitingForTurn: "⏳ في انتظار {name} عشان يتكلم...",
-    lblSpectatorTag: "👁️ بتتفرج", lblInGameTag: "🎮 لسه بيلعب", lblSettingsBtn: "الإعدادات", lblLeaveGameBtn: "الخروج من اللعبة 🚪",
+    lblSpectatorTag: "👁️ بتتفرج", lblInGameTag: "🎮 لسه بيلعب", lblInLobbyTag: "🏠 في اللوبي", lblSettingsBtn: "الإعدادات", lblLeaveGameBtn: "الخروج من اللعبة 🚪",
     lblSoundInGame: "مستوى الصوت 🔊", lblVoteTime: "وقت التصويت:", lblNone: "لا يوجد",
     youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️"
   }
@@ -1048,9 +1078,13 @@ async function leaveRoom(manual = false) {
     const roomStatus = statusSnap.val();
 
     if(roomStatus && roomStatus !== 'waiting') {
-      // A mission is in progress - stay on record as a spectator instead of
-      // vanishing, so the current round's turn order / spy counts stay consistent.
-      await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).update({ isSpectator: true });
+      // A mission is in progress (or we're on the results screen) - stay on
+      // record instead of vanishing, so turn order / spy counts / the
+      // "who's still deciding" list all stay consistent for everyone else.
+      const updates = { isSpectator: true };
+      if(roomStatus === 'gameover') updates.postGame = 'inLobby';
+      await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).update(updates);
+
       const allPlayersSnap = await db.ref(`spy_rooms/${rCode}/players`).once('value');
       const allPlayersObj = allPlayersSnap.val() || {};
       const anyoneStillActive = Object.values(allPlayersObj).some(p => !p.isSpectator);
@@ -1077,6 +1111,8 @@ function updateDisconnectBehavior(status) {
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
   if(status === 'waiting') {
     playerRef.onDisconnect().remove();
+  } else if(status === 'gameover') {
+    playerRef.onDisconnect().update({ isSpectator: true, postGame: 'inLobby' });
   } else {
     playerRef.onDisconnect().update({ isSpectator: true });
   }
@@ -1129,30 +1165,31 @@ async function joinRoomProcess() {
       return;
     }
 
-    document.getElementById('roomCodeDisplay').innerText = currentRoom;
-    document.getElementById('playerCount').innerText = playersArr.length;
-    document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
-
-    const catObj = categoryNamesMap[data.category];
-    const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
-    document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
-
-    document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
-      <div class="player-item">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
-          <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}</span>
-        </div>
-        ${(isHost && p.uid !== currentUser.uid) ? `
-          <div style="display:flex; gap:4px; width:auto;">
-            <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
-            <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
-          </div>
-        ` : ''}
-      </div>
-    `).join('');
-
     if(data.status === 'waiting') {
+      document.getElementById('roomCodeDisplay').innerText = currentRoom;
+      document.getElementById('playerCount').innerText = playersArr.length;
+      document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+
+      const catObj = categoryNamesMap[data.category];
+      const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
+      document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
+
+      document.getElementById('host-controls').classList.toggle('hidden', !isHost);
+      document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
+        <div class="player-item">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+            <span style="font-size:13px; font-weight:bold;">${p.name} ${p.uid === data.hostUid ? '👑' : ''}</span>
+          </div>
+          ${(isHost && p.uid !== currentUser.uid) ? `
+            <div style="display:flex; gap:4px; width:auto;">
+              <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
+              <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
       toggleInRoomFab(true);
@@ -1165,9 +1202,14 @@ async function joinRoomProcess() {
       showVotingScreen(data);
       toggleInRoomFab(true);
     } else if(data.status === 'gameover') {
-      document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-      document.getElementById('gameover-screen').classList.remove('hidden');
-      showGameOverScreen(data);
+      const myPlayer = playersObj[currentUser.uid] || {};
+      if(myPlayer.postGame === 'inLobby') {
+        renderPostGameLocalLobby(data);
+      } else {
+        document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+        document.getElementById('gameover-screen').classList.remove('hidden');
+        showGameOverScreen(data);
+      }
       toggleInRoomFab(true);
     }
   });
@@ -1196,28 +1238,33 @@ function broadcastAnnouncement(msg, type = 'normal') {
 
 function handleHostAssignment(data) {
   const playersObj = data.players || {};
-  const hostStillPresent = data.hostUid && playersObj[data.hostUid];
+  const currentHostPlayer = data.hostUid ? playersObj[data.hostUid] : null;
+  // A host who has become a spectator (left, disconnected, or was voted out)
+  // no longer counts as "present" even though their player record may still
+  // exist in the room - this is what makes host handoff chain correctly
+  // through a second, third, etc. host without getting stuck.
+  const hostStillActive = currentHostPlayer && !currentHostPlayer.isSpectator;
 
-  if(!hostStillPresent && Object.keys(playersObj).length > 0) {
-    // ANY remaining client can trigger this - it does not depend on any specific
-    // player's browser being the one to notice. The transaction runs against the
-    // live server data, so even if several clients fire this at once, only one
+  if(!hostStillActive && Object.keys(playersObj).length > 0) {
+    // ANY remaining client can trigger this - the transaction runs against the
+    // live server data, so even if several clients notice at once, only one
     // write wins and everyone converges on the same new host automatically.
     db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
       if(!room || !room.players) return room;
-      const stillMissing = !room.hostUid || !room.players[room.hostUid];
-      if(!stillMissing) return room;
-      const sorted = Object.values(room.players).sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-      if(sorted.length > 0) {
-        room.hostUid = sorted[0].uid;
+      const hp = room.hostUid ? room.players[room.hostUid] : null;
+      const stillActive = hp && !hp.isSpectator;
+      if(stillActive) return room;
+      const activeSorted = Object.values(room.players)
+        .filter(p => !p.isSpectator)
+        .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+      if(activeSorted.length > 0) {
+        room.hostUid = activeSorted[0].uid;
       }
       return room;
     });
   }
 
   isHost = !!(data.hostUid && data.hostUid === currentUser.uid);
-  const hostControls = document.getElementById('host-controls');
-  if(hostControls) hostControls.classList.toggle('hidden', !isHost);
 }
 
 function ensureHostTimersRunning(data) {
@@ -1258,43 +1305,51 @@ async function sendChatMessage(screen) {
   const msg = input.value.trim();
   if(!msg) return;
 
-  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
-  const room = roomSnap.val();
-  if(!room) return;
+  if(screen === 'Game') {
+    const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+    const room = roomSnap.val();
+    if(!room) return;
 
-  const inTurnPhase = room.status === 'playing' && room.turnOrder && room.turnOrder.length > 0;
-  if(inTurnPhase) {
-    const currentTurnUid = room.turnOrder[room.turnIndex || 0];
-    if(currentTurnUid !== currentUser.uid) return; // not your turn - safety net, input is disabled too
-  }
+    const inTurnPhase = room.status === 'playing' && room.turnOrder && room.turnOrder.length > 0;
+    if(inTurnPhase) {
+      const currentTurnUid = room.turnOrder[room.turnIndex || 0];
+      if(currentTurnUid !== currentUser.uid) return; // not your turn - safety net, input is disabled too
+    }
 
-  await db.ref(`spy_rooms/${currentRoom}/chat`).push({
-    sender: currentUser.displayName,
-    text: msg
-  });
-  input.value = '';
+    await db.ref(`spy_rooms/${currentRoom}/gameChat`).push({ sender: currentUser.displayName, text: msg });
+    input.value = '';
 
-  if(inTurnPhase) {
-    await advanceTurn();
+    if(inTurnPhase) {
+      await advanceTurn();
+    }
+  } else {
+    await db.ref(`spy_rooms/${currentRoom}/lobbyChat`).push({ sender: currentUser.displayName, text: msg });
+    input.value = '';
   }
 }
 
+function renderChatContainer(elId, data) {
+  const container = document.getElementById(elId);
+  if(!container) return;
+  if(!data) { container.innerHTML = ''; return; }
+  const msgs = Object.values(data);
+  container.innerHTML = msgs.map(m => `
+    <div class="chat-msg">
+      <span class="sender">${m.sender}:</span><span>${m.text}</span>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
 function listenToChat() {
-  db.ref(`spy_rooms/${currentRoom}/chat`).on('value', snap => {
-    const data = snap.val();
-    if(!data) return;
-    const msgs = Object.values(data);
-    const html = msgs.map(m => `
-      <div class="chat-msg">
-        <span class="sender">${m.sender}:</span><span>${m.text}</span>
-      </div>
-    `).join('');
-
-    document.getElementById('chatMessagesLobby').innerHTML = html;
-    document.getElementById('chatMessagesGame').innerHTML = html;
-
-    document.getElementById('chatMessagesLobby').scrollTop = document.getElementById('chatMessagesLobby').scrollHeight;
-    document.getElementById('chatMessagesGame').scrollTop = document.getElementById('chatMessagesGame').scrollHeight;
+  // The lobby transmission log persists for the whole life of the room.
+  db.ref(`spy_rooms/${currentRoom}/lobbyChat`).on('value', snap => {
+    renderChatContainer('chatMessagesLobby', snap.val());
+  });
+  // The in-game chat is separate and gets wiped clean every time a new
+  // mission starts (see startGame()).
+  db.ref(`spy_rooms/${currentRoom}/gameChat`).on('value', snap => {
+    renderChatContainer('chatMessagesGame', snap.val());
   });
 }
 
@@ -1320,7 +1375,7 @@ async function startGame() {
   }
 
   const resetPlayers = {};
-  playersArr.forEach(p => { resetPlayers[p.uid] = { ...p, isSpectator: false }; });
+  playersArr.forEach(p => { resetPlayers[p.uid] = { ...p, isSpectator: false, postGame: null }; });
   const shuffledOrder = playersArr.map(p => p.uid).sort(() => Math.random() - 0.5);
 
   await db.ref(`spy_rooms/${currentRoom}`).update({
@@ -1333,6 +1388,7 @@ async function startGame() {
     turnTimeLeft: data.turnSeconds || 20,
     votes: null,
     winnerTeam: null,
+    gameChat: null,
     players: resetPlayers
   });
 
@@ -1364,12 +1420,14 @@ async function advanceTurn() {
 
   if(nextIndex >= room.turnOrder.length) {
     const currentRoundNum = room.round || 1;
-    if(currentRoundNum <= 1) {
-      // Round 1 never triggers a vote - everyone has only just met the word/role.
-      await transitionToRound(2, playersObj, room.turnSeconds);
-    } else {
+    if(currentRoundNum === 1) {
+      // Round 1 always ends with an automatic vote.
       await db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
       broadcastAnnouncement(dictionary[currentLang].annTimeUp, 'danger');
+    } else {
+      // From round 2 onward, turns just cycle straight into the next round.
+      // The only way to trigger a vote from here on is Emergency Vote.
+      await transitionToRound(currentRoundNum + 1, playersObj, room.turnSeconds);
     }
   } else {
     await db.ref(`spy_rooms/${currentRoom}`).update({
@@ -1382,8 +1440,9 @@ async function advanceTurn() {
 function startTurnTimerSync() {
   if(!isHost) return;
   clearInterval(turnInterval);
+  turnInterval = null;
 
-  turnInterval = setInterval(async () => {
+  const tick = async () => {
     const snap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
     const room = snap.val();
     if(!room || room.status !== 'playing' || !room.turnOrder || room.turnOrder.length === 0) {
@@ -1391,14 +1450,26 @@ function startTurnTimerSync() {
       turnInterval = null;
       return;
     }
-
     const timeLeft = room.turnTimeLeft != null ? room.turnTimeLeft : (room.turnSeconds || 20);
     if(timeLeft <= 1) {
       await advanceTurn();
     } else {
       await db.ref(`spy_rooms/${currentRoom}/turnTimeLeft`).set(timeLeft - 1);
     }
-  }, 1000);
+  };
+
+  db.ref(`spy_rooms/${currentRoom}`).once('value').then(snap => {
+    const room = snap.val();
+    const isFreshRoundStart = room && room.status === 'playing' && (room.turnIndex || 0) === 0;
+    if(isFreshRoundStart) {
+      // Hold the countdown at its full value while the "Round N" announcement
+      // is on screen, so nobody loses a couple of seconds before they can
+      // even see the timer start.
+      setTimeout(() => { turnInterval = setInterval(tick, 1000); }, ROUND_ANNOUNCE_MS);
+    } else {
+      turnInterval = setInterval(tick, 1000);
+    }
+  });
 }
 
 async function triggerVotingPhase() {
@@ -1443,30 +1514,34 @@ function maybeShowRoundAnnounce(round, thenShow) {
   if(round && round !== lastAnnouncedRound) {
     lastAnnouncedRound = round;
     const screen = document.getElementById('round-announce-screen');
-    document.getElementById('roundAnnounceText').innerText = `${dictionary[currentLang].lblRound} ${round}`.toUpperCase();
+    const roundText = `${dictionary[currentLang].lblRound} ${round}`;
+    document.getElementById('roundAnnounceText').innerText = roundText.toUpperCase();
     document.querySelectorAll('.page-screen').forEach(s => s.classList.add('hidden'));
     screen.classList.remove('hidden');
     playSound(660, 'triangle', 0.25);
+    speakRoundAnnouncement(roundText);
     setTimeout(() => {
       screen.classList.add('hidden');
       thenShow();
-    }, 1500);
+    }, ROUND_ANNOUNCE_MS);
   } else {
     thenShow();
   }
 }
 
-function renderInGamePlayerStrip(data) {
+function updateSpectatorBadges(data) {
   const playersObj = data.players || {};
-  const strip = document.getElementById('gamePlayersStrip');
-  if(!strip) return;
-  strip.innerHTML = Object.values(playersObj).map(p => `
-    <div class="team-member-chip">
-      <img src="${p.avatar}" alt="a">
-      <span>${p.name}</span>
-      <span class="status-tag ${p.isSpectator ? 'spectating' : 'in-game'}">${p.isSpectator ? dictionary[currentLang].lblSpectatorTag : dictionary[currentLang].lblInGameTag}</span>
-    </div>
-  `).join('');
+  const specCount = Object.values(playersObj).filter(p => p.isSpectator).length;
+  ['spectatorBadgeGame', 'spectatorBadgeVoting'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(specCount > 0) {
+      el.classList.remove('hidden');
+      el.querySelector('.spectator-count').innerText = specCount;
+    } else {
+      el.classList.add('hidden');
+    }
+  });
 }
 
 function showGameScreen(data) {
@@ -1511,7 +1586,7 @@ function showGameScreen(data) {
     btnEmergency.classList.add('hidden');
   }
 
-  renderInGamePlayerStrip(data);
+  updateSpectatorBadges(data);
 }
 
 function showVotingScreen(data) {
@@ -1552,6 +1627,8 @@ function showVotingScreen(data) {
   const btnSkip = document.getElementById('btnSkipVote');
   btnSkip.classList.toggle('disabled', !canVote);
   btnSkip.onclick = canVote ? () => castVote('SKIP') : null;
+
+  updateSpectatorBadges(data);
 }
 
 async function castVote(targetUid) {
@@ -1607,6 +1684,7 @@ async function processVoteResults(room) {
     return;
   }
 
+  const ejectedName = (playersObj[ejectedUid] && playersObj[ejectedUid].name) || '?';
   if(playersObj[ejectedUid]) {
     playersObj[ejectedUid] = { ...playersObj[ejectedUid], isSpectator: true };
   }
@@ -1624,18 +1702,19 @@ async function processVoteResults(room) {
         spies: updatedSpies,
         votes: null
       });
-      broadcastAnnouncement(dictionary[currentLang].annCrewWins, 'success');
+      broadcastAnnouncement(dictionary[currentLang].annCrewWins.replace('{name}', ejectedName), 'success');
       return;
     }
 
     await db.ref(`spy_rooms/${currentRoom}/players`).set(playersObj);
     await db.ref(`spy_rooms/${currentRoom}/spies`).set(updatedSpies);
-    broadcastAnnouncement(dictionary[currentLang].annSpyEjectedMoreRemain, 'danger');
+    broadcastAnnouncement(dictionary[currentLang].annSpyEjectedMoreRemain.replace('{name}', ejectedName), 'danger');
     await transitionToRound(nextRound, playersObj, room.turnSeconds);
     return;
   }
 
-  // An innocent player was ejected by mistake.
+  // An innocent player was ejected - their role is never revealed here,
+  // whether the mission continues or ends.
   await db.ref(`spy_rooms/${currentRoom}/players`).set(playersObj);
   const remainingActiveUids = Object.values(playersObj).filter(p => !p.isSpectator).map(p => p.uid);
   const remainingSpiesCount = currentSpies.filter(uid => remainingActiveUids.includes(uid)).length;
@@ -1649,11 +1728,11 @@ async function processVoteResults(room) {
       finalPlayers: playersObj,
       votes: null
     });
-    broadcastAnnouncement(dictionary[currentLang].annSpiesWin, 'danger');
+    broadcastAnnouncement(dictionary[currentLang].annSpiesWin.replace('{name}', ejectedName), 'danger');
     return;
   }
 
-  broadcastAnnouncement(dictionary[currentLang].annInnocentEjected, 'danger');
+  broadcastAnnouncement(dictionary[currentLang].annInnocentEjected.replace('{name}', ejectedName), 'danger');
   await transitionToRound(nextRound, playersObj, room.turnSeconds);
 }
 
@@ -1669,10 +1748,13 @@ function showGameOverScreen(data) {
 
   for(let uid in allPlayers) {
     const p = allPlayers[uid];
+    const isInLobby = p.postGame === 'inLobby';
+    const tag = `<span class="status-tag ${isInLobby ? 'in-lobby' : 'in-game'}">${isInLobby ? dictionary[currentLang].lblInLobbyTag : dictionary[currentLang].lblInGameTag}</span>`;
     const chip = `
       <div class="team-member-chip">
         <img src="${p.avatar}" alt="img">
         <span>${p.name}</span>
+        ${tag}
       </div>
     `;
     if(spyUids.includes(uid)) {
@@ -1686,26 +1768,69 @@ function showGameOverScreen(data) {
   document.getElementById('crewTeamList').innerHTML = crewHTML || `<span style="font-size:12px; color:#64748b;">${dictionary[currentLang].lblNone}</span>`;
 }
 
+function renderPostGameLocalLobby(data) {
+  // This player has already clicked "Return to Lobby" while others may still
+  // be viewing the results screen. They get their own lobby-style view right
+  // away; the shared room only truly resets once everyone has moved on
+  // (see returnToLobbyFromResults / the disconnect handling above).
+  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
+  document.getElementById('lobby-screen').classList.remove('hidden');
+
+  const playersObj = data.players || {};
+  document.getElementById('roomCodeDisplay').innerText = currentRoom;
+  document.getElementById('playerCount').innerText = Object.keys(playersObj).length;
+  document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+
+  const catObj = categoryNamesMap[data.category];
+  const catNameStr = catObj ? (catObj[currentLang] || catObj.en) : data.category;
+  document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${catNameStr}`;
+
+  document.getElementById('host-controls').classList.add('hidden');
+  document.getElementById('playersContainer').innerHTML = Object.values(playersObj).map(p => {
+    const isInLobby = p.postGame === 'inLobby';
+    return `
+      <div class="player-item">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar}" alt="a">
+          <span style="font-size:13px; font-weight:bold;">${p.name}</span>
+        </div>
+        <span class="status-tag ${isInLobby ? 'in-lobby' : 'in-game'}">${isInLobby ? dictionary[currentLang].lblInLobbyTag : dictionary[currentLang].lblInGameTag}</span>
+      </div>
+    `;
+  }).join('');
+}
+
 async function returnToLobbyFromResults() {
-  // Any player can bring the room back to a fresh lobby - not just the host.
+  await db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`).update({ postGame: 'inLobby' });
+
   const snap = await db.ref(`spy_rooms/${currentRoom}/players`).once('value');
   const playersObj = snap.val() || {};
-  const resetPlayers = {};
-  Object.keys(playersObj).forEach(uid => {
-    resetPlayers[uid] = { ...playersObj[uid], isSpectator: false };
-  });
+  const stillViewingResults = Object.values(playersObj).some(p => p.postGame !== 'inLobby');
 
-  await db.ref(`spy_rooms/${currentRoom}`).update({
-    status: 'waiting',
-    winnerTeam: null,
-    votes: null,
-    spies: null,
-    word: null,
-    round: null,
-    turnOrder: null,
-    turnIndex: null,
-    turnTimeLeft: null,
-    players: resetPlayers
+  if(!stillViewingResults) {
+    // Everyone has moved on - now actually reset the shared room to a fresh lobby.
+    const resetPlayers = {};
+    Object.keys(playersObj).forEach(uid => {
+      resetPlayers[uid] = { ...playersObj[uid], isSpectator: false, postGame: null };
+    });
+    await db.ref(`spy_rooms/${currentRoom}`).update({
+      status: 'waiting',
+      winnerTeam: null,
+      votes: null,
+      spies: null,
+      word: null,
+      round: null,
+      turnOrder: null,
+      turnIndex: null,
+      turnTimeLeft: null,
+      players: resetPlayers
+    });
+  }
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
   });
 }
 </script>
