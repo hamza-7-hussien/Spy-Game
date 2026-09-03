@@ -251,6 +251,7 @@
 
 <!-- 1. AUTH SCREEN -->
 <div id="auth-screen" class="page-screen" style="justify-content:center;">
+  <button id="authLangToggle" onclick="toggleAuthLanguage()" style="position:fixed; top:15px; inset-inline-end:15px; width:auto; padding:8px 16px; margin:0; border-radius:20px; background:rgba(15,23,42,0.9); border:1px solid var(--glass-border); color:var(--accent-blue); font-weight:800; font-size:13px; box-shadow:var(--neon-glow); z-index:20;">🌐 العربية</button>
   <div class="auth-card-container">
 
     <div class="cyber-logo-badge">
@@ -541,6 +542,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -556,6 +558,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
+const storage = firebase.storage();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
@@ -565,7 +568,10 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 const ROUND_ANNOUNCE_MS = 3200;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let soundVol = 0.5;
+let soundVol = (() => {
+  const stored = parseFloat(localStorage.getItem('spy_station_vol'));
+  return isNaN(stored) ? 0.5 : Math.min(1, Math.max(0, stored));
+})();
 
 function playSound(freq = 440, type = 'sine', duration = 0.15) {
   if (soundVol <= 0) return;
@@ -574,30 +580,30 @@ function playSound(freq = 440, type = 'sine', duration = 0.15) {
     const gain = audioCtx.createGain();
     osc.type = type;
     osc.frequency.value = freq;
-    gain.gain.value = soundVol;
+    const now = audioCtx.currentTime;
+    // A short fade in/out instead of a hard on/off - this alone removes most
+    // of the harsh "click" that made the old beeps feel abrasive.
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(soundVol, now + 0.015);
+    gain.gain.linearRampToValueAtTime(0.0001, now + duration);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
+    osc.start(now);
+    osc.stop(now + duration + 0.03);
   } catch(e){}
 }
 
-function speakRoundAnnouncement(text) {
+function playChime(notes, type = 'sine') {
+  // notes: array of [frequency, delayMs, durationSeconds]
   if (soundVol <= 0) return;
-  try {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
-    utter.rate = 0.95;
-    utter.pitch = 1.05;
-    utter.volume = Math.min(1, soundVol + 0.3);
-    window.speechSynthesis.speak(utter);
-  } catch(e) {}
+  notes.forEach(([freq, delayMs, duration]) => {
+    setTimeout(() => playSound(freq, type, duration), delayMs);
+  });
 }
 
 function updateVolume() {
   soundVol = parseFloat(document.getElementById('soundVolume').value);
+  localStorage.setItem('spy_station_vol', soundVol);
   const inRoomSlider = document.getElementById('inRoomSoundVolume');
   if(inRoomSlider) inRoomSlider.value = soundVol;
   playSound(520, 'sine', 0.1);
@@ -605,6 +611,7 @@ function updateVolume() {
 
 function updateVolumeInRoom() {
   soundVol = parseFloat(document.getElementById('inRoomSoundVolume').value);
+  localStorage.setItem('spy_station_vol', soundVol);
   const mainSlider = document.getElementById('soundVolume');
   if(mainSlider) mainSlider.value = soundVol;
   playSound(520, 'sine', 0.1);
@@ -683,6 +690,7 @@ const dictionary = {
     errFillFields: "Please fill in all fields!", errUsernameRequired: "Username is required!", errUsernameTaken: "Username is already taken!",
     errInvalidCode: "Enter a valid 6-character code!", errStationFull: "Station is full!", errStationNotExist: "Station does not exist!",
     msgLeftStation: "Left station successfully", msgRemovedFromStation: "You were removed from the station", msgSettingsSaved: "Settings saved successfully!",
+    msgPhotoUploaded: "Photo uploaded!", errPhotoUpload: "Couldn't upload the photo. Please try again.", errSettingsSaveFailed: "Couldn't save settings.",
     errMinPlayers: "Minimum 3 players required to start!", errTooManySpies: "Too many spies for this player count!", msgVoteRecorded: "Vote recorded!",
     annMissionStarted: "🚀 Mission started! Round 1 has begun.", annTimeUp: "🚨 Everyone has spoken - voting has started!",
     annEmergencyVote: "🚨 Emergency vote triggered!",
@@ -719,6 +727,7 @@ const dictionary = {
     errFillFields: "يرجى ملء جميع الحقول!", errUsernameRequired: "اسم المستخدم مطلوب!", errUsernameTaken: "اسم المستخدم مأخوذ بالفعل!",
     errInvalidCode: "أدخل كود مكون من 6 أحرف صحيح!", errStationFull: "المحطة ممتلئة بالكامل!", errStationNotExist: "المحطة غير موجودة!",
     msgLeftStation: "تم مغادرة المحطة بنجاح", msgRemovedFromStation: "تم إزالتك من المحطة", msgSettingsSaved: "تم حفظ الإعدادات بنجاح!",
+    msgPhotoUploaded: "تم رفع الصورة!", errPhotoUpload: "تعذر رفع الصورة، حاول تاني.", errSettingsSaveFailed: "تعذر حفظ الإعدادات.",
     errMinPlayers: "يجب أن يكون هناك 3 لاعبين على الأقل للبدء!", errTooManySpies: "عدد الجواسيس كبير جدًا بالنسبة لعدد اللاعبين!", msgVoteRecorded: "تم تسجيل صوتك!",
     annMissionStarted: "🚀 بدأت المهمة! الجولة الأولى بدأت.", annTimeUp: "🚨 انتهى دور الجميع - بدأ التصويت!",
     annEmergencyVote: "🚨 تم تفعيل تصويت طارئ!",
@@ -746,6 +755,9 @@ function changeLanguage(lang) {
   const langSel = document.getElementById('languageSelect');
   if(langSel) langSel.value = lang;
 
+  const authToggle = document.getElementById('authLangToggle');
+  if(authToggle) authToggle.innerText = lang === 'ar' ? '🌐 English' : '🌐 العربية';
+
   document.querySelectorAll('[data-key]').forEach(el => {
     const key = el.getAttribute('data-key');
     if (dictionary[lang][key]) el.innerText = dictionary[lang][key];
@@ -767,6 +779,14 @@ function changeLanguage(lang) {
   }
 }
 
+function toggleAuthLanguage() {
+  // Changing the language here uses the exact same global changeLanguage()
+  // function as the in-app Settings tab, so it's never "half updated" - the
+  // login screen, and the whole game once logged in, always stay in sync
+  // because they all read from the one persisted currentLang value.
+  changeLanguage(currentLang === 'ar' ? 'en' : 'ar');
+}
+
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 let turnInterval = null, voteInterval = null;
 let turnSyncStarting = false, advancingTurn = false, processingVoteResults = false, hostReassignInFlight = false;
@@ -784,12 +804,12 @@ const categoryNamesMap = {
 };
 
 const wordsDB = {
-  players: ["Messi", "Ronaldo", "Salah", "Mbappe", "Neymar", "Haaland", "De Bruyne", "Benzema", "Vinicius"],
-  food: ["Pizza", "Burger", "Sushi", "Pasta", "Shawarma", "Tacos", "Ice Cream", "Koshary", "Crepe"],
-  places: ["Pyramids", "Eiffel Tower", "Dubai", "London", "Tokyo", "New York", "Rome", "Colosseum", "Big Ben"],
-  movies: ["Inception", "Avatar", "Titanic", "Spider-Man", "Batman", "Interstellar", "Joker", "Harry Potter", "Avengers"],
-  games: ["GTA V", "Minecraft", "PUBG", "FIFA", "Valorant", "Call of Duty", "Fortnite", "League of Legends", "Roblox"],
-  animals: ["Lion", "Tiger", "Elephant", "Falcon", "Dolphin", "Cheetah", "Wolf", "Eagle", "Bear"]
+  players: ["Messi","Ronaldo","Neymar","Mbappe","Haaland","De Bruyne","Benzema","Modric","Salah","Kane","Lewandowski","Griezmann","Suarez","Ramos","Van Dijk","Kroos","Casemiro","Bruno Fernandes","Son Heung-min","Vinicius Jr","Rodrygo","Pedri","Gavi","Bellingham","Foden","Saka","Rashford","Mane","Mahrez","Ibrahimovic","Iniesta","Xavi","Casillas","Buffon","Ronaldinho","Zidane","Ronaldo Nazario","Pele","Maradona","Cruyff","Beckenbauer","Beckham","Henry","Drogba","Eto'o","Elneny","Trezeguet","Marmoush","Mostafa Mohamed","Hegazi","Ahmed Fathy","Emad Meteb","Hossam Hassan","Abou Trika","Mido","El Khatib","Ali Gabr","Sterling","Grealish","Rice","Pogba","Kante","Dembele","De Jong","Kimmich","Muller","Neuer","Cavani","Di Maria","Aguero","Falcao","James Rodriguez","Alexis Sanchez","Robben","Ribery","Busquets","Puyol","Fabregas","Torres","Villa"],
+  food: ["Pizza","Burger","Sushi","Pasta","Shawarma","Tacos","Ice Cream","Koshary","Crepe","Falafel","Hummus","Kebab","Molokhia","Ful Medames","Ta'meya","Mahshi","Fattah","Sayadeya","Kofta","Shish Tawook","Ramen","Pho","Dumplings","Fried Rice","Spring Rolls","Croissant","Pancakes","Waffles","Donuts","Cheesecake","Tiramisu","Baklava","Basbousa","Kunafa","Om Ali","Rice Pudding","Popcorn","Nachos","Fries","Hot Dog","Sandwich","Steak","Grilled Fish","Lasagna","Ravioli","Fried Chicken","Chicken Wings","BBQ Ribs","Paella","Risotto","Gnocchi","Curry","Biryani","Samosa","Naan","Tikka Masala","Pad Thai","Dim Sum","Bao Buns","Ceviche","Guacamole","Quesadilla","Burrito","Enchilada","Churros","Gelato","Macaron","Fondue","Ratatouille","Goulash","Schnitzel","Pretzel","Bratwurst","Hawawshi","Feteer","Roz Bel Laban","Sobia","Karkade","Asab"],
+  places: ["Pyramids","Eiffel Tower","Dubai","London","Tokyo","New York","Rome","Colosseum","Big Ben","Statue of Liberty","Great Wall of China","Taj Mahal","Sydney Opera House","Niagara Falls","Grand Canyon","Sahara Desert","Nile River","Petra","Machu Picchu","Christ the Redeemer","Burj Khalifa","Sphinx","Luxor Temple","Karnak Temple","Abu Simbel","Alexandria Library","Khan El Khalili","Cairo Tower","Red Sea","Sharm El Sheikh","Hurghada","Siwa Oasis","Venice","Paris","Barcelona","Amsterdam","Berlin","Vienna","Prague","Istanbul","Athens","Santorini","Mecca","Medina","Jerusalem","Marrakech","Casablanca","Cape Town","Victoria Falls","Mount Kilimanjaro","Bali","Maldives","Singapore","Hong Kong","Shanghai","Beijing","Seoul","Bangkok","Kuala Lumpur","Mumbai","Rio de Janeiro","Buenos Aires","Los Angeles","Las Vegas","Miami","Chicago","Toronto","Moscow","Red Square"],
+  movies: ["الفيل الأزرق","ولاد رزق","اشتباك","يوم الدين","هيبتا","الممر","كايرو 678","ابراهيم الأبيض","تراب الماس","مولانا","ساعة ونص","عسل أسود","الديزل","زنقة الستات","فيلا 69","كيرة والجن","الكنز","هروب اضطراري","حرب كرموز","الأصليين","الفلوس","ريستارت","نادي الرجال السري","ديكور","الاختيار","كلبش","لعبة نيوتن","في بيتنا روبوت","جعفر العمدة","الأسطورة","جراند أوتيل","سره الباتع","سيد الناس","برنس","تاج","هوجان","بروفايل","نسل الأغراب","ملوك الجدعنة","بـ100 وش","موسى","بدون سابق إنذار","فوق مستوى الشبهات"],
+  games: ["GTA V","Minecraft","PUBG","FIFA","Valorant","Call of Duty","Fortnite","League of Legends","Roblox","Among Us","Apex Legends","Overwatch","Counter-Strike","Rainbow Six Siege","Rocket League","The Sims","Red Dead Redemption","The Witcher 3","Cyberpunk 2077","Elden Ring","Dark Souls","God of War","The Last of Us","Uncharted","Horizon Zero Dawn","Assassin's Creed","Far Cry","Watch Dogs","Resident Evil","Silent Hill","Mortal Kombat","Street Fighter","Tekken","Super Mario","Zelda","Pokemon","Animal Crossing","Splatoon","Kirby","Sonic","Crash Bandicoot","Spyro","Metal Gear Solid","Halo","Gears of War","Forza","Need for Speed","Gran Turismo","eFootball","Clash of Clans","Clash Royale","Candy Crush","Subway Surfers","Temple Run","Free Fire","Brawl Stars","Genshin Impact","Honkai Star Rail","World of Warcraft","Dota 2","StarCraft","Diablo","Hearthstone","Terraria","Stardew Valley","Fall Guys","It Takes Two","Hades","Celeste","Hollow Knight"],
+  animals: ["Lion","Tiger","Elephant","Falcon","Dolphin","Cheetah","Wolf","Eagle","Bear","Giraffe","Zebra","Hippo","Rhino","Crocodile","Kangaroo","Koala","Panda","Gorilla","Chimpanzee","Monkey","Camel","Fox","Deer","Rabbit","Squirrel","Hedgehog","Otter","Beaver","Raccoon","Skunk","Bat","Owl","Peacock","Parrot","Flamingo","Penguin","Ostrich","Swan","Duck","Pelican","Shark","Whale","Octopus","Jellyfish","Starfish","Seahorse","Turtle","Snake","Lizard","Chameleon","Iguana","Frog","Toad","Butterfly","Bee","Ant","Spider","Scorpion","Snail","Hyena","Jackal","Leopard","Jaguar","Puma","Lynx","Wolverine","Meerkat","Sloth","Armadillo","Platypus","Walrus","Seal","Sea Lion","Orca","Manatee","Buffalo","Bison","Antelope","Gazelle","Wildebeest","Warthog"]
 };
 
 function toggleBottomNav(show) {
@@ -814,9 +834,9 @@ function switchTab(tabId) {
 
 let notificationTimeout = null;
 function showToast(msg, type = 'normal') {
-  if (type === 'danger') playSound(220, 'sawtooth', 0.3);
-  else if (type === 'success') playSound(750, 'sine', 0.2);
-  else playSound(550, 'triangle', 0.12);
+  if (type === 'danger') playChime([[380, 0, 0.13], [300, 90, 0.2]], 'triangle');
+  else if (type === 'success') playChime([[600, 0, 0.11], [880, 90, 0.18]], 'sine');
+  else playSound(560, 'sine', 0.12);
 
   const notifyBox = document.getElementById('top-notification');
   const notifyText = document.getElementById('notification-text');
@@ -884,6 +904,7 @@ auth.onAuthStateChanged(user => {
     document.getElementById('auth-screen').classList.remove('hidden');
     toggleBottomNav(false);
     toggleInRoomFab(false);
+    changeLanguage(currentLang);
   }
 });
 
@@ -896,6 +917,7 @@ function initUser(user) {
   document.getElementById('settingUsername').value = currentUser.displayName || '';
   document.getElementById('settingAvatarUrl').value = currentUser.photoURL || '';
   document.getElementById('settingAvatarPreview').src = currentUser.photoURL || '';
+  document.getElementById('soundVolume').value = soundVol;
 
   db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
     const score = snap.val() || 0;
@@ -962,15 +984,28 @@ function listenToPublicRooms() {
 
 function logout() { auth.signOut().then(() => location.reload()); }
 
-function handleFileUpload(e) {
+async function handleFileUpload(e) {
   const file = e.target.files[0];
-  if(file) {
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      document.getElementById('settingAvatarUrl').value = evt.target.result;
-      document.getElementById('settingAvatarPreview').src = evt.target.result;
-    };
-    reader.readAsDataURL(file);
+  if(!file) return;
+
+  // Show an instant local preview while the real upload happens in the background.
+  const reader = new FileReader();
+  reader.onload = (evt) => { document.getElementById('settingAvatarPreview').src = evt.target.result; };
+  reader.readAsDataURL(file);
+
+  try {
+    // Firebase Auth's photoURL field only accepts a short, real URL - it
+    // silently fails to save a giant base64 string, which is exactly why
+    // uploading a photo never seemed to work before. Uploading the actual
+    // file to Firebase Storage and using ITS short download link instead
+    // fixes that properly.
+    const fileRef = storage.ref(`avatars/${currentUser.uid}/${Date.now()}_${file.name}`);
+    await fileRef.put(file);
+    const downloadUrl = await fileRef.getDownloadURL();
+    document.getElementById('settingAvatarUrl').value = downloadUrl;
+    showToast(dictionary[currentLang].msgPhotoUploaded, 'success');
+  } catch(err) {
+    showToast(dictionary[currentLang].errPhotoUpload, 'danger');
   }
 }
 
@@ -1006,6 +1041,8 @@ function saveSettings() {
   currentUser.updateProfile({ displayName: newName || currentUser.displayName, photoURL: newAvatar || currentUser.photoURL }).then(() => {
     initUser(currentUser);
     showToast(dictionary[currentLang].msgSettingsSaved, 'success');
+  }).catch(err => {
+    showToast(err.message || dictionary[currentLang].errSettingsSaveFailed, 'danger');
   });
 }
 
@@ -1451,33 +1488,57 @@ async function transitionToRound(newRoundNumber, playersObj, turnSeconds) {
 async function advanceTurn() {
   if(advancingTurn) return;
   advancingTurn = true;
+  let justStartedVoting = false;
+
   try {
-    const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
-    const room = roomSnap.val();
-    if(!room || room.status !== 'playing' || !room.turnOrder) return;
+    // A transaction (not a plain read-then-write) is essential here: this can
+    // be called by whichever client currently believes it's host, and during
+    // a host handoff two clients can briefly both believe that. A plain
+    // "read, then write" is racy across two different clients doing that at
+    // once - each could read the same starting turnIndex and both advance it,
+    // which cascaded into repeatedly ejecting real players (turning everyone
+    // into a spectator) even though nobody actually left. A transaction reads
+    // and writes atomically against the live server value, so a second,
+    // racing attempt automatically retries against the already-updated data
+    // instead of duplicating the advance.
+    const result = await db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
+      justStartedVoting = false; // transactions can retry - reset each attempt
+      if(!room || room.status !== 'playing' || !room.turnOrder) return room;
 
-    const playersObj = room.players || {};
-    let nextIndex = (room.turnIndex || 0) + 1;
-    while(nextIndex < room.turnOrder.length && playersObj[room.turnOrder[nextIndex]] && playersObj[room.turnOrder[nextIndex]].isSpectator) {
-      nextIndex++;
-    }
-
-    if(nextIndex >= room.turnOrder.length) {
-      const currentRoundNum = room.round || 1;
-      if(currentRoundNum === 1) {
-        // Round 1 always ends with an automatic vote.
-        await db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
-        broadcastAnnouncement(dictionary[currentLang].annTimeUp, 'danger');
-      } else {
-        // From round 2 onward, turns just cycle straight into the next round.
-        // The only way to trigger a vote from here on is Emergency Vote.
-        await transitionToRound(currentRoundNum + 1, playersObj, room.turnSeconds);
+      const playersObj = room.players || {};
+      let nextIndex = (room.turnIndex || 0) + 1;
+      while(nextIndex < room.turnOrder.length && playersObj[room.turnOrder[nextIndex]] && playersObj[room.turnOrder[nextIndex]].isSpectator) {
+        nextIndex++;
       }
-    } else {
-      await db.ref(`spy_rooms/${currentRoom}`).update({
-        turnIndex: nextIndex,
-        turnTimeLeft: room.turnSeconds || 20
-      });
+
+      if(nextIndex >= room.turnOrder.length) {
+        const currentRoundNum = room.round || 1;
+        if(currentRoundNum === 1) {
+          // Round 1 always ends with an automatic vote.
+          room.status = 'voting';
+          room.voteTimeLeft = 80;
+          room.votes = null;
+          justStartedVoting = true;
+        } else {
+          // From round 2 onward, turns just cycle straight into the next
+          // round. The only way to trigger a vote from here is Emergency Vote.
+          const activeUids = Object.values(playersObj).filter(p => !p.isSpectator).map(p => p.uid);
+          room.round = currentRoundNum + 1;
+          room.turnOrder = activeUids;
+          room.turnIndex = 0;
+          room.turnTimeLeft = room.turnSeconds || 20;
+          room.votes = null;
+        }
+      } else {
+        room.turnIndex = nextIndex;
+        room.turnTimeLeft = room.turnSeconds || 20;
+      }
+
+      return room;
+    });
+
+    if(result.committed && justStartedVoting) {
+      broadcastAnnouncement(dictionary[currentLang].annTimeUp, 'danger');
     }
   } finally {
     advancingTurn = false;
@@ -1570,8 +1631,11 @@ function maybeShowRoundAnnounce(round, thenShow) {
     document.getElementById('roundAnnounceText').innerText = roundText.toUpperCase();
     document.querySelectorAll('.page-screen').forEach(s => s.classList.add('hidden'));
     screen.classList.remove('hidden');
-    playSound(660, 'triangle', 0.25);
-    speakRoundAnnouncement(roundText);
+    // A short ascending chime instead of text-to-speech - speechSynthesis
+    // support/voices vary wildly across phones and browsers (which is exactly
+    // why it played for some people, not for others, or played late) - a
+    // synthesized tone sounds identical and fires reliably everywhere.
+    playChime([[523, 0, 0.16], [659, 130, 0.16], [784, 260, 0.32]], 'sine');
     setTimeout(() => {
       screen.classList.add('hidden');
       thenShow();
@@ -1722,6 +1786,19 @@ async function processVoteResults(room) {
   processingVoteResults = true;
   try {
 
+  // Atomically claim the right to resolve THIS vote. Even if two clients
+  // both briefly believe they're host and both call this at once, only the
+  // first one's transaction will see status still 'voting' and proceed -
+  // everyone else's attempt sees it already changed and stops immediately.
+  // This is what was actually causing players to be ejected one after
+  // another with nobody touching anything: without this claim, more than one
+  // client could resolve the same round of votes independently.
+  const claim = await db.ref(`spy_rooms/${currentRoom}/status`).transaction(status => {
+    if(status !== 'voting') return; // abort - somebody else is already handling this
+    return 'resolving';
+  });
+  if(!claim.committed) return;
+
   const votes = room.votes || {};
   const counts = {};
   Object.values(votes).forEach(target => {
@@ -1801,6 +1878,12 @@ async function processVoteResults(room) {
   broadcastAnnouncement(dictionary[currentLang].annInnocentEjected.replace('{name}', ejectedName), 'danger');
   await transitionToRound(nextRound, playersObj, room.turnSeconds);
 
+  } catch(err) {
+    // Something went wrong after we claimed the vote - revert the claim so
+    // the round doesn't get permanently stuck on the temporary marker.
+    await db.ref(`spy_rooms/${currentRoom}/status`).transaction(status => {
+      return status === 'resolving' ? 'voting' : status;
+    });
   } finally {
     processingVoteResults = false;
   }
