@@ -250,7 +250,11 @@
 </div>
 
 <!-- 1. AUTH SCREEN -->
-<div id="auth-screen" class="page-screen" style="justify-content:center;">
+<div id="loading-screen" class="page-screen" style="justify-content:center; align-items:center; z-index:100;">
+  <div style="font-size:56px; animation: rotateRing 2.5s linear infinite;">🛸</div>
+</div>
+
+<div id="auth-screen" class="page-screen hidden" style="justify-content:center;">
   <button id="authLangToggle" onclick="toggleAuthLanguage()" style="position:fixed; top:15px; inset-inline-end:15px; width:auto; padding:8px 16px; margin:0; border-radius:20px; background:rgba(15,23,42,0.9); border:1px solid var(--glass-border); color:var(--accent-blue); font-weight:800; font-size:13px; box-shadow:var(--neon-glow); z-index:20;">🌐 العربية</button>
   <div class="auth-card-container">
 
@@ -699,6 +703,8 @@ const dictionary = {
     annInnocentEjected: "❌ {name} was voted out. The mission continues...",
     annNobodyEjected: "⚖️ Nobody was ejected. The mission continues...",
     annSpiesWin: "🕵️ {name} was voted out. The spies have won!",
+    annSpiesGoneCrewWins: "🎉 All spies left the mission! Crew wins!",
+    annCrewGoneSpiesWin: "🕵️ Not enough crew remain! Spies win!",
     crewWonTitle: "🎉 Crew Team Won! 🎉", spiesWonTitle: "🕵️ Spies Team Won! 🕵️",
     lblRoomStatusWaiting: "Waiting for players", lblRoomStatusInProgress: "🔴 In progress", lblHostTag: "Host", lblRound: "Round",
     lblYourTurn: "🎤 Your turn! Give a subtle clue...", lblWaitingForTurn: "⏳ Waiting for {name} to speak...",
@@ -736,6 +742,8 @@ const dictionary = {
     annInnocentEjected: "❌ تم إخراج {name}. المهمة مستمرة...",
     annNobodyEjected: "⚖️ محدش خرج. المهمة مستمرة...",
     annSpiesWin: "🕵️ تم إخراج {name}. فاز الجواسيس!",
+    annSpiesGoneCrewWins: "🎉 كل الجواسيس خرجوا من المهمة! فاز الطاقم!",
+    annCrewGoneSpiesWin: "🕵️ الطاقم اللي فاضل مش كفاية! فاز الجواسيس!",
     crewWonTitle: "🎉 فاز فريق الطاقم! 🎉", spiesWonTitle: "🕵️ فاز فريق الجواسيس! 🕵️",
     lblRoomStatusWaiting: "في انتظار اللاعبين", lblRoomStatusInProgress: "🔴 المهمة شغالة", lblHostTag: "المضيف", lblRound: "الجولة",
     lblYourTurn: "🎤 دورك! اديهم تلميح بسيط من غير ما توضح...", lblWaitingForTurn: "⏳ في انتظار {name} عشان يتكلم...",
@@ -897,6 +905,7 @@ function handleAuth() {
 }
 
 auth.onAuthStateChanged(user => {
+  document.getElementById('loading-screen').classList.add('hidden');
   if(user) {
     initUser(user);
   } else {
@@ -1005,7 +1014,8 @@ async function handleFileUpload(e) {
     document.getElementById('settingAvatarUrl').value = downloadUrl;
     showToast(dictionary[currentLang].msgPhotoUploaded, 'success');
   } catch(err) {
-    showToast(dictionary[currentLang].errPhotoUpload, 'danger');
+    console.error('Avatar upload failed:', err);
+    showToast(err.message || dictionary[currentLang].errPhotoUpload, 'danger');
   }
 }
 
@@ -1107,6 +1117,54 @@ async function handOffHostDirectly(roomCode, playersObj, leavingUid) {
   }
 }
 
+async function checkLeaveWinCondition(roomCode) {
+  // Called whenever someone leaves/is kicked mid-mission (not from a vote).
+  // If enough active players have dropped out that the spies now equal or
+  // outnumber the remaining crew, or every spy is gone, the game resolves
+  // right away instead of limping on with a round nobody can actually finish.
+  const roomSnap = await db.ref(`spy_rooms/${roomCode}`).once('value');
+  const data = roomSnap.val();
+  if(!data || (data.status !== 'playing' && data.status !== 'voting')) return;
+
+  const playersObj = data.players || {};
+  const spies = data.spies || [];
+  const activePlayers = Object.values(playersObj).filter(p => !p.isSpectator);
+  if(activePlayers.length === 0) return; // room gets cleaned up separately in that case
+
+  const activeSpiesCount = activePlayers.filter(p => spies.includes(p.uid)).length;
+  const activeInnocentsCount = activePlayers.length - activeSpiesCount;
+
+  let winnerTeam = null;
+  if(activeSpiesCount === 0) {
+    winnerTeam = 'crew'; // no spy left in the game at all - crew wins by default
+  } else if(activeSpiesCount >= activeInnocentsCount) {
+    winnerTeam = 'spies'; // spies now equal or outnumber the remaining crew
+  }
+  if(!winnerTeam) return;
+
+  // Atomic claim so this can't resolve twice if more than one client notices
+  // the same condition around the same time.
+  const claim = await db.ref(`spy_rooms/${roomCode}/status`).transaction(status => {
+    if(status !== 'playing' && status !== 'voting') return; // already being handled
+    return 'resolving';
+  });
+  if(!claim.committed) return;
+
+  await db.ref(`spy_rooms/${roomCode}`).update({
+    status: 'gameover',
+    winnerTeam: winnerTeam,
+    finalSpies: spies,
+    finalPlayers: playersObj,
+    votes: null
+  });
+
+  db.ref(`spy_rooms/${roomCode}/announcement`).set({
+    msg: winnerTeam === 'crew' ? dictionary[currentLang].annSpiesGoneCrewWins : dictionary[currentLang].annCrewGoneSpiesWin,
+    type: winnerTeam === 'crew' ? 'success' : 'danger',
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
 async function leaveRoom(manual = false) {
   localStorage.removeItem('spy_station_room');
   toggleInRoomFab(false);
@@ -1148,8 +1206,9 @@ async function leaveRoom(manual = false) {
       const anyoneStillActive = Object.values(allPlayersObj).some(p => p.uid !== currentUser.uid && !p.isSpectator);
       if(!anyoneStillActive) {
         await db.ref(`spy_rooms/${rCode}`).remove();
-      } else if(wasHost) {
-        await handOffHostDirectly(rCode, allPlayersObj, currentUser.uid);
+      } else {
+        if(wasHost) await handOffHostDirectly(rCode, allPlayersObj, currentUser.uid);
+        await checkLeaveWinCondition(rCode);
       }
     } else {
       await db.ref(`spy_rooms/${rCode}/players/${currentUser.uid}`).remove();
@@ -1218,6 +1277,10 @@ async function joinRoomProcess() {
     handleHostAssignment(data);
     ensureHostTimersRunning(data);
     updateDisconnectBehavior(data.status);
+    // Fallback for abrupt disconnects (not a clean Leave/Kick, which already
+    // check this directly): only the host needs to watch for this, so it
+    // doesn't fire redundantly from every connected client.
+    if(isHost) checkLeaveWinCondition(currentRoom);
     // Re-assert this on every update (not just once at join time) so the
     // home/stations/settings nav bar can never linger or reappear over a
     // room screen, no matter what triggered the previous render.
@@ -1366,6 +1429,7 @@ async function kickPlayer(uid) {
   const roomStatus = statusSnap.val();
   if(roomStatus && roomStatus !== 'waiting') {
     await db.ref(`spy_rooms/${currentRoom}/players/${uid}`).update({ isSpectator: true });
+    await checkLeaveWinCondition(currentRoom);
   } else {
     await db.ref(`spy_rooms/${currentRoom}/players/${uid}`).remove();
   }
