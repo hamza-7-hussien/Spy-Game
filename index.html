@@ -250,11 +250,8 @@
 </div>
 
 <!-- 1. AUTH SCREEN -->
-<div id="loading-screen" class="page-screen" style="justify-content:center; align-items:center; z-index:100; flex-direction:column; gap:16px;">
+<div id="loading-screen" class="page-screen" style="justify-content:center; align-items:center; z-index:100;">
   <div style="font-size:56px; animation: rotateRing 2.5s linear infinite;">🛸</div>
-  <div id="loading-no-internet" class="hidden" style="text-align:center; color:var(--danger-red); font-weight:bold; font-size:14px; max-width:280px;">
-    📡 <span data-key="errNoInternet">No internet connection. Please check your connection.</span>
-  </div>
 </div>
 
 <div id="auth-screen" class="page-screen hidden" style="justify-content:center;">
@@ -339,14 +336,6 @@
         <span class="icon">🦁</span>
         <span style="font-size:12px; font-weight:bold;" data-key="catAnimals">Animals</span>
       </div>
-      <div class="category-card" onclick="openCreateRoomModal('jobs')">
-        <span class="icon">💼</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catJobs">Jobs</span>
-      </div>
-      <div class="category-card" onclick="openCreateRoomModal('singers')">
-        <span class="icon">🎤</span>
-        <span style="font-size:12px; font-weight:bold;" data-key="catSingers">Singers</span>
-      </div>
     </div>
 
     <hr style="margin:20px 0; border-color:var(--glass-border);">
@@ -412,8 +401,6 @@
       <option value="movies" data-key="catMovies">🎬 Movies & Series</option>
       <option value="games" data-key="catGames">🎮 Video Games</option>
       <option value="animals" data-key="catAnimals">🦁 Animals</option>
-      <option value="jobs" data-key="catJobs">💼 Jobs</option>
-      <option value="singers" data-key="catSingers">🎤 Singers</option>
     </select>
 
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblMaxPlayers">Max Players (3 - 20):</label>
@@ -575,16 +562,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
-let storage = null;
-try {
-  storage = firebase.storage();
-} catch(e) {
-  // If the Storage SDK script failed to load for any reason (network hiccup,
-  // ad blocker, CDN issue), this must not be allowed to take the whole app
-  // down with it - only avatar upload gets degraded, everything else still
-  // works normally.
-  console.warn('Firebase Storage unavailable - avatar upload will be disabled:', e);
-}
+const storage = firebase.storage();
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
@@ -697,7 +675,7 @@ function generate6DigitCode() {
 const dictionary = {
   en: {
     googleAuth: "Sign in with Google 🚀", login: "Login", signup: "Sign Up", loginBtn: "Enter Station 🚀", toggleAuth: "Don't have an account? Sign Up",
-    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals", catJobs: "Jobs", catSingers: "Singers",
+    chooseCategory: "Create Station Room:", catFootball: "Football", catFood: "Food", catPlaces: "Places", catMovies: "Movies", catGames: "Games", catAnimals: "Animals",
     joinRoom: "Join Station 🛰️", logout: "Logout 🚪", roomSettingsTitle: "Station Configuration ⚙️", lblCategory: "Category:", lblSpies: "Spies Count:",
     lblTurnSeconds: "Seconds per Turn:", btnConfirmRoom: "Launch Station 🚀", settingsTitle: "Profile & System Settings ⚙️",
     lblUploadAvatar: "Upload Avatar Image:", lblSound: "Sound Volume 🔊:", lblLang: "Language / اللغة:", btnSaveSettings: "Save Changes 💾",
@@ -715,7 +693,6 @@ const dictionary = {
     categoryPrefix: "Category: ",
     errFillFields: "Please fill in all fields!", errUsernameRequired: "Username is required!", errUsernameTaken: "Username is already taken!",
     errInvalidCode: "Enter a valid 6-character code!", errStationFull: "Station is full!", errStationNotExist: "Station does not exist!",
-    errNoInternet: "No internet connection. Please check your connection.",
     msgLeftStation: "Left station successfully", msgRemovedFromStation: "You were removed from the station", msgSettingsSaved: "Settings saved successfully!",
     msgPhotoUploaded: "Photo uploaded!", errPhotoUpload: "Couldn't upload the photo. Please try again.", errSettingsSaveFailed: "Couldn't save settings.",
     errMinPlayers: "Minimum 3 players required to start!", errTooManySpies: "Too many spies for this player count!", msgVoteRecorded: "Vote recorded!",
@@ -737,7 +714,7 @@ const dictionary = {
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
-    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات", catJobs: "وظائف", catSingers: "مطربين",
+    chooseCategory: "إنشاء محطة جديدة:", catFootball: "كرة القدم", catFood: "أكلات ومشروبات", catPlaces: "أماكن معالم", catMovies: "أفلام ومسلسلات", catGames: "ألعاب فيديو", catAnimals: "حيوانات",
     joinRoom: "انضمام للمحطة 🛰️", logout: "تسجيل الخروج 🚪", roomSettingsTitle: "إعدادات المحطة ⚙️", lblCategory: "الفئة:", lblSpies: "عدد الجواسيس:",
     lblTurnSeconds: "مدة كل دور (بالثواني):", btnConfirmRoom: "إطلاق المحطة 🚀", settingsTitle: "الملف الشخصي والنظام ⚙️",
     lblUploadAvatar: "رفع صورة شخصية:", lblSound: "مستوى الصوت 🔊:", lblLang: "اللغة / Language:", btnSaveSettings: "حفظ التغييرات 💾",
@@ -755,7 +732,6 @@ const dictionary = {
     categoryPrefix: "فئة الروم: ",
     errFillFields: "يرجى ملء جميع الحقول!", errUsernameRequired: "اسم المستخدم مطلوب!", errUsernameTaken: "اسم المستخدم مأخوذ بالفعل!",
     errInvalidCode: "أدخل كود مكون من 6 أحرف صحيح!", errStationFull: "المحطة ممتلئة بالكامل!", errStationNotExist: "المحطة غير موجودة!",
-    errNoInternet: "معندكش اتصال بالإنترنت. اتأكد من الاتصال.",
     msgLeftStation: "تم مغادرة المحطة بنجاح", msgRemovedFromStation: "تم إزالتك من المحطة", msgSettingsSaved: "تم حفظ الإعدادات بنجاح!",
     msgPhotoUploaded: "تم رفع الصورة!", errPhotoUpload: "تعذر رفع الصورة، حاول تاني.", errSettingsSaveFailed: "تعذر حفظ الإعدادات.",
     errMinPlayers: "يجب أن يكون هناك 3 لاعبين على الأقل للبدء!", errTooManySpies: "عدد الجواسيس كبير جدًا بالنسبة لعدد اللاعبين!", msgVoteRecorded: "تم تسجيل صوتك!",
@@ -819,12 +795,7 @@ function toggleAuthLanguage() {
   changeLanguage(currentLang === 'ar' ? 'en' : 'ar');
 }
 
-// Apply the saved language immediately - before auth even resolves - so the
-// loading screen and no-internet message are never shown in the wrong
-// language while waiting.
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
-changeLanguage(currentLang);
-
 let turnInterval = null, voteInterval = null;
 let turnSyncStarting = false, advancingTurn = false, processingVoteResults = false, hostReassignInFlight = false;
 let roomListener = null, annListener = null;
@@ -837,20 +808,16 @@ const categoryNamesMap = {
   places: { en: "🗺️ Famous Places", ar: "🗺️ أماكن ومعالم" },
   movies: { en: "🎬 Movies & Series", ar: "🎬 أفلام ومسلسلات" },
   games: { en: "🎮 Video Games", ar: "🎮 ألعاب فيديو" },
-  animals: { en: "🦁 Animals", ar: "🦁 حيوانات" },
-  jobs: { en: "💼 Jobs", ar: "💼 وظائف" },
-  singers: { en: "🎤 Singers", ar: "🎤 مطربين" }
+  animals: { en: "🦁 Animals", ar: "🦁 حيوانات" }
 };
 
 const wordsDB = {
-  players: ["Messi","Ronaldo","Neymar","Mbappe","Haaland","De Bruyne","Benzema","Modric","Salah","Kane","Lewandowski","Griezmann","Suarez","Ramos","Van Dijk","Kroos","Casemiro","Bruno Fernandes","Son Heung-min","Vinicius Jr","Rodrygo","Pedri","Gavi","Bellingham","Foden","Saka","Rashford","Mane","Mahrez","Ibrahimovic","Iniesta","Xavi","Casillas","Buffon","Ronaldinho","Zidane","Ronaldo Nazario","Pele","Maradona","Cruyff","Beckenbauer","Beckham","Henry","Drogba","Eto'o","Elneny","Trezeguet","Marmoush","Mostafa Mohamed","Hegazi","Ahmed Fathy","Emad Meteb","Hossam Hassan","Abou Trika","Mido","El Khatib","Ali Gabr","Sterling","Grealish","Rice","Pogba","Kante","Dembele","De Jong","Kimmich","Muller","Neuer","Cavani","Di Maria","Aguero","Falcao","James Rodriguez","Alexis Sanchez","Robben","Ribery","Busquets","Puyol","Fabregas","Torres","Villa","Courtois","Alisson","Ederson","Ter Stegen","Hakimi","Theo Hernandez","Trent Alexander-Arnold","Joao Cancelo","Marquinhos","Varane","Rudiger","Ruben Dias","John Stones","Odegaard","Pulisic","Lamine Yamal","Musiala","Wirtz","Valverde","Camavinga","Enzo Fernandez","Julian Alvarez","Cole Palmer","Ahmed Hassan","Wael Gomaa"],
-  food: ["Pizza","Burger","Sushi","Pasta","Shawarma","Tacos","Ice Cream","Koshary","Crepe","Falafel","Hummus","Kebab","Molokhia","Ful Medames","Ta'meya","Mahshi","Fattah","Sayadeya","Kofta","Shish Tawook","Ramen","Pho","Dumplings","Fried Rice","Spring Rolls","Croissant","Pancakes","Waffles","Donuts","Cheesecake","Tiramisu","Baklava","Basbousa","Kunafa","Om Ali","Rice Pudding","Popcorn","Nachos","Fries","Hot Dog","Sandwich","Steak","Grilled Fish","Lasagna","Ravioli","Fried Chicken","Chicken Wings","BBQ Ribs","Paella","Risotto","Gnocchi","Curry","Biryani","Samosa","Naan","Tikka Masala","Pad Thai","Dim Sum","Bao Buns","Ceviche","Guacamole","Quesadilla","Burrito","Enchilada","Churros","Gelato","Macaron","Fondue","Ratatouille","Goulash","Schnitzel","Pretzel","Bratwurst","Hawawshi","Feteer","Roz Bel Laban","Sobia","Karkade","Asab","Shakshuka","Fesikh","Zalabya","Grilled Shrimp","Calamari","Lobster","Crab Cakes","Clam Chowder","Miso Soup","Tempura","Katsu Curry","Bibimbap","Kimchi","Bulgogi","Tteokbokki","Manakish","Fattoush","Tabbouleh","Baba Ghanoush","Kibbeh"],
-  places: ["Pyramids","Eiffel Tower","Dubai","London","Tokyo","New York","Rome","Colosseum","Big Ben","Statue of Liberty","Great Wall of China","Taj Mahal","Sydney Opera House","Niagara Falls","Grand Canyon","Sahara Desert","Nile River","Petra","Machu Picchu","Christ the Redeemer","Burj Khalifa","Sphinx","Luxor Temple","Karnak Temple","Abu Simbel","Alexandria Library","Khan El Khalili","Cairo Tower","Red Sea","Sharm El Sheikh","Hurghada","Siwa Oasis","Venice","Paris","Barcelona","Amsterdam","Berlin","Vienna","Prague","Istanbul","Athens","Santorini","Mecca","Medina","Jerusalem","Marrakech","Casablanca","Cape Town","Victoria Falls","Mount Kilimanjaro","Bali","Maldives","Singapore","Hong Kong","Shanghai","Beijing","Seoul","Bangkok","Kuala Lumpur","Mumbai","Rio de Janeiro","Buenos Aires","Los Angeles","Las Vegas","Miami","Chicago","Toronto","Moscow","Red Square","Amazon Rainforest","Iguazu Falls","Mount Everest","Swiss Alps","Dead Sea","Golden Gate Bridge","Hollywood Sign","Central Park","Times Square","White House","Kremlin","Acropolis","Stonehenge","Vatican City","Notre Dame","Louvre Museum","Sagrada Familia","Alhambra","Buckingham Palace","Antarctica"],
-  movies: ["تراب الماس","الممر","الديزل","كيرة والجن","الكنز","هروب اضطراري","حرب كرموز","الفلوس","ريستارت","يوم الدين","ولاد رزق","الاختيار","كلبش","لعبة نيوتن","في بيتنا روبوت","جعفر العمدة","الأسطورة","سره الباتع","سيد الناس","برنس","تاج","هوجان","بروفايل","نسل الأغراب","ملوك الجدعنة","بـ100 وش","موسى","بدون سابق إنذار","فوق مستوى الشبهات","الاختيار 3","ولاد رزق الماضي","الكنز 2","فاتن أمل حربي","جزيرة غمام","بيت الروبي","الحشاشين","جودر","اسم مؤقت","المداح","ولاد الشمس","تحت الوصاية","أهو ده اللي صار","بابلو","طريقي","المشوار","شهد الملكة"],
-  games: ["GTA V","Minecraft","PUBG","FIFA","Valorant","Call of Duty","Fortnite","League of Legends","Roblox","Among Us","Apex Legends","Overwatch","Counter-Strike","Rainbow Six Siege","Rocket League","The Sims","Red Dead Redemption","The Witcher 3","Cyberpunk 2077","Elden Ring","Dark Souls","God of War","The Last of Us","Uncharted","Horizon Zero Dawn","Assassin's Creed","Far Cry","Watch Dogs","Resident Evil","Silent Hill","Mortal Kombat","Street Fighter","Tekken","Super Mario","Zelda","Pokemon","Animal Crossing","Splatoon","Kirby","Sonic","Crash Bandicoot","Spyro","Metal Gear Solid","Halo","Gears of War","Forza","Need for Speed","Gran Turismo","eFootball","Clash of Clans","Clash Royale","Candy Crush","Subway Surfers","Temple Run","Free Fire","Brawl Stars","Genshin Impact","Honkai Star Rail","World of Warcraft","Dota 2","StarCraft","Diablo","Hearthstone","Terraria","Stardew Valley","Fall Guys","It Takes Two","Hades","Celeste","Hollow Knight","Valheim","Palworld","Baldur's Gate 3","Helldivers 2","Sea of Thieves","Destiny 2","Warframe","Mobile Legends","Wild Rift","Slither.io","Plants vs Zombies","Angry Birds","8 Ball Pool"],
-  animals: ["Lion","Tiger","Elephant","Falcon","Dolphin","Cheetah","Wolf","Eagle","Bear","Giraffe","Zebra","Hippo","Rhino","Crocodile","Kangaroo","Koala","Panda","Gorilla","Chimpanzee","Monkey","Camel","Fox","Deer","Rabbit","Squirrel","Hedgehog","Otter","Beaver","Raccoon","Skunk","Bat","Owl","Peacock","Parrot","Flamingo","Penguin","Ostrich","Swan","Duck","Pelican","Shark","Whale","Octopus","Jellyfish","Starfish","Seahorse","Turtle","Snake","Lizard","Chameleon","Iguana","Frog","Toad","Butterfly","Bee","Ant","Spider","Scorpion","Snail","Hyena","Jackal","Leopard","Jaguar","Puma","Lynx","Wolverine","Meerkat","Sloth","Armadillo","Platypus","Walrus","Seal","Sea Lion","Orca","Manatee","Buffalo","Bison","Antelope","Gazelle","Wildebeest","Warthog","Crow","Pigeon","Sparrow","Hummingbird","Woodpecker","Toucan","Vulture","Condor","Stork","Heron","Anteater","Aardvark","Tapir","Okapi","Capybara"],
-  jobs: ["Doctor","Teacher","Engineer","Pilot","Chef","Nurse","Lawyer","Police Officer","Firefighter","Farmer","Fisherman","Electrician","Plumber","Carpenter","Painter","Photographer","Journalist","Actor","Singer","Dancer","Athlete","Soldier","Judge","Accountant","Architect","Dentist","Pharmacist","Veterinarian","Scientist","Astronaut","Taxi Driver","Bus Driver","Mechanic","Barber","Tailor","Baker","Butcher","Waiter","Bartender","Receptionist","Secretary","Manager","Salesman","Cashier","Security Guard","Cleaner","Gardener","Librarian","Translator","Programmer","Graphic Designer","Web Developer","Data Analyst","Real Estate Agent","Flight Attendant","Tour Guide","Fashion Designer","Interior Designer"],
-  singers: ["Amr Diab","Tamer Hosny","Mohamed Ramadan","Mohamed Hamaki","Ahmed Saad","Assala","Sherine","Angham","Nancy Ajram","Elissa","Haifa Wehbe","Nawal El Zoghbi","Fairuz","Umm Kulthum","Abdel Halim Hafez","Mohammed Abdel Wahab","Warda","Najat Al Saghira","Wael Kfoury","Ragheb Alama","Kazem Al Saher","Majida El Roumi","Cheb Khaled","Saad Lamjarred","Balqees","Dina Hayek","Myriam Fares","Hamada Helal","Mostafa Amar","Mohamed Mounir","Ali El Haggar","Hakim","Shaaban Abdel Rahim","Saad El Soghayar","Bosy","Hisham Abbas","Amir Eid","Cairokee","Wust El Balad","Massar Egbari","Aziz Maraka","Yara","Diana Karazon","Maher Zain","Humood Alkhudher","Adele","Beyonce","Rihanna","Ed Sheeran","Justin Bieber","Taylor Swift","Bruno Mars","The Weeknd","Drake","Shakira","Enrique Iglesias"]
+  players: ["Messi","Ronaldo","Neymar","Mbappe","Haaland","De Bruyne","Benzema","Modric","Salah","Kane","Lewandowski","Griezmann","Suarez","Ramos","Van Dijk","Kroos","Casemiro","Bruno Fernandes","Son Heung-min","Vinicius Jr","Rodrygo","Pedri","Gavi","Bellingham","Foden","Saka","Rashford","Mane","Mahrez","Ibrahimovic","Iniesta","Xavi","Casillas","Buffon","Ronaldinho","Zidane","Ronaldo Nazario","Pele","Maradona","Cruyff","Beckenbauer","Beckham","Henry","Drogba","Eto'o","Elneny","Trezeguet","Marmoush","Mostafa Mohamed","Hegazi","Ahmed Fathy","Emad Meteb","Hossam Hassan","Abou Trika","Mido","El Khatib","Ali Gabr","Sterling","Grealish","Rice","Pogba","Kante","Dembele","De Jong","Kimmich","Muller","Neuer","Cavani","Di Maria","Aguero","Falcao","James Rodriguez","Alexis Sanchez","Robben","Ribery","Busquets","Puyol","Fabregas","Torres","Villa"],
+  food: ["Pizza","Burger","Sushi","Pasta","Shawarma","Tacos","Ice Cream","Koshary","Crepe","Falafel","Hummus","Kebab","Molokhia","Ful Medames","Ta'meya","Mahshi","Fattah","Sayadeya","Kofta","Shish Tawook","Ramen","Pho","Dumplings","Fried Rice","Spring Rolls","Croissant","Pancakes","Waffles","Donuts","Cheesecake","Tiramisu","Baklava","Basbousa","Kunafa","Om Ali","Rice Pudding","Popcorn","Nachos","Fries","Hot Dog","Sandwich","Steak","Grilled Fish","Lasagna","Ravioli","Fried Chicken","Chicken Wings","BBQ Ribs","Paella","Risotto","Gnocchi","Curry","Biryani","Samosa","Naan","Tikka Masala","Pad Thai","Dim Sum","Bao Buns","Ceviche","Guacamole","Quesadilla","Burrito","Enchilada","Churros","Gelato","Macaron","Fondue","Ratatouille","Goulash","Schnitzel","Pretzel","Bratwurst","Hawawshi","Feteer","Roz Bel Laban","Sobia","Karkade","Asab"],
+  places: ["Pyramids","Eiffel Tower","Dubai","London","Tokyo","New York","Rome","Colosseum","Big Ben","Statue of Liberty","Great Wall of China","Taj Mahal","Sydney Opera House","Niagara Falls","Grand Canyon","Sahara Desert","Nile River","Petra","Machu Picchu","Christ the Redeemer","Burj Khalifa","Sphinx","Luxor Temple","Karnak Temple","Abu Simbel","Alexandria Library","Khan El Khalili","Cairo Tower","Red Sea","Sharm El Sheikh","Hurghada","Siwa Oasis","Venice","Paris","Barcelona","Amsterdam","Berlin","Vienna","Prague","Istanbul","Athens","Santorini","Mecca","Medina","Jerusalem","Marrakech","Casablanca","Cape Town","Victoria Falls","Mount Kilimanjaro","Bali","Maldives","Singapore","Hong Kong","Shanghai","Beijing","Seoul","Bangkok","Kuala Lumpur","Mumbai","Rio de Janeiro","Buenos Aires","Los Angeles","Las Vegas","Miami","Chicago","Toronto","Moscow","Red Square"],
+  movies: ["الفيل الأزرق","ولاد رزق","اشتباك","يوم الدين","هيبتا","الممر","كايرو 678","ابراهيم الأبيض","تراب الماس","مولانا","ساعة ونص","عسل أسود","الديزل","زنقة الستات","فيلا 69","كيرة والجن","الكنز","هروب اضطراري","حرب كرموز","الأصليين","الفلوس","ريستارت","نادي الرجال السري","ديكور","الاختيار","كلبش","لعبة نيوتن","في بيتنا روبوت","جعفر العمدة","الأسطورة","جراند أوتيل","سره الباتع","سيد الناس","برنس","تاج","هوجان","بروفايل","نسل الأغراب","ملوك الجدعنة","بـ100 وش","موسى","بدون سابق إنذار","فوق مستوى الشبهات"],
+  games: ["GTA V","Minecraft","PUBG","FIFA","Valorant","Call of Duty","Fortnite","League of Legends","Roblox","Among Us","Apex Legends","Overwatch","Counter-Strike","Rainbow Six Siege","Rocket League","The Sims","Red Dead Redemption","The Witcher 3","Cyberpunk 2077","Elden Ring","Dark Souls","God of War","The Last of Us","Uncharted","Horizon Zero Dawn","Assassin's Creed","Far Cry","Watch Dogs","Resident Evil","Silent Hill","Mortal Kombat","Street Fighter","Tekken","Super Mario","Zelda","Pokemon","Animal Crossing","Splatoon","Kirby","Sonic","Crash Bandicoot","Spyro","Metal Gear Solid","Halo","Gears of War","Forza","Need for Speed","Gran Turismo","eFootball","Clash of Clans","Clash Royale","Candy Crush","Subway Surfers","Temple Run","Free Fire","Brawl Stars","Genshin Impact","Honkai Star Rail","World of Warcraft","Dota 2","StarCraft","Diablo","Hearthstone","Terraria","Stardew Valley","Fall Guys","It Takes Two","Hades","Celeste","Hollow Knight"],
+  animals: ["Lion","Tiger","Elephant","Falcon","Dolphin","Cheetah","Wolf","Eagle","Bear","Giraffe","Zebra","Hippo","Rhino","Crocodile","Kangaroo","Koala","Panda","Gorilla","Chimpanzee","Monkey","Camel","Fox","Deer","Rabbit","Squirrel","Hedgehog","Otter","Beaver","Raccoon","Skunk","Bat","Owl","Peacock","Parrot","Flamingo","Penguin","Ostrich","Swan","Duck","Pelican","Shark","Whale","Octopus","Jellyfish","Starfish","Seahorse","Turtle","Snake","Lizard","Chameleon","Iguana","Frog","Toad","Butterfly","Bee","Ant","Spider","Scorpion","Snail","Hyena","Jackal","Leopard","Jaguar","Puma","Lynx","Wolverine","Meerkat","Sloth","Armadillo","Platypus","Walrus","Seal","Sea Lion","Orca","Manatee","Buffalo","Bison","Antelope","Gazelle","Wildebeest","Warthog"]
 };
 
 function toggleBottomNav(show) {
@@ -937,53 +904,7 @@ function handleAuth() {
   }
 }
 
-function showNoInternetMessage() {
-  const el = document.getElementById('loading-no-internet');
-  if(el) el.classList.remove('hidden');
-}
-function hideNoInternetMessage() {
-  const el = document.getElementById('loading-no-internet');
-  if(el) el.classList.add('hidden');
-}
-
-window.addEventListener('offline', showNoInternetMessage);
-window.addEventListener('online', hideNoInternetMessage);
-if(!navigator.onLine) showNoInternetMessage();
-
-// navigator.onLine only tells us there's SOME network interface, not that we
-// can actually reach Firebase - this watches the real connection so a wifi
-// network with no real internet access also gets caught, not just airplane
-// mode / no signal at all.
-let firebaseConnectedOnce = false;
-db.ref('.info/connected').on('value', snap => {
-  if(snap.val() === true) {
-    firebaseConnectedOnce = true;
-    hideNoInternetMessage();
-  } else if(!firebaseConnectedOnce) {
-    // Give it a few seconds before flagging anything - a brief false reading
-    // is normal right as the connection is still being established.
-    setTimeout(() => {
-      if(!firebaseConnectedOnce) showNoInternetMessage();
-    }, 4000);
-  }
-});
-
-// Absolute safety net: no matter what goes wrong (slow network, a Firebase
-// hiccup, anything unforeseen), the person is never left staring at the
-// spinner forever - after 8 seconds they get dropped to the login screen
-// regardless, where they can at least see an error and retry.
-let authResolved = false;
-setTimeout(() => {
-  if(authResolved) return;
-  const loadingScreen = document.getElementById('loading-screen');
-  if(loadingScreen) loadingScreen.classList.add('hidden');
-  document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
-  document.getElementById('auth-screen').classList.remove('hidden');
-  changeLanguage(currentLang);
-}, 8000);
-
 auth.onAuthStateChanged(user => {
-  authResolved = true;
   document.getElementById('loading-screen').classList.add('hidden');
   if(user) {
     initUser(user);
@@ -1076,11 +997,6 @@ async function handleFileUpload(e) {
   const file = e.target.files[0];
   if(!file) return;
 
-  if(!storage) {
-    showToast(dictionary[currentLang].errPhotoUpload, 'danger');
-    return;
-  }
-
   // Show an instant local preview while the real upload happens in the background.
   const reader = new FileReader();
   reader.onload = (evt) => { document.getElementById('settingAvatarPreview').src = evt.target.result; };
@@ -1096,7 +1012,6 @@ async function handleFileUpload(e) {
     await fileRef.put(file);
     const downloadUrl = await fileRef.getDownloadURL();
     document.getElementById('settingAvatarUrl').value = downloadUrl;
-    document.getElementById('settingAvatarPreview').src = downloadUrl;
     showToast(dictionary[currentLang].msgPhotoUploaded, 'success');
   } catch(err) {
     console.error('Avatar upload failed:', err);
