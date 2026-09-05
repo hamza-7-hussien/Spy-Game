@@ -3,7 +3,7 @@
 // deploy (not strictly required - stale-while-revalidate below already
 // refreshes the cache in the background on every load, but bumping it
 // guarantees an immediate, clean cutover).
-const CACHE_NAME = 'spy-station-v2';
+const CACHE_NAME = 'spy-station-v1';
 
 const APP_SHELL = [
   './',
