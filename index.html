@@ -822,9 +822,9 @@ function toggleAuthLanguage() {
 // Apply the saved language immediately - before auth even resolves - so the
 // loading screen and no-internet message are never shown in the wrong
 // language while waiting.
+let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 changeLanguage(currentLang);
 
-let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 let turnInterval = null, voteInterval = null;
 let turnSyncStarting = false, advancingTurn = false, processingVoteResults = false, hostReassignInFlight = false;
 let roomListener = null, annListener = null;
