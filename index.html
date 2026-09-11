@@ -172,7 +172,7 @@
   .category-card.category-selected { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.18); box-shadow: var(--neon-glow); }
 
   .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100vw; height: 70px; background: rgba(3, 7, 18, 0.9); border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; gap: 4px; width: 33.3%; height: 100%; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 11px; font-weight: 600; gap: 4px; width: 33.3%; height: 100%; position: relative; }
   .nav-item .nav-icon { font-size: 20px; }
   .nav-item.active { color: var(--accent-blue); }
   .nav-item.active .nav-icon { transform: scale(1.1); text-shadow: 0 0 10px var(--accent-blue); }
@@ -243,6 +243,36 @@
 
   .back-arrow { cursor: pointer; font-size: 22px; color: var(--accent-blue); width: auto; padding: 4px 10px; }
   [dir="rtl"] .back-arrow { transform: scaleX(-1); }
+
+  .nav-badge-dot {
+    position: absolute; top: 6px; inset-inline-end: 22%;
+    min-width: 16px; height: 16px; padding: 0 3px; border-radius: 999px;
+    background: var(--danger-red); color: white; font-size: 9px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 8px rgba(239,68,68,0.6); line-height: 1;
+  }
+
+  .friend-code-box {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(3,7,18,0.7); border: 1px dashed var(--accent-purple); border-radius: 14px;
+    padding: 12px 16px; margin: 10px 0;
+  }
+  .friend-code-value { font-family: 'Chakra Petch', 'Cairo', sans-serif; font-size: 20px; font-weight: 900; letter-spacing: 3px; color: var(--accent-blue); }
+
+  .icon-btn {
+    width: auto; padding: 6px 10px; font-size: 13px; margin: 0; border-radius: 10px;
+  }
+  .icon-btn-accept { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+  .icon-btn-decline { background: rgba(239,68,68,0.15); color: var(--danger-red); border: 1px solid rgba(239,68,68,0.4); }
+  .icon-btn-pending { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); cursor: not-allowed; }
+  .icon-btn-join { background: linear-gradient(135deg, var(--accent-purple), #9333ea); color: white; }
+
+  .friends-section-title { font-size: 13px; color: #94a3b8; margin: 14px 0 8px 0; font-weight: bold; }
+
+  .modal-overlay-panel {
+    position: fixed; inset: 0; background: rgba(3,7,18,0.9); z-index: 60;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
 </style>
 </head>
 <body>
@@ -403,6 +433,40 @@
   </div>
 </div>
 
+<!-- 4b. FRIENDS TAB -->
+<div id="tab-friends" class="page-screen has-nav hidden">
+  <div class="container-box">
+    <h3 style="margin-bottom:5px; color:var(--accent-blue); text-align:center;" data-key="friendsTitle">👥 Friends Network</h3>
+
+    <div class="friend-code-box">
+      <div>
+        <div style="font-size:11px; color:#94a3b8;" data-key="lblYourFriendCode">Your Friend ID</div>
+        <div id="myFriendCodeDisplay" class="friend-code-value">------</div>
+      </div>
+      <button class="btn-secondary" style="width:auto; padding:8px 14px; font-size:12px;" onclick="copyFriendCode()" data-key="btnCopyCode">Copy 📋</button>
+    </div>
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:6px;" data-key="lblAddFriendId">Add Friend by ID:</label>
+    <div style="display:flex; gap:6px;">
+      <input type="text" id="addFriendIdInput" data-key-placeholder="lblFriendIdPlaceholder" placeholder="Enter Friend ID (e.g. AB12CD)" style="margin:0; text-transform:uppercase;">
+      <button onclick="sendFriendRequestById()" style="width:auto; padding:0 18px;" data-key="btnSendRequest">Send</button>
+    </div>
+
+    <div id="friendRequestsSection">
+      <div class="friends-section-title" data-key="lblIncomingRequests">📩 Friend Requests</div>
+      <div id="friendRequestsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
+    <div id="roomInvitesSection">
+      <div class="friends-section-title" data-key="lblRoomInvites">🎮 Station Invites</div>
+      <div id="roomInvitesList" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
+    <div class="friends-section-title" data-key="lblMyFriendsList">🚀 My Friends</div>
+    <div id="myFriendsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+  </div>
+</div>
+
 <!-- 5. CREATE / EDIT ROOM SCREEN -->
 <div id="create-room-screen" class="page-screen hidden" style="z-index:20;">
   <div class="container-box">
@@ -441,6 +505,7 @@
 
     <div id="host-controls" class="hidden">
       <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
+      <button onclick="openInviteFriendsModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnInviteFriends">Invite Friends 👥</button>
       <button onclick="startGame()" data-key="btnStartGame">Start Mission 🚀</button>
     </div>
 
@@ -541,6 +606,15 @@
   </div>
 </div>
 
+<!-- INVITE FRIENDS PANEL (host, from inside a room) -->
+<div id="invite-friends-panel" class="modal-overlay-panel hidden">
+  <div class="container-box" style="max-width:380px;">
+    <h3 style="text-align:center; margin-bottom:15px;" data-key="btnInviteFriends">Invite Friends 👥</h3>
+    <div id="inviteFriendsListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
+    <button class="btn-secondary" style="margin-top:15px;" onclick="closeInviteFriendsModal()" data-key="btnCancel">Cancel</button>
+  </div>
+</div>
+
 <!-- BOTTOM NAVIGATION BAR -->
 <div id="main-bottom-nav" class="bottom-nav hidden">
   <div class="nav-item active" id="nav-home" onclick="switchTab('tab-home')">
@@ -550,6 +624,11 @@
   <div class="nav-item" id="nav-stations" onclick="switchTab('tab-stations')">
     <span class="nav-icon">🌐</span>
     <span data-key="navStations">Stations</span>
+  </div>
+  <div class="nav-item" id="nav-friends" onclick="switchTab('tab-friends')">
+    <span class="nav-icon">👥</span>
+    <span data-key="navFriends">Friends</span>
+    <span id="friendsNavBadge" class="nav-badge-dot hidden">0</span>
   </div>
   <div class="nav-item" id="nav-settings" onclick="switchTab('tab-settings')">
     <span class="nav-icon">⚙️</span>
@@ -704,7 +783,7 @@ const dictionary = {
     btnLeaveStation: "Leave Station 🚪", btnSkipVote: "⏩ Skip Vote",
     spiesTeamLabel: "🕵️ Spies Team:", crewTeamLabel: "🚀 Crew Team:",
     btnReturnLobby: "Return to Lobby 🔄", btnLeaveGame: "Leave the game 🚪",
-    navHome: "Home", navStations: "Stations", navSettings: "Settings",
+    navHome: "Home", navStations: "Stations", navSettings: "Settings", navFriends: "Friends",
     categoryPrefix: "Category: ",
     errFillFields: "Please fill in all fields!", errUsernameRequired: "Username is required!", errUsernameTaken: "Username is already taken!",
     errInvalidCode: "Enter a valid 6-character code!", errStationFull: "Station is full!", errStationNotExist: "Station does not exist!",
@@ -726,7 +805,19 @@ const dictionary = {
     lblYourTurn: "🎤 Your turn! Give a subtle clue...", lblWaitingForTurn: "⏳ Waiting for {name} to speak...",
     lblSpectatorTag: "👁️ Spectating", lblInGameTag: "🎮 In Game", lblInLobbyTag: "🏠 In Lobby", lblSettingsBtn: "Settings", lblLeaveGameBtn: "Leave Game 🚪",
     lblSoundInGame: "Sound Volume 🔊", lblVoteTime: "Vote Time:", lblNone: "None",
-    youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️"
+    youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️",
+    errOneWordOnly: "One word only per message! ✋",
+    friendsTitle: "👥 Friends Network", lblYourFriendCode: "Your Friend ID", btnCopyCode: "Copy 📋", msgCodeCopied: "Friend ID copied! 📋",
+    lblAddFriendId: "Add Friend by ID:", lblFriendIdPlaceholder: "Enter Friend ID (e.g. AB12CD)", btnSendRequest: "Send",
+    lblIncomingRequests: "📩 Friend Requests", lblRoomInvites: "🎮 Station Invites", lblMyFriendsList: "🚀 My Friends",
+    errFriendCodeNotFound: "No player found with this ID!", errCannotAddSelf: "You can't add yourself!",
+    errAlreadyFriends: "You're already friends!", errRequestAlreadySent: "Friend request already sent!",
+    msgRequestSent: "Friend request sent! 📨", msgFriendAdded: "Friend added! 🎉", msgFriendRequestReceived: "{name} sent you a friend request! 📩",
+    msgInviteSent: "Invite sent to {name}! 🚀", msgInviteReceived: "{name} invited you to their station! 🎮",
+    btnInviteFriends: "Invite Friends 👥", lblNoFriendsToInvite: "All your friends are already here, or you have no friends yet.",
+    lblNoFriendsYet: "No friends yet. Add some using their Friend ID above!", lblNoPendingRequests: "No pending requests.", lblNoPendingInvites: "No pending invites.",
+    btnInvite: "Invite", btnAccept: "Accept ✔️", btnDecline: "Decline ✖️", btnJoinInvite: "Join 🎮", btnPending: "Pending ⏳",
+    tagAlreadyFriend: "Friends ✓", tagRequestReceived: "Accept? ✔️"
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -745,7 +836,7 @@ const dictionary = {
     btnLeaveStation: "مغادرة المحطة 🚪", btnSkipVote: "⏩ تخطي التصويت",
     spiesTeamLabel: "🕵️ فريق الجواسيس:", crewTeamLabel: "🚀 فريق الطاقم:",
     btnReturnLobby: "العودة للوبي 🔄", btnLeaveGame: "مغادرة اللعبة 🚪",
-    navHome: "الرئيسية", navStations: "المحطات", navSettings: "الإعدادات",
+    navHome: "الرئيسية", navStations: "المحطات", navSettings: "الإعدادات", navFriends: "الأصدقاء",
     categoryPrefix: "فئة الروم: ",
     errFillFields: "يرجى ملء جميع الحقول!", errUsernameRequired: "اسم المستخدم مطلوب!", errUsernameTaken: "اسم المستخدم مأخوذ بالفعل!",
     errInvalidCode: "أدخل كود مكون من 6 أحرف صحيح!", errStationFull: "المحطة ممتلئة بالكامل!", errStationNotExist: "المحطة غير موجودة!",
@@ -767,7 +858,19 @@ const dictionary = {
     lblYourTurn: "🎤 دورك! اديهم تلميح بسيط من غير ما توضح...", lblWaitingForTurn: "⏳ في انتظار {name} عشان يتكلم...",
     lblSpectatorTag: "👁️ بتتفرج", lblInGameTag: "🎮 لسه بيلعب", lblInLobbyTag: "🏠 في اللوبي", lblSettingsBtn: "الإعدادات", lblLeaveGameBtn: "الخروج من اللعبة 🚪",
     lblSoundInGame: "مستوى الصوت 🔊", lblVoteTime: "وقت التصويت:", lblNone: "لا يوجد",
-    youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️"
+    youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️",
+    errOneWordOnly: "كلمة واحدة بس في كل رسالة! ✋",
+    friendsTitle: "👥 شبكة الأصدقاء", lblYourFriendCode: "كود صداقتك", btnCopyCode: "نسخ 📋", msgCodeCopied: "تم نسخ الكود! 📋",
+    lblAddFriendId: "إضافة صديق بالكود:", lblFriendIdPlaceholder: "أدخل كود الصديق (مثل AB12CD)", btnSendRequest: "إرسال",
+    lblIncomingRequests: "📩 طلبات الصداقة", lblRoomInvites: "🎮 دعوات المحطات", lblMyFriendsList: "🚀 أصدقائي",
+    errFriendCodeNotFound: "معندناش لاعب بالكود ده!", errCannotAddSelf: "مينفعش تضيف نفسك!",
+    errAlreadyFriends: "انتوا أصحاب بالفعل!", errRequestAlreadySent: "الطلب اتبعت بالفعل!",
+    msgRequestSent: "تم إرسال طلب الصداقة! 📨", msgFriendAdded: "تم إضافة الصديق! 🎉", msgFriendRequestReceived: "{name} بعتلك طلب صداقة! 📩",
+    msgInviteSent: "تم إرسال الدعوة لـ {name}! 🚀", msgInviteReceived: "{name} دعاك لمحطته! 🎮",
+    btnInviteFriends: "دعوة أصدقاء 👥", lblNoFriendsToInvite: "كل أصحابك موجودين في المحطة بالفعل، أو معندكش أصدقاء لسه.",
+    lblNoFriendsYet: "معندكش أصدقاء لسه. ضيف حد بكود الصداقة بتاعه فوق!", lblNoPendingRequests: "مفيش طلبات معلقة.", lblNoPendingInvites: "مفيش دعوات معلقة.",
+    btnInvite: "دعوة", btnAccept: "قبول ✔️", btnDecline: "رفض ✖️", btnJoinInvite: "دخول 🎮", btnPending: "معلق ⏳",
+    tagAlreadyFriend: "أصحاب ✓", tagRequestReceived: "قبول؟ ✔️"
   }
 };
 
@@ -810,6 +913,8 @@ function changeLanguage(lang) {
       }
     });
   }
+
+  renderFriendsTab();
 }
 
 function toggleAuthLanguage() {
@@ -822,6 +927,16 @@ let turnSyncStarting = false, advancingTurn = false, processingVoteResults = fal
 let roomListener = null, annListener = null;
 let lastAnnouncedRound = 0;
 let lastDisconnectStatus = null;
+let lastRoomSnapshotData = null;
+
+// ---- Friends system state ----
+let friendsCache = {};
+let friendRequestsCache = {};
+let sentRequestsCache = {};
+let roomInvitesCache = {};
+let friendsListenersReady = false;
+let friendRequestsFirstLoad = true;
+let roomInvitesFirstLoad = true;
 
 const CATEGORY_META = {
   players: { icon: '⚽', key: 'catFootball' },
@@ -912,6 +1027,7 @@ function switchTab(tabId) {
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   if (tabId === 'tab-home') document.getElementById('nav-home').classList.add('active');
   if (tabId === 'tab-stations') document.getElementById('nav-stations').classList.add('active');
+  if (tabId === 'tab-friends') { document.getElementById('nav-friends').classList.add('active'); renderFriendsTab(); }
   if (tabId === 'tab-settings') document.getElementById('nav-settings').classList.add('active');
 
   toggleBottomNav(true);
@@ -1047,6 +1163,8 @@ function initUser(user) {
     document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
   });
 
+  ensureFriendCode();
+  listenToFriendsData();
   listenToPublicRooms();
 
   const savedRoom = localStorage.getItem('spy_station_room');
@@ -1162,6 +1280,331 @@ async function handleFileUpload(e) {
 }
 
 function updateAvatarPreview() { document.getElementById('settingAvatarPreview').src = document.getElementById('settingAvatarUrl').value; }
+
+// ==================== FRIENDS SYSTEM ====================
+
+function generateFriendCodeString() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0; i<6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+async function ensureFriendCode() {
+  if(!currentUser) return;
+  const snap = await db.ref(`users/${currentUser.uid}/friendCode`).once('value');
+  if(snap.exists()) {
+    const codeEl = document.getElementById('myFriendCodeDisplay');
+    if(codeEl) codeEl.innerText = snap.val();
+    return;
+  }
+
+  let attempts = 0;
+  let newCode = generateFriendCodeString();
+  while(attempts < 6) {
+    const existsSnap = await db.ref(`friendCodes/${newCode}`).once('value');
+    if(!existsSnap.exists()) break;
+    newCode = generateFriendCodeString();
+    attempts++;
+  }
+
+  await db.ref(`friendCodes/${newCode}`).set(currentUser.uid);
+  await db.ref(`users/${currentUser.uid}/friendCode`).set(newCode);
+  const codeEl = document.getElementById('myFriendCodeDisplay');
+  if(codeEl) codeEl.innerText = newCode;
+}
+
+function copyFriendCode() {
+  const codeEl = document.getElementById('myFriendCodeDisplay');
+  const code = codeEl ? codeEl.innerText : '';
+  if(!code || code === '------') return;
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => showToast(dictionary[currentLang].msgCodeCopied, 'success'));
+  } else {
+    showToast(code);
+  }
+}
+
+function listenToFriendsData() {
+  if(friendsListenersReady || !currentUser) return;
+  friendsListenersReady = true;
+
+  db.ref(`users/${currentUser.uid}/friends`).on('value', snap => {
+    friendsCache = snap.val() || {};
+    renderFriendsTab();
+    renderLobbyPlayersIfVisible();
+  });
+
+  db.ref(`users/${currentUser.uid}/sentRequests`).on('value', snap => {
+    sentRequestsCache = snap.val() || {};
+    renderFriendsTab();
+    renderLobbyPlayersIfVisible();
+  });
+
+  db.ref(`users/${currentUser.uid}/friendRequests`).on('value', snap => {
+    friendRequestsCache = snap.val() || {};
+    renderFriendsTab();
+    updateFriendsBadge();
+  });
+
+  db.ref(`users/${currentUser.uid}/friendRequests`).on('child_added', snap => {
+    if(friendRequestsFirstLoad) return;
+    const req = snap.val();
+    if(req) showToast(dictionary[currentLang].msgFriendRequestReceived.replace('{name}', req.name || '?'), 'normal');
+  });
+  db.ref(`users/${currentUser.uid}/friendRequests`).once('value', () => { friendRequestsFirstLoad = false; });
+
+  db.ref(`users/${currentUser.uid}/roomInvites`).on('value', snap => {
+    roomInvitesCache = snap.val() || {};
+    renderFriendsTab();
+    updateFriendsBadge();
+  });
+
+  db.ref(`users/${currentUser.uid}/roomInvites`).on('child_added', snap => {
+    if(roomInvitesFirstLoad) return;
+    const inv = snap.val();
+    if(inv) showToast(dictionary[currentLang].msgInviteReceived.replace('{name}', inv.fromName || '?'), 'normal');
+  });
+  db.ref(`users/${currentUser.uid}/roomInvites`).once('value', () => { roomInvitesFirstLoad = false; });
+}
+
+function updateFriendsBadge() {
+  const badge = document.getElementById('friendsNavBadge');
+  if(!badge) return;
+  const count = Object.keys(friendRequestsCache || {}).length + Object.keys(roomInvitesCache || {}).length;
+  if(count > 0) {
+    badge.innerText = count > 9 ? '9+' : count;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+async function sendFriendRequestById() {
+  const input = document.getElementById('addFriendIdInput');
+  const code = input.value.trim().toUpperCase();
+  if(!code) return;
+
+  const codeSnap = await db.ref(`friendCodes/${code}`).once('value');
+  if(!codeSnap.exists()) return showToast(dictionary[currentLang].errFriendCodeNotFound, 'danger');
+
+  const targetUid = codeSnap.val();
+  const ok = await sendFriendRequestToUid(targetUid);
+  if(ok) input.value = '';
+}
+
+async function sendFriendRequestToUid(targetUid) {
+  if(!currentUser) return false;
+  if(targetUid === currentUser.uid) { showToast(dictionary[currentLang].errCannotAddSelf, 'danger'); return false; }
+
+  const friendSnap = await db.ref(`users/${currentUser.uid}/friends/${targetUid}`).once('value');
+  if(friendSnap.exists()) { showToast(dictionary[currentLang].errAlreadyFriends, 'danger'); return false; }
+
+  const sentSnap = await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).once('value');
+  if(sentSnap.exists()) { showToast(dictionary[currentLang].errRequestAlreadySent, 'danger'); return false; }
+
+  await db.ref(`users/${targetUid}/friendRequests/${currentUser.uid}`).set({
+    name: currentUser.displayName || '', avatar: currentUser.photoURL || '', timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+  await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).set(true);
+  showToast(dictionary[currentLang].msgRequestSent, 'success');
+  return true;
+}
+
+async function acceptFriendRequest(fromUid) {
+  const req = friendRequestsCache[fromUid];
+  const fromName = (req && req.name) || '';
+  const fromAvatar = (req && req.avatar) || '';
+  const now = firebase.database.ServerValue.TIMESTAMP;
+
+  await db.ref(`users/${currentUser.uid}/friends/${fromUid}`).set({ name: fromName, avatar: fromAvatar, since: now });
+  await db.ref(`users/${fromUid}/friends/${currentUser.uid}`).set({ name: currentUser.displayName || '', avatar: currentUser.photoURL || '', since: now });
+  await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
+  await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
+  showToast(dictionary[currentLang].msgFriendAdded, 'success');
+}
+
+async function declineFriendRequest(fromUid) {
+  await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
+  await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
+}
+
+async function joinFromInvite(fromUid, roomCode) {
+  await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
+  joinDirectRoom(roomCode);
+}
+
+async function dismissInvite(fromUid) {
+  await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
+}
+
+function renderFriendsTab() {
+  if(!currentUser) return;
+  const lang = currentLang;
+
+  // Friend requests
+  const reqKeys = Object.keys(friendRequestsCache || {});
+  const reqContainer = document.getElementById('friendRequestsList');
+  if(reqContainer) {
+    reqContainer.innerHTML = reqKeys.length ? reqKeys.map(uid => {
+      const r = friendRequestsCache[uid];
+      return `
+        <div class="player-item">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img class="avatar-img" style="width:32px; height:32px;" src="${r.avatar || ''}" alt="a">
+            <span style="font-size:13px; font-weight:bold;">${r.name || 'Player'}</span>
+          </div>
+          <div style="display:flex; gap:6px; width:auto;">
+            <button class="icon-btn icon-btn-accept" onclick="acceptFriendRequest('${uid}')">${dictionary[lang].btnAccept}</button>
+            <button class="icon-btn icon-btn-decline" onclick="declineFriendRequest('${uid}')">${dictionary[lang].btnDecline}</button>
+          </div>
+        </div>
+      `;
+    }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoPendingRequests}</div>`;
+  }
+
+  // Room invites
+  const invKeys = Object.keys(roomInvitesCache || {});
+  const invContainer = document.getElementById('roomInvitesList');
+  if(invContainer) {
+    invContainer.innerHTML = invKeys.length ? invKeys.map(uid => {
+      const inv = roomInvitesCache[uid];
+      return `
+        <div class="player-item">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img class="avatar-img" style="width:32px; height:32px;" src="${inv.fromAvatar || ''}" alt="a">
+            <span style="font-size:13px; font-weight:bold;">${inv.fromName || 'Player'}</span>
+          </div>
+          <div style="display:flex; gap:6px; width:auto;">
+            <button class="icon-btn icon-btn-join" onclick="joinFromInvite('${uid}', '${inv.roomCode}')">${dictionary[lang].btnJoinInvite}</button>
+            <button class="icon-btn icon-btn-decline" onclick="dismissInvite('${uid}')">${dictionary[lang].btnDecline}</button>
+          </div>
+        </div>
+      `;
+    }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoPendingInvites}</div>`;
+  }
+
+  // Friends list
+  const friendKeys = Object.keys(friendsCache || {});
+  const friendsContainer = document.getElementById('myFriendsList');
+  if(friendsContainer) {
+    friendsContainer.innerHTML = friendKeys.length ? friendKeys.map(uid => {
+      const f = friendsCache[uid];
+      const hasInvite = roomInvitesCache && roomInvitesCache[uid];
+      const rightSide = hasInvite
+        ? `<button class="icon-btn icon-btn-join" onclick="joinFromInvite('${uid}', '${hasInvite.roomCode}')">${dictionary[lang].btnJoinInvite}</button>`
+        : `<span class="status-tag in-game" style="background:rgba(56,189,248,0.12); color:var(--accent-blue);">${dictionary[lang].tagAlreadyFriend}</span>`;
+      return `
+        <div class="player-item">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img class="avatar-img" style="width:32px; height:32px;" src="${f.avatar || ''}" alt="a">
+            <span style="font-size:13px; font-weight:bold;">${f.name || 'Player'}</span>
+          </div>
+          ${rightSide}
+        </div>
+      `;
+    }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoFriendsYet}</div>`;
+  }
+
+  const codeEl = document.getElementById('myFriendCodeDisplay');
+  if(codeEl && codeEl.innerText === '------' && currentUser) {
+    db.ref(`users/${currentUser.uid}/friendCode`).once('value', snap => {
+      if(snap.exists()) codeEl.innerText = snap.val();
+    });
+  }
+}
+
+async function openInviteFriendsModal() {
+  const friendsSnap = await db.ref(`users/${currentUser.uid}/friends`).once('value');
+  const friends = friendsSnap.val() || {};
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}/players`).once('value');
+  const playersObj = roomSnap.val() || {};
+
+  const container = document.getElementById('inviteFriendsListContainer');
+  let html = '';
+  for(let fUid in friends) {
+    if(playersObj[fUid]) continue;
+    const f = friends[fUid];
+    html += `
+      <div class="player-item">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${f.avatar || ''}" alt="a">
+          <span style="font-size:13px; font-weight:bold;">${f.name || 'Player'}</span>
+        </div>
+        <button onclick="inviteFriendToRoom('${fUid}', this)" style="width:auto; padding:6px 16px; font-size:12px;">${dictionary[currentLang].btnInvite}</button>
+      </div>
+    `;
+  }
+  container.innerHTML = html || `<div style="font-size:13px; color:#64748b; padding:15px; text-align:center;">${dictionary[currentLang].lblNoFriendsToInvite}</div>`;
+  document.getElementById('invite-friends-panel').classList.remove('hidden');
+}
+
+function closeInviteFriendsModal() {
+  document.getElementById('invite-friends-panel').classList.add('hidden');
+}
+
+async function inviteFriendToRoom(friendUid, btnEl) {
+  const friendSnap = await db.ref(`users/${currentUser.uid}/friends/${friendUid}`).once('value');
+  const f = friendSnap.val() || {};
+
+  await db.ref(`users/${friendUid}/roomInvites/${currentUser.uid}`).set({
+    roomCode: currentRoom,
+    fromName: currentUser.displayName || '',
+    fromAvatar: currentUser.photoURL || '',
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  showToast(dictionary[currentLang].msgInviteSent.replace('{name}', f.name || ''), 'success');
+  if(btnEl) { btnEl.disabled = true; btnEl.innerText = dictionary[currentLang].btnPending; }
+}
+
+function renderLobbyPlayersIfVisible() {
+  const lobbyScreen = document.getElementById('lobby-screen');
+  if(lobbyScreen && !lobbyScreen.classList.contains('hidden') && lastRoomSnapshotData) {
+    renderLobbyPlayersList(lastRoomSnapshotData);
+  }
+}
+
+function friendActionButtonHTML(uid) {
+  if(!currentUser || uid === currentUser.uid) return '';
+  if(friendsCache && friendsCache[uid]) {
+    return `<span class="status-tag in-game" style="background:rgba(56,189,248,0.12); color:var(--accent-blue); margin-inline-start:6px;">${dictionary[currentLang].tagAlreadyFriend}</span>`;
+  }
+  if(sentRequestsCache && sentRequestsCache[uid]) {
+    return `<button class="icon-btn icon-btn-pending" disabled style="margin-inline-start:6px;">${dictionary[currentLang].btnPending}</button>`;
+  }
+  if(friendRequestsCache && friendRequestsCache[uid]) {
+    return `<button class="icon-btn icon-btn-accept" style="margin-inline-start:6px;" onclick="acceptFriendRequest('${uid}')">${dictionary[currentLang].tagRequestReceived}</button>`;
+  }
+  return `<button class="icon-btn" style="margin-inline-start:6px; background:rgba(56,189,248,0.15); color:var(--accent-blue); border:1px solid var(--glass-border);" onclick="sendFriendRequestToUid('${uid}')">➕</button>`;
+}
+
+function renderLobbyPlayersList(data) {
+  const playersObj = data.players || {};
+  const playersArr = Object.values(playersObj);
+
+  document.getElementById('playerCount').innerText = playersArr.length;
+  document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
+  document.getElementById('host-controls').classList.toggle('hidden', !isHost);
+
+  document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
+    <div class="player-item">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar || ''}" alt="a">
+        <span style="font-size:13px; font-weight:bold;">${p.name || 'Player'} ${p.uid === data.hostUid ? '👑' : ''}</span>
+        ${friendActionButtonHTML(p.uid)}
+      </div>
+      ${(isHost && p.uid !== currentUser.uid) ? `
+        <div style="display:flex; gap:4px; width:auto;">
+          <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
+          <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+// ==================== END FRIENDS SYSTEM ====================
 
 function openCreateRoomModal(cat) {
   playSound(350, 'sine', 0.1);
@@ -1310,6 +1753,7 @@ async function leaveRoom(manual = false) {
     currentRoom = null;
     lastAnnouncedRound = 0;
     lastDisconnectStatus = null;
+    lastRoomSnapshotData = null;
     clearInterval(turnInterval); turnInterval = null;
     clearInterval(voteInterval); voteInterval = null;
     turnSyncStarting = false;
@@ -1387,6 +1831,8 @@ async function joinRoomProcess() {
       return;
     }
 
+    lastRoomSnapshotData = data;
+
     handleHostAssignment(data);
     ensureHostTimersRunning(data);
     updateDisconnectBehavior(data.status);
@@ -1406,26 +1852,9 @@ async function joinRoomProcess() {
 
     if(data.status === 'waiting') {
       document.getElementById('roomCodeDisplay').innerText = currentRoom;
-      document.getElementById('playerCount').innerText = playersArr.length;
-      document.getElementById('maxPlayerCount').innerText = data.maxPlayers || 20;
-
       document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${formatCategoriesLabel(roomCats, currentLang)}`;
 
-      document.getElementById('host-controls').classList.toggle('hidden', !isHost);
-      document.getElementById('playersContainer').innerHTML = playersArr.map(p => `
-        <div class="player-item">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar || ''}" alt="a">
-            <span style="font-size:13px; font-weight:bold;">${p.name || 'Player'} ${p.uid === data.hostUid ? '👑' : ''}</span>
-          </div>
-          ${(isHost && p.uid !== currentUser.uid) ? `
-            <div style="display:flex; gap:4px; width:auto;">
-              <button onclick="makeHost('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px; background:var(--accent-purple);">👑</button>
-              <button onclick="kickPlayer('${p.uid}')" style="width:auto; padding:4px 8px; font-size:10px;" class="btn-danger">❌</button>
-            </div>
-          ` : ''}
-        </div>
-      `).join('');
+      renderLobbyPlayersList(data);
 
       document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
       document.getElementById('lobby-screen').classList.remove('hidden');
@@ -1485,6 +1914,10 @@ function handleHostAssignment(data) {
       const hp = room.hostUid ? room.players[room.hostUid] : null;
       const stillActive = hp && !hp.isSpectator;
       if(stillActive) return room;
+      // Whoever becomes the new host is picked purely by who joined the
+      // room earliest among the players who are still here - this reflects
+      // who was around while the previous host was still present, not who
+      // happens to be first in line *after* the host's departure.
       const activeSorted = Object.values(room.players)
         .filter(p => !p.isSpectator)
         .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
@@ -1535,6 +1968,13 @@ async function sendChatMessage(screen) {
   if(!msg) return;
 
   if(screen === 'Game') {
+    // The game chat is used to give clues during a round, so only a single
+    // word is allowed per message - no spaces, no multi-word phrases.
+    if(/\s/.test(msg)) {
+      showToast(dictionary[currentLang].errOneWordOnly, 'danger');
+      return;
+    }
+
     const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
     const room = roomSnap.val();
     if(!room) return;
@@ -1619,6 +2059,9 @@ async function startGame() {
     gameChat: null,
     players: resetPlayers
   });
+
+  const gameInputEl = document.getElementById('chatInputGame');
+  if(gameInputEl) gameInputEl.value = '';
 
   broadcastAnnouncement(dictionary[currentLang].annMissionStarted, 'normal');
 }
@@ -1791,10 +2234,21 @@ function updateSpectatorBadges(data) {
 }
 
 function showGameScreen(data) {
+  // A fresh new GAME (not just a new round) is round 1 being announced for
+  // the first time this session - that's the only moment the game chat
+  // input should be wiped locally; every other round transition must leave
+  // whatever the player is mid-typing untouched.
+  const isFreshGameStart = data.round === 1 && lastAnnouncedRound !== 1;
+
   maybeShowRoundAnnounce(data.round, () => {
     document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
     document.getElementById('game-screen').classList.remove('hidden');
   });
+
+  if(isFreshGameStart) {
+    const gameInputEl = document.getElementById('chatInputGame');
+    if(gameInputEl) gameInputEl.value = '';
+  }
 
   const playersObj = data.players || {};
   const myPlayer = playersObj[currentUser.uid] || {};
