@@ -269,6 +269,26 @@
 
   .friends-section-title { font-size: 13px; color: #94a3b8; margin: 14px 0 8px 0; font-weight: bold; }
 
+  .friends-subtabs { display: flex; gap: 6px; margin: 10px 0 15px 0; }
+  .friend-subtab-btn {
+    flex: 1; width: auto; padding: 10px 6px; margin: 0; font-size: 12px; font-weight: 800;
+    background: rgba(15, 23, 42, 0.6); color: #94a3b8; border: 1px solid var(--glass-border);
+    position: relative; text-align: center;
+  }
+  .friend-subtab-btn.subtab-active { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: #030712; box-shadow: var(--neon-glow); }
+  .friend-subtab-count {
+    position: absolute; top: -6px; inset-inline-end: -6px; min-width: 16px; height: 16px; padding: 0 3px;
+    border-radius: 999px; background: var(--danger-red); color: white; font-size: 9px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(239,68,68,0.6);
+  }
+
+  .presence-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-inline-end: 4px; flex-shrink: 0; }
+  .presence-dot.online { background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.8); }
+  .presence-dot.offline { background: #64748b; }
+  .presence-label { font-size: 10px; color: #94a3b8; display: flex; align-items: center; margin-top: 2px; }
+
+  .icon-btn-remove { background: rgba(239,68,68,0.12); color: var(--danger-red); border: 1px solid rgba(239,68,68,0.35); font-size: 15px; padding: 6px 9px; }
+
   .modal-overlay-panel {
     position: fixed; inset: 0; background: rgba(3,7,18,0.9); z-index: 60;
     display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -440,30 +460,43 @@
 
     <div class="friend-code-box">
       <div>
-        <div style="font-size:11px; color:#94a3b8;" data-key="lblYourFriendCode">Your Friend ID</div>
-        <div id="myFriendCodeDisplay" class="friend-code-value">------</div>
+        <div style="font-size:11px; color:#94a3b8;" data-key="lblYourFriendCode">Your ID</div>
+        <div id="myFriendCodeDisplay" class="friend-code-value">--------</div>
       </div>
       <button class="btn-secondary" style="width:auto; padding:8px 14px; font-size:12px;" onclick="copyFriendCode()" data-key="btnCopyCode">Copy 📋</button>
     </div>
 
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:6px;" data-key="lblAddFriendId">Add Friend by ID:</label>
     <div style="display:flex; gap:6px;">
-      <input type="text" id="addFriendIdInput" data-key-placeholder="lblFriendIdPlaceholder" placeholder="Enter Friend ID (e.g. AB12CD)" style="margin:0; text-transform:uppercase;">
+      <input type="text" id="addFriendIdInput" data-key-placeholder="lblFriendIdPlaceholder" placeholder="Enter Friend ID (e.g. AB12CD34)" style="margin:0; text-transform:uppercase;">
       <button onclick="sendFriendRequestById()" style="width:auto; padding:0 18px;" data-key="btnSendRequest">Send</button>
     </div>
 
-    <div id="friendRequestsSection">
-      <div class="friends-section-title" data-key="lblIncomingRequests">📩 Friend Requests</div>
+    <div class="friends-subtabs">
+      <button class="friend-subtab-btn subtab-active" id="subtab-btn-myFriends" onclick="switchFriendsSubtab('myFriends')">
+        <span data-key="subtabMyFriends">🚀 My Friends</span>
+      </button>
+      <button class="friend-subtab-btn" id="subtab-btn-requests" onclick="switchFriendsSubtab('requests')">
+        <span data-key="subtabRequests">📩 Requests</span>
+        <span id="requestsSubtabCount" class="friend-subtab-count hidden">0</span>
+      </button>
+      <button class="friend-subtab-btn" id="subtab-btn-invites" onclick="switchFriendsSubtab('invites')">
+        <span data-key="subtabInvites">🎮 Invites</span>
+        <span id="invitesSubtabCount" class="friend-subtab-count hidden">0</span>
+      </button>
+    </div>
+
+    <div id="subtab-content-myFriends">
+      <div id="myFriendsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
+    <div id="subtab-content-requests" class="hidden">
       <div id="friendRequestsList" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 
-    <div id="roomInvitesSection">
-      <div class="friends-section-title" data-key="lblRoomInvites">🎮 Station Invites</div>
+    <div id="subtab-content-invites" class="hidden">
       <div id="roomInvitesList" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
-
-    <div class="friends-section-title" data-key="lblMyFriendsList">🚀 My Friends</div>
-    <div id="myFriendsList" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 </div>
 
@@ -807,17 +840,20 @@ const dictionary = {
     lblSoundInGame: "Sound Volume 🔊", lblVoteTime: "Vote Time:", lblNone: "None",
     youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️",
     errOneWordOnly: "One word only per message! ✋",
-    friendsTitle: "👥 Friends Network", lblYourFriendCode: "Your Friend ID", btnCopyCode: "Copy 📋", msgCodeCopied: "Friend ID copied! 📋",
-    lblAddFriendId: "Add Friend by ID:", lblFriendIdPlaceholder: "Enter Friend ID (e.g. AB12CD)", btnSendRequest: "Send",
+    friendsTitle: "👥 Friends Network", lblYourFriendCode: "Your ID", btnCopyCode: "Copy 📋", msgCodeCopied: "ID copied! 📋",
+    lblAddFriendId: "Add Friend by ID:", lblFriendIdPlaceholder: "Enter Friend ID (e.g. AB12CD34)", btnSendRequest: "Send",
     lblIncomingRequests: "📩 Friend Requests", lblRoomInvites: "🎮 Station Invites", lblMyFriendsList: "🚀 My Friends",
     errFriendCodeNotFound: "No player found with this ID!", errCannotAddSelf: "You can't add yourself!",
     errAlreadyFriends: "You're already friends!", errRequestAlreadySent: "Friend request already sent!",
     msgRequestSent: "Friend request sent! 📨", msgFriendAdded: "Friend added! 🎉", msgFriendRequestReceived: "{name} sent you a friend request! 📩",
     msgInviteSent: "Invite sent to {name}! 🚀", msgInviteReceived: "{name} invited you to their station! 🎮",
     btnInviteFriends: "Invite Friends 👥", lblNoFriendsToInvite: "All your friends are already here, or you have no friends yet.",
-    lblNoFriendsYet: "No friends yet. Add some using their Friend ID above!", lblNoPendingRequests: "No pending requests.", lblNoPendingInvites: "No pending invites.",
+    lblNoFriendsYet: "No friends yet. Add some using their ID above!", lblNoPendingRequests: "No pending requests.", lblNoPendingInvites: "No pending invites.",
     btnInvite: "Invite", btnAccept: "Accept ✔️", btnDecline: "Decline ✖️", btnJoinInvite: "Join 🎮", btnPending: "Pending ⏳",
-    tagAlreadyFriend: "Friends ✓", tagRequestReceived: "Accept? ✔️"
+    tagAlreadyFriend: "Friends ✓", tagRequestReceived: "Accept? ✔️",
+    subtabMyFriends: "🚀 My Friends", subtabRequests: "📩 Requests", subtabInvites: "🎮 Invites",
+    btnRemoveFriend: "🗑️", confirmRemoveFriend: "Remove {name} from your friends?", msgFriendRemoved: "Friend removed.",
+    lblOnline: "Online", lblOffline: "Offline"
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -860,17 +896,20 @@ const dictionary = {
     lblSoundInGame: "مستوى الصوت 🔊", lblVoteTime: "وقت التصويت:", lblNone: "لا يوجد",
     youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️",
     errOneWordOnly: "كلمة واحدة بس في كل رسالة! ✋",
-    friendsTitle: "👥 شبكة الأصدقاء", lblYourFriendCode: "كود صداقتك", btnCopyCode: "نسخ 📋", msgCodeCopied: "تم نسخ الكود! 📋",
-    lblAddFriendId: "إضافة صديق بالكود:", lblFriendIdPlaceholder: "أدخل كود الصديق (مثل AB12CD)", btnSendRequest: "إرسال",
+    friendsTitle: "👥 شبكة الأصدقاء", lblYourFriendCode: "الـ ID بتاعك", btnCopyCode: "نسخ 📋", msgCodeCopied: "تم نسخ الـ ID! 📋",
+    lblAddFriendId: "إضافة صديق بالكود:", lblFriendIdPlaceholder: "أدخل كود الصديق (مثل AB12CD34)", btnSendRequest: "إرسال",
     lblIncomingRequests: "📩 طلبات الصداقة", lblRoomInvites: "🎮 دعوات المحطات", lblMyFriendsList: "🚀 أصدقائي",
     errFriendCodeNotFound: "معندناش لاعب بالكود ده!", errCannotAddSelf: "مينفعش تضيف نفسك!",
     errAlreadyFriends: "انتوا أصحاب بالفعل!", errRequestAlreadySent: "الطلب اتبعت بالفعل!",
     msgRequestSent: "تم إرسال طلب الصداقة! 📨", msgFriendAdded: "تم إضافة الصديق! 🎉", msgFriendRequestReceived: "{name} بعتلك طلب صداقة! 📩",
     msgInviteSent: "تم إرسال الدعوة لـ {name}! 🚀", msgInviteReceived: "{name} دعاك لمحطته! 🎮",
     btnInviteFriends: "دعوة أصدقاء 👥", lblNoFriendsToInvite: "كل أصحابك موجودين في المحطة بالفعل، أو معندكش أصدقاء لسه.",
-    lblNoFriendsYet: "معندكش أصدقاء لسه. ضيف حد بكود الصداقة بتاعه فوق!", lblNoPendingRequests: "مفيش طلبات معلقة.", lblNoPendingInvites: "مفيش دعوات معلقة.",
+    lblNoFriendsYet: "معندكش أصدقاء لسه. ضيف حد بالـ ID بتاعه فوق!", lblNoPendingRequests: "مفيش طلبات معلقة.", lblNoPendingInvites: "مفيش دعوات معلقة.",
     btnInvite: "دعوة", btnAccept: "قبول ✔️", btnDecline: "رفض ✖️", btnJoinInvite: "دخول 🎮", btnPending: "معلق ⏳",
-    tagAlreadyFriend: "أصحاب ✓", tagRequestReceived: "قبول؟ ✔️"
+    tagAlreadyFriend: "أصحاب ✓", tagRequestReceived: "قبول؟ ✔️",
+    subtabMyFriends: "🚀 أصدقائي", subtabRequests: "📩 الطلبات", subtabInvites: "🎮 الدعوات",
+    btnRemoveFriend: "🗑️", confirmRemoveFriend: "تشيل {name} من أصدقائك؟", msgFriendRemoved: "تم حذف الصديق.",
+    lblOnline: "متصل", lblOffline: "غير متصل"
   }
 };
 
@@ -937,6 +976,10 @@ let roomInvitesCache = {};
 let friendsListenersReady = false;
 let friendRequestsFirstLoad = true;
 let roomInvitesFirstLoad = true;
+let currentFriendsSubtab = 'myFriends';
+let friendStatusCache = {};
+let friendStatusListeners = {};
+let presenceSetupDone = false;
 
 const CATEGORY_META = {
   players: { icon: '⚽', key: 'catFootball' },
@@ -1164,6 +1207,7 @@ function initUser(user) {
   });
 
   ensureFriendCode();
+  setupPresence();
   listenToFriendsData();
   listenToPublicRooms();
 
@@ -1286,7 +1330,7 @@ function updateAvatarPreview() { document.getElementById('settingAvatarPreview')
 function generateFriendCodeString() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  for(let i=0; i<6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  for(let i=0; i<8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
   return code;
 }
 
@@ -1299,19 +1343,63 @@ async function ensureFriendCode() {
     return;
   }
 
-  let attempts = 0;
-  let newCode = generateFriendCodeString();
-  while(attempts < 6) {
-    const existsSnap = await db.ref(`friendCodes/${newCode}`).once('value');
-    if(!existsSnap.exists()) break;
-    newCode = generateFriendCodeString();
-    attempts++;
+  // Claim a code atomically with a transaction instead of check-then-set:
+  // a plain read-then-write has a tiny race window where two people could
+  // grab the same code at the exact same moment. The transaction only
+  // succeeds if the slot is still empty, so a collision is impossible -
+  // if it's taken, the transaction aborts and we just try a new code.
+  let claimedCode = null;
+  let guard = 0;
+  while(!claimedCode && guard < 25) {
+    guard++;
+    const candidate = generateFriendCodeString();
+    const result = await db.ref(`friendCodes/${candidate}`).transaction(current => {
+      if(current !== null) return; // slot taken - abort this attempt
+      return currentUser.uid;
+    });
+    if(result.committed) claimedCode = candidate;
   }
 
-  await db.ref(`friendCodes/${newCode}`).set(currentUser.uid);
-  await db.ref(`users/${currentUser.uid}/friendCode`).set(newCode);
+  if(!claimedCode) return; // extremely unlikely to exhaust all attempts
+
+  await db.ref(`users/${currentUser.uid}/friendCode`).set(claimedCode);
   const codeEl = document.getElementById('myFriendCodeDisplay');
-  if(codeEl) codeEl.innerText = newCode;
+  if(codeEl) codeEl.innerText = claimedCode;
+}
+
+function setupPresence() {
+  if(presenceSetupDone || !currentUser) return;
+  presenceSetupDone = true;
+
+  const myStatusRef = db.ref(`status/${currentUser.uid}`);
+  db.ref('.info/connected').on('value', snap => {
+    if(snap.val() === false) return;
+    myStatusRef.onDisconnect().set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP }).then(() => {
+      myStatusRef.set({ state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP });
+    });
+  });
+}
+
+function attachFriendStatusListeners() {
+  const friendUids = Object.keys(friendsCache || {});
+
+  Object.keys(friendStatusListeners).forEach(uid => {
+    if(!friendUids.includes(uid)) {
+      db.ref(`status/${uid}`).off();
+      delete friendStatusListeners[uid];
+      delete friendStatusCache[uid];
+    }
+  });
+
+  friendUids.forEach(uid => {
+    if(friendStatusListeners[uid]) return;
+    friendStatusListeners[uid] = true;
+    db.ref(`status/${uid}`).on('value', snap => {
+      const val = snap.val();
+      friendStatusCache[uid] = (val && val.state === 'online') ? 'online' : 'offline';
+      renderFriendsTab();
+    });
+  });
 }
 
 function copyFriendCode() {
@@ -1331,6 +1419,7 @@ function listenToFriendsData() {
 
   db.ref(`users/${currentUser.uid}/friends`).on('value', snap => {
     friendsCache = snap.val() || {};
+    attachFriendStatusListeners();
     renderFriendsTab();
     renderLobbyPlayersIfVisible();
   });
@@ -1403,6 +1492,16 @@ async function sendFriendRequestToUid(targetUid) {
   const sentSnap = await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).once('value');
   if(sentSnap.exists()) { showToast(dictionary[currentLang].errRequestAlreadySent, 'danger'); return false; }
 
+  // If that person already sent ME a request, there's no need for a second
+  // one going the other way - just accept theirs directly so nobody ends up
+  // with two requests to the same person able to send one back.
+  const incomingSnap = await db.ref(`users/${currentUser.uid}/friendRequests/${targetUid}`).once('value');
+  if(incomingSnap.exists()) {
+    friendRequestsCache[targetUid] = incomingSnap.val();
+    await acceptFriendRequest(targetUid);
+    return true;
+  }
+
   await db.ref(`users/${targetUid}/friendRequests/${currentUser.uid}`).set({
     name: currentUser.displayName || '', avatar: currentUser.photoURL || '', timestamp: firebase.database.ServerValue.TIMESTAMP
   });
@@ -1429,6 +1528,15 @@ async function declineFriendRequest(fromUid) {
   await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
 }
 
+async function removeFriend(uid) {
+  const f = friendsCache[uid];
+  const name = (f && f.name) || '';
+  if(!confirm(dictionary[currentLang].confirmRemoveFriend.replace('{name}', name))) return;
+  await db.ref(`users/${currentUser.uid}/friends/${uid}`).remove();
+  await db.ref(`users/${uid}/friends/${currentUser.uid}`).remove();
+  showToast(dictionary[currentLang].msgFriendRemoved);
+}
+
 async function joinFromInvite(fromUid, roomCode) {
   await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
   joinDirectRoom(roomCode);
@@ -1438,11 +1546,21 @@ async function dismissInvite(fromUid) {
   await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
 }
 
+function switchFriendsSubtab(subtab) {
+  currentFriendsSubtab = subtab;
+  ['myFriends', 'requests', 'invites'].forEach(key => {
+    const content = document.getElementById(`subtab-content-${key}`);
+    const btn = document.getElementById(`subtab-btn-${key}`);
+    if(content) content.classList.toggle('hidden', key !== subtab);
+    if(btn) btn.classList.toggle('subtab-active', key === subtab);
+  });
+}
+
 function renderFriendsTab() {
   if(!currentUser) return;
   const lang = currentLang;
 
-  // Friend requests
+  // Friend requests (Requests sub-tab)
   const reqKeys = Object.keys(friendRequestsCache || {});
   const reqContainer = document.getElementById('friendRequestsList');
   if(reqContainer) {
@@ -1463,7 +1581,7 @@ function renderFriendsTab() {
     }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoPendingRequests}</div>`;
   }
 
-  // Room invites
+  // Room invites (Invites sub-tab)
   const invKeys = Object.keys(roomInvitesCache || {});
   const invContainer = document.getElementById('roomInvitesList');
   if(invContainer) {
@@ -1484,30 +1602,51 @@ function renderFriendsTab() {
     }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoPendingInvites}</div>`;
   }
 
-  // Friends list
+  // Friends list (My Friends sub-tab) - shows presence + a Join button when
+  // that specific friend also happens to have a pending invite waiting.
   const friendKeys = Object.keys(friendsCache || {});
   const friendsContainer = document.getElementById('myFriendsList');
   if(friendsContainer) {
     friendsContainer.innerHTML = friendKeys.length ? friendKeys.map(uid => {
       const f = friendsCache[uid];
       const hasInvite = roomInvitesCache && roomInvitesCache[uid];
-      const rightSide = hasInvite
-        ? `<button class="icon-btn icon-btn-join" onclick="joinFromInvite('${uid}', '${hasInvite.roomCode}')">${dictionary[lang].btnJoinInvite}</button>`
-        : `<span class="status-tag in-game" style="background:rgba(56,189,248,0.12); color:var(--accent-blue);">${dictionary[lang].tagAlreadyFriend}</span>`;
+      const status = friendStatusCache[uid] || 'offline';
+      const presenceHTML = `<div class="presence-label"><span class="presence-dot ${status}"></span>${status === 'online' ? dictionary[lang].lblOnline : dictionary[lang].lblOffline}</div>`;
+
+      let rightSide = `<button class="icon-btn icon-btn-remove" onclick="removeFriend('${uid}')" title="${dictionary[lang].btnRemoveFriend}">${dictionary[lang].btnRemoveFriend}</button>`;
+      if(hasInvite) {
+        rightSide = `<button class="icon-btn icon-btn-join" onclick="joinFromInvite('${uid}', '${hasInvite.roomCode}')">${dictionary[lang].btnJoinInvite}</button>` + rightSide;
+      }
+
       return `
         <div class="player-item">
           <div style="display:flex; align-items:center; gap:8px;">
             <img class="avatar-img" style="width:32px; height:32px;" src="${f.avatar || ''}" alt="a">
-            <span style="font-size:13px; font-weight:bold;">${f.name || 'Player'}</span>
+            <div>
+              <span style="font-size:13px; font-weight:bold; display:block;">${f.name || 'Player'}</span>
+              ${presenceHTML}
+            </div>
           </div>
-          ${rightSide}
+          <div style="display:flex; gap:6px; width:auto;">${rightSide}</div>
         </div>
       `;
     }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoFriendsYet}</div>`;
   }
 
+  // Sub-tab badge counts
+  const reqCountEl = document.getElementById('requestsSubtabCount');
+  if(reqCountEl) {
+    if(reqKeys.length > 0) { reqCountEl.innerText = reqKeys.length > 9 ? '9+' : reqKeys.length; reqCountEl.classList.remove('hidden'); }
+    else reqCountEl.classList.add('hidden');
+  }
+  const invCountEl = document.getElementById('invitesSubtabCount');
+  if(invCountEl) {
+    if(invKeys.length > 0) { invCountEl.innerText = invKeys.length > 9 ? '9+' : invKeys.length; invCountEl.classList.remove('hidden'); }
+    else invCountEl.classList.add('hidden');
+  }
+
   const codeEl = document.getElementById('myFriendCodeDisplay');
-  if(codeEl && codeEl.innerText === '------' && currentUser) {
+  if(codeEl && codeEl.innerText === '--------' && currentUser) {
     db.ref(`users/${currentUser.uid}/friendCode`).once('value', snap => {
       if(snap.exists()) codeEl.innerText = snap.val();
     });
