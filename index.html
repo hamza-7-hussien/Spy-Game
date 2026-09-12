@@ -1337,11 +1337,18 @@ function generateFriendCodeString() {
 async function ensureFriendCode() {
   if(!currentUser) return;
   const snap = await db.ref(`users/${currentUser.uid}/friendCode`).once('value');
-  if(snap.exists()) {
+  const existingCode = snap.exists() ? snap.val() : null;
+
+  // Anyone who already has a full 8-character ID keeps it as-is.
+  if(existingCode && existingCode.length === 8) {
     const codeEl = document.getElementById('myFriendCodeDisplay');
-    if(codeEl) codeEl.innerText = snap.val();
+    if(codeEl) codeEl.innerText = existingCode;
     return;
   }
+
+  // Accounts created before the ID length changed still have an old
+  // 6-character code - migrate them to a new unique 8-character one and
+  // retire the old lookup entry so nobody can claim it afterwards.
 
   // Claim a code atomically with a transaction instead of check-then-set:
   // a plain read-then-write has a tiny race window where two people could
@@ -1363,6 +1370,8 @@ async function ensureFriendCode() {
   if(!claimedCode) return; // extremely unlikely to exhaust all attempts
 
   await db.ref(`users/${currentUser.uid}/friendCode`).set(claimedCode);
+  if(existingCode) await db.ref(`friendCodes/${existingCode}`).remove();
+
   const codeEl = document.getElementById('myFriendCodeDisplay');
   if(codeEl) codeEl.innerText = claimedCode;
 }
