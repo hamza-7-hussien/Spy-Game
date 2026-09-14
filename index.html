@@ -840,6 +840,7 @@ const dictionary = {
     lblSoundInGame: "Sound Volume 🔊", lblVoteTime: "Vote Time:", lblNone: "None",
     youAreSpy: "🕵️ You are the Spy!", theWordIs: "The word is:", btnJoinAsSpectator: "Watch 👁️",
     errOneWordOnly: "One word only per message! ✋",
+    errCannotTypeSecretWord: "You can't type the secret word! ✋",
     friendsTitle: "👥 Friends Network", lblYourFriendCode: "Your ID", btnCopyCode: "Copy 📋", msgCodeCopied: "ID copied! 📋",
     lblAddFriendId: "Add Friend by ID:", lblFriendIdPlaceholder: "Enter Friend ID (e.g. AB12CD34)", btnSendRequest: "Send",
     lblIncomingRequests: "📩 Friend Requests", lblRoomInvites: "🎮 Station Invites", lblMyFriendsList: "🚀 My Friends",
@@ -849,11 +850,11 @@ const dictionary = {
     msgInviteSent: "Invite sent to {name}! 🚀", msgInviteReceived: "{name} invited you to their station! 🎮",
     btnInviteFriends: "Invite Friends 👥", lblNoFriendsToInvite: "All your friends are already here, or you have no friends yet.",
     lblNoFriendsYet: "No friends yet. Add some using their ID above!", lblNoPendingRequests: "No pending requests.", lblNoPendingInvites: "No pending invites.",
-    btnInvite: "Invite", btnAccept: "Accept ✔️", btnDecline: "Decline ✖️", btnJoinInvite: "Join 🎮", btnPending: "Pending ⏳",
+    btnInvite: "Invite", btnAccept: "Accept ✔️", btnDecline: "Decline ✖️", btnJoinInvite: "Accept 🎮", btnPending: "Pending ⏳",
     tagAlreadyFriend: "Friends ✓", tagRequestReceived: "Accept? ✔️",
     subtabMyFriends: "🚀 My Friends", subtabRequests: "📩 Requests", subtabInvites: "🎮 Invites",
     btnRemoveFriend: "🗑️", confirmRemoveFriend: "Remove {name} from your friends?", msgFriendRemoved: "Friend removed.",
-    lblOnline: "Online", lblOffline: "Offline"
+    lblOnline: "Online", lblOffline: "Offline", errActionFailed: "Something went wrong - please try again."
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -896,6 +897,7 @@ const dictionary = {
     lblSoundInGame: "مستوى الصوت 🔊", lblVoteTime: "وقت التصويت:", lblNone: "لا يوجد",
     youAreSpy: "🕵️ انت الجاسوس!", theWordIs: "الكلمة هي:", btnJoinAsSpectator: "تفرج 👁️",
     errOneWordOnly: "كلمة واحدة بس في كل رسالة! ✋",
+    errCannotTypeSecretWord: "مينفعش تكتب الكلمة السرية! ✋",
     friendsTitle: "👥 شبكة الأصدقاء", lblYourFriendCode: "الـ ID بتاعك", btnCopyCode: "نسخ 📋", msgCodeCopied: "تم نسخ الـ ID! 📋",
     lblAddFriendId: "إضافة صديق بالكود:", lblFriendIdPlaceholder: "أدخل كود الصديق (مثل AB12CD34)", btnSendRequest: "إرسال",
     lblIncomingRequests: "📩 طلبات الصداقة", lblRoomInvites: "🎮 دعوات المحطات", lblMyFriendsList: "🚀 أصدقائي",
@@ -905,11 +907,11 @@ const dictionary = {
     msgInviteSent: "تم إرسال الدعوة لـ {name}! 🚀", msgInviteReceived: "{name} دعاك لمحطته! 🎮",
     btnInviteFriends: "دعوة أصدقاء 👥", lblNoFriendsToInvite: "كل أصحابك موجودين في المحطة بالفعل، أو معندكش أصدقاء لسه.",
     lblNoFriendsYet: "معندكش أصدقاء لسه. ضيف حد بالـ ID بتاعه فوق!", lblNoPendingRequests: "مفيش طلبات معلقة.", lblNoPendingInvites: "مفيش دعوات معلقة.",
-    btnInvite: "دعوة", btnAccept: "قبول ✔️", btnDecline: "رفض ✖️", btnJoinInvite: "دخول 🎮", btnPending: "معلق ⏳",
+    btnInvite: "دعوة", btnAccept: "قبول ✔️", btnDecline: "رفض ✖️", btnJoinInvite: "قبول 🎮", btnPending: "معلق ⏳",
     tagAlreadyFriend: "أصحاب ✓", tagRequestReceived: "قبول؟ ✔️",
     subtabMyFriends: "🚀 أصدقائي", subtabRequests: "📩 الطلبات", subtabInvites: "🎮 الدعوات",
     btnRemoveFriend: "🗑️", confirmRemoveFriend: "تشيل {name} من أصدقائك؟", msgFriendRemoved: "تم حذف الصديق.",
-    lblOnline: "متصل", lblOffline: "غير متصل"
+    lblOnline: "متصل", lblOffline: "غير متصل", errActionFailed: "حصلت مشكلة - جرب تاني."
   }
 };
 
@@ -1483,40 +1485,51 @@ async function sendFriendRequestById() {
   const code = input.value.trim().toUpperCase();
   if(!code) return;
 
-  const codeSnap = await db.ref(`friendCodes/${code}`).once('value');
-  if(!codeSnap.exists()) return showToast(dictionary[currentLang].errFriendCodeNotFound, 'danger');
+  try {
+    const codeSnap = await db.ref(`friendCodes/${code}`).once('value');
+    if(!codeSnap.exists()) return showToast(dictionary[currentLang].errFriendCodeNotFound, 'danger');
 
-  const targetUid = codeSnap.val();
-  const ok = await sendFriendRequestToUid(targetUid);
-  if(ok) input.value = '';
+    const targetUid = codeSnap.val();
+    const ok = await sendFriendRequestToUid(targetUid);
+    if(ok) input.value = '';
+  } catch(err) {
+    console.error('sendFriendRequestById failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+  }
 }
 
 async function sendFriendRequestToUid(targetUid) {
   if(!currentUser) return false;
   if(targetUid === currentUser.uid) { showToast(dictionary[currentLang].errCannotAddSelf, 'danger'); return false; }
 
-  const friendSnap = await db.ref(`users/${currentUser.uid}/friends/${targetUid}`).once('value');
-  if(friendSnap.exists()) { showToast(dictionary[currentLang].errAlreadyFriends, 'danger'); return false; }
+  try {
+    const friendSnap = await db.ref(`users/${currentUser.uid}/friends/${targetUid}`).once('value');
+    if(friendSnap.exists()) { showToast(dictionary[currentLang].errAlreadyFriends, 'danger'); return false; }
 
-  const sentSnap = await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).once('value');
-  if(sentSnap.exists()) { showToast(dictionary[currentLang].errRequestAlreadySent, 'danger'); return false; }
+    const sentSnap = await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).once('value');
+    if(sentSnap.exists()) { showToast(dictionary[currentLang].errRequestAlreadySent, 'danger'); return false; }
 
-  // If that person already sent ME a request, there's no need for a second
-  // one going the other way - just accept theirs directly so nobody ends up
-  // with two requests to the same person able to send one back.
-  const incomingSnap = await db.ref(`users/${currentUser.uid}/friendRequests/${targetUid}`).once('value');
-  if(incomingSnap.exists()) {
-    friendRequestsCache[targetUid] = incomingSnap.val();
-    await acceptFriendRequest(targetUid);
+    // If that person already sent ME a request, there's no need for a second
+    // one going the other way - just accept theirs directly so nobody ends up
+    // with two requests to the same person able to send one back.
+    const incomingSnap = await db.ref(`users/${currentUser.uid}/friendRequests/${targetUid}`).once('value');
+    if(incomingSnap.exists()) {
+      friendRequestsCache[targetUid] = incomingSnap.val();
+      await acceptFriendRequest(targetUid);
+      return true;
+    }
+
+    await db.ref(`users/${targetUid}/friendRequests/${currentUser.uid}`).set({
+      name: currentUser.displayName || '', avatar: currentUser.photoURL || '', timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).set(true);
+    showToast(dictionary[currentLang].msgRequestSent, 'success');
     return true;
+  } catch(err) {
+    console.error('sendFriendRequestToUid failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+    return false;
   }
-
-  await db.ref(`users/${targetUid}/friendRequests/${currentUser.uid}`).set({
-    name: currentUser.displayName || '', avatar: currentUser.photoURL || '', timestamp: firebase.database.ServerValue.TIMESTAMP
-  });
-  await db.ref(`users/${currentUser.uid}/sentRequests/${targetUid}`).set(true);
-  showToast(dictionary[currentLang].msgRequestSent, 'success');
-  return true;
 }
 
 async function acceptFriendRequest(fromUid) {
@@ -1525,34 +1538,58 @@ async function acceptFriendRequest(fromUid) {
   const fromAvatar = (req && req.avatar) || '';
   const now = firebase.database.ServerValue.TIMESTAMP;
 
-  await db.ref(`users/${currentUser.uid}/friends/${fromUid}`).set({ name: fromName, avatar: fromAvatar, since: now });
-  await db.ref(`users/${fromUid}/friends/${currentUser.uid}`).set({ name: currentUser.displayName || '', avatar: currentUser.photoURL || '', since: now });
-  await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
-  await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
-  showToast(dictionary[currentLang].msgFriendAdded, 'success');
+  try {
+    await db.ref(`users/${currentUser.uid}/friends/${fromUid}`).set({ name: fromName, avatar: fromAvatar, since: now });
+    await db.ref(`users/${fromUid}/friends/${currentUser.uid}`).set({ name: currentUser.displayName || '', avatar: currentUser.photoURL || '', since: now });
+    await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
+    await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
+    showToast(dictionary[currentLang].msgFriendAdded, 'success');
+  } catch(err) {
+    console.error('acceptFriendRequest failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+  }
 }
 
 async function declineFriendRequest(fromUid) {
-  await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
-  await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
+  try {
+    await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
+    await db.ref(`users/${fromUid}/sentRequests/${currentUser.uid}`).remove();
+  } catch(err) {
+    console.error('declineFriendRequest failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+  }
 }
 
 async function removeFriend(uid) {
   const f = friendsCache[uid];
   const name = (f && f.name) || '';
   if(!confirm(dictionary[currentLang].confirmRemoveFriend.replace('{name}', name))) return;
-  await db.ref(`users/${currentUser.uid}/friends/${uid}`).remove();
-  await db.ref(`users/${uid}/friends/${currentUser.uid}`).remove();
-  showToast(dictionary[currentLang].msgFriendRemoved);
+  try {
+    await db.ref(`users/${currentUser.uid}/friends/${uid}`).remove();
+    await db.ref(`users/${uid}/friends/${currentUser.uid}`).remove();
+    showToast(dictionary[currentLang].msgFriendRemoved);
+  } catch(err) {
+    console.error('removeFriend failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+  }
 }
 
 async function joinFromInvite(fromUid, roomCode) {
-  await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
+  try {
+    await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
+  } catch(err) {
+    console.error('joinFromInvite cleanup failed:', err);
+  }
   joinDirectRoom(roomCode);
 }
 
 async function dismissInvite(fromUid) {
-  await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
+  try {
+    await db.ref(`users/${currentUser.uid}/roomInvites/${fromUid}`).remove();
+  } catch(err) {
+    console.error('dismissInvite failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+  }
 }
 
 function switchFriendsSubtab(subtab) {
@@ -1590,17 +1627,23 @@ function renderFriendsTab() {
     }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoPendingRequests}</div>`;
   }
 
-  // Room invites (Invites sub-tab)
+  // Room invites (Invites sub-tab) - also shows whether the friend who
+  // invited you is currently online, same as the My Friends list does.
   const invKeys = Object.keys(roomInvitesCache || {});
   const invContainer = document.getElementById('roomInvitesList');
   if(invContainer) {
     invContainer.innerHTML = invKeys.length ? invKeys.map(uid => {
       const inv = roomInvitesCache[uid];
+      const invStatus = friendStatusCache[uid] || 'offline';
+      const invPresenceHTML = `<div class="presence-label"><span class="presence-dot ${invStatus}"></span>${invStatus === 'online' ? dictionary[lang].lblOnline : dictionary[lang].lblOffline}</div>`;
       return `
         <div class="player-item">
           <div style="display:flex; align-items:center; gap:8px;">
             <img class="avatar-img" style="width:32px; height:32px;" src="${inv.fromAvatar || ''}" alt="a">
-            <span style="font-size:13px; font-weight:bold;">${inv.fromName || 'Player'}</span>
+            <div>
+              <span style="font-size:13px; font-weight:bold; display:block;">${inv.fromName || 'Player'}</span>
+              ${invPresenceHTML}
+            </div>
           </div>
           <div style="display:flex; gap:6px; width:auto;">
             <button class="icon-btn icon-btn-join" onclick="joinFromInvite('${uid}', '${inv.roomCode}')">${dictionary[lang].btnJoinInvite}</button>
@@ -1611,21 +1654,15 @@ function renderFriendsTab() {
     }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoPendingInvites}</div>`;
   }
 
-  // Friends list (My Friends sub-tab) - shows presence + a Join button when
-  // that specific friend also happens to have a pending invite waiting.
+  // Friends list (My Friends sub-tab) - presence only; invites live only in
+  // the Invites sub-tab, never duplicated here.
   const friendKeys = Object.keys(friendsCache || {});
   const friendsContainer = document.getElementById('myFriendsList');
   if(friendsContainer) {
     friendsContainer.innerHTML = friendKeys.length ? friendKeys.map(uid => {
       const f = friendsCache[uid];
-      const hasInvite = roomInvitesCache && roomInvitesCache[uid];
       const status = friendStatusCache[uid] || 'offline';
       const presenceHTML = `<div class="presence-label"><span class="presence-dot ${status}"></span>${status === 'online' ? dictionary[lang].lblOnline : dictionary[lang].lblOffline}</div>`;
-
-      let rightSide = `<button class="icon-btn icon-btn-remove" onclick="removeFriend('${uid}')" title="${dictionary[lang].btnRemoveFriend}">${dictionary[lang].btnRemoveFriend}</button>`;
-      if(hasInvite) {
-        rightSide = `<button class="icon-btn icon-btn-join" onclick="joinFromInvite('${uid}', '${hasInvite.roomCode}')">${dictionary[lang].btnJoinInvite}</button>` + rightSide;
-      }
 
       return `
         <div class="player-item">
@@ -1636,7 +1673,9 @@ function renderFriendsTab() {
               ${presenceHTML}
             </div>
           </div>
-          <div style="display:flex; gap:6px; width:auto;">${rightSide}</div>
+          <div style="display:flex; gap:6px; width:auto;">
+            <button class="icon-btn icon-btn-remove" onclick="removeFriend('${uid}')" title="${dictionary[lang].btnRemoveFriend}">${dictionary[lang].btnRemoveFriend}</button>
+          </div>
         </div>
       `;
     }).join('') : `<div style="font-size:12px; color:#64748b; padding:8px; text-align:center;">${dictionary[lang].lblNoFriendsYet}</div>`;
@@ -1692,18 +1731,23 @@ function closeInviteFriendsModal() {
 }
 
 async function inviteFriendToRoom(friendUid, btnEl) {
-  const friendSnap = await db.ref(`users/${currentUser.uid}/friends/${friendUid}`).once('value');
-  const f = friendSnap.val() || {};
+  try {
+    const friendSnap = await db.ref(`users/${currentUser.uid}/friends/${friendUid}`).once('value');
+    const f = friendSnap.val() || {};
 
-  await db.ref(`users/${friendUid}/roomInvites/${currentUser.uid}`).set({
-    roomCode: currentRoom,
-    fromName: currentUser.displayName || '',
-    fromAvatar: currentUser.photoURL || '',
-    timestamp: firebase.database.ServerValue.TIMESTAMP
-  });
+    await db.ref(`users/${friendUid}/roomInvites/${currentUser.uid}`).set({
+      roomCode: currentRoom,
+      fromName: currentUser.displayName || '',
+      fromAvatar: currentUser.photoURL || '',
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
 
-  showToast(dictionary[currentLang].msgInviteSent.replace('{name}', f.name || ''), 'success');
-  if(btnEl) { btnEl.disabled = true; btnEl.innerText = dictionary[currentLang].btnPending; }
+    showToast(dictionary[currentLang].msgInviteSent.replace('{name}', f.name || ''), 'success');
+    if(btnEl) { btnEl.disabled = true; btnEl.innerText = dictionary[currentLang].btnPending; }
+  } catch(err) {
+    console.error('inviteFriendToRoom failed:', err);
+    showToast(err.message || dictionary[currentLang].errActionFailed, 'danger');
+  }
 }
 
 function renderLobbyPlayersIfVisible() {
@@ -2126,6 +2170,18 @@ async function sendChatMessage(screen) {
     const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
     const room = roomSnap.val();
     if(!room) return;
+
+    // Nobody - crew or spy - is allowed to just type this round's secret
+    // word outright (in either language it might be stored/shown in),
+    // since that would let a crew member reveal it directly instead of
+    // giving a subtle clue.
+    const secretWordEn = (room.word || '').trim().toLowerCase();
+    const secretWordAr = (room.wordAr || '').trim();
+    const typedLower = msg.toLowerCase();
+    if((secretWordEn && typedLower === secretWordEn) || (secretWordAr && msg === secretWordAr)) {
+      showToast(dictionary[currentLang].errCannotTypeSecretWord, 'danger');
+      return;
+    }
 
     const inTurnPhase = room.status === 'playing' && room.turnOrder && room.turnOrder.length > 0;
     if(inTurnPhase) {
