@@ -2132,25 +2132,32 @@ function handleHostAssignment(data) {
   const hostStillActive = currentHostPlayer && !currentHostPlayer.isSpectator;
 
   if(!hostStillActive && Object.keys(playersObj).length > 0 && !hostReassignInFlight) {
-    hostReassignInFlight = true;
-    db.ref(`spy_rooms/${currentRoom}`).transaction(room => {
-      if(!room || !room.players) return room;
-      const hp = room.hostUid ? room.players[room.hostUid] : null;
-      const stillActive = hp && !hp.isSpectator;
-      if(stillActive) return room;
-      // Whoever becomes the new host is picked purely by who joined the
-      // room earliest among the players who are still here - this reflects
-      // who was around while the previous host was still present, not who
-      // happens to be first in line *after* the host's departure.
-      const activeSorted = Object.values(room.players)
-        .filter(p => !p.isSpectator)
-        .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-      if(activeSorted.length > 0) {
-        room.hostUid = activeSorted[0].uid;
-      }
-      return room;
-    }).then(() => { hostReassignInFlight = false; })
-      .catch(() => { hostReassignInFlight = false; });
+    // Whoever becomes the new host is picked purely by who joined the
+    // room earliest among the players who are still here - this reflects
+    // who was around while the previous host was still present, not who
+    // happens to be first in line *after* the host's departure.
+    const activeSorted = Object.values(playersObj)
+      .filter(p => !p.isSpectator)
+      .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+
+    if(activeSorted.length > 0) {
+      hostReassignInFlight = true;
+      const newHostUid = activeSorted[0].uid;
+
+      // The transaction only touches the hostUid field itself (not the
+      // whole room object) so it never has to retry against the turn timer
+      // ticking every second, chat messages arriving, or anything else
+      // happening elsewhere in the room at the same time - those constant
+      // sibling writes were exactly what made the old whole-room version
+      // of this transaction stall until someone manually refreshed.
+      db.ref(`spy_rooms/${currentRoom}/hostUid`).transaction(currentHostUid => {
+        const hp = currentHostUid ? playersObj[currentHostUid] : null;
+        const stillActive = hp && !hp.isSpectator;
+        if(stillActive) return; // abort - someone else already assigned an active host
+        return newHostUid;
+      }).then(() => { hostReassignInFlight = false; })
+        .catch(() => { hostReassignInFlight = false; });
+    }
   }
 
   isHost = !!(data.hostUid && data.hostUid === currentUser.uid);
