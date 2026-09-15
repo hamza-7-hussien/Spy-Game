@@ -854,7 +854,8 @@ const dictionary = {
     tagAlreadyFriend: "Friends ✓", tagRequestReceived: "Accept? ✔️",
     subtabMyFriends: "🚀 My Friends", subtabRequests: "📩 Requests", subtabInvites: "🎮 Invites",
     btnRemoveFriend: "🗑️", confirmRemoveFriend: "Remove {name} from your friends?", msgFriendRemoved: "Friend removed.",
-    lblOnline: "Online", lblOffline: "Offline", errActionFailed: "Something went wrong - please try again."
+    lblOnline: "Online", lblOffline: "Offline", errActionFailed: "Something went wrong - please try again.",
+    errUseGoogleInstead: "This email is registered with Google - please tap 'Sign in with Google' instead. 🚀"
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -911,7 +912,8 @@ const dictionary = {
     tagAlreadyFriend: "أصحاب ✓", tagRequestReceived: "قبول؟ ✔️",
     subtabMyFriends: "🚀 أصدقائي", subtabRequests: "📩 الطلبات", subtabInvites: "🎮 الدعوات",
     btnRemoveFriend: "🗑️", confirmRemoveFriend: "تشيل {name} من أصدقائك؟", msgFriendRemoved: "تم حذف الصديق.",
-    lblOnline: "متصل", lblOffline: "غير متصل", errActionFailed: "حصلت مشكلة - جرب تاني."
+    lblOnline: "متصل", lblOffline: "غير متصل", errActionFailed: "حصلت مشكلة - جرب تاني.",
+    errUseGoogleInstead: "الإيميل ده متسجل بجوجل بالفعل - استخدم زرار 'الدخول بـ Google' بدل كده. 🚀"
   }
 };
 
@@ -1121,6 +1123,25 @@ function toggleAuthMode() {
   document.getElementById('authUsername').classList.toggle('hidden', !isSignUpMode);
 }
 
+// If email/password auth fails for an email that's actually registered via
+// Google Sign-In (created with no password at all), Firebase's raw error
+// is confusing ("wrong password" when there never was one). This checks
+// which sign-in methods actually exist for that email and, if Google is
+// the only one, returns a clear instruction to use Google instead -
+// otherwise it falls back to Firebase's own message.
+async function friendlyAuthError(err, email) {
+  const codesWorthChecking = ['auth/wrong-password', 'auth/user-not-found', 'auth/invalid-credential', 'auth/email-already-in-use'];
+  if(codesWorthChecking.includes(err.code)) {
+    try {
+      const methods = await auth.fetchSignInMethodsForEmail(email);
+      if(methods.includes('google.com') && !methods.includes('password')) {
+        return dictionary[currentLang].errUseGoogleInstead;
+      }
+    } catch(e) { /* fall through to the raw message below */ }
+  }
+  return err.message || dictionary[currentLang].errActionFailed;
+}
+
 function handleAuth() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value.trim();
@@ -1136,10 +1157,16 @@ function handleAuth() {
         const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
         db.ref('usernames/' + username.toLowerCase()).set(true);
         res.user.updateProfile({ displayName: username, photoURL: avatar }).then(() => initUser(res.user));
-      }).catch(err => showToast(err.message, 'danger'));
+      }).catch(async err => {
+        const msg = await friendlyAuthError(err, email);
+        showToast(msg, 'danger');
+      });
     });
   } else {
-    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(err => showToast(err.message, 'danger'));
+    auth.signInWithEmailAndPassword(email, password).then(res => initUser(res.user)).catch(async err => {
+      const msg = await friendlyAuthError(err, email);
+      showToast(msg, 'danger');
+    });
   }
 }
 
