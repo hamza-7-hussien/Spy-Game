@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Spy Station">
 
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="Icons/apple-touch-icon.png">
+<link rel="icon" href="Icons/icon-192.png">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700;900&family=Exo+2:wght@400;600;800;900&family=Cairo:wght@400;700;900&display=swap');
@@ -339,7 +339,8 @@
 <!-- 1. AUTH SCREEN -->
 <div id="loading-screen" class="page-screen" style="justify-content:center; align-items:center; z-index:100; flex-direction:column; gap:16px;">
   <div class="ufo-loader-stage">
-    <div class="ufo-loader-bob">
+    <canvas id="ufo3dCanvas" class="hidden" width="240" height="200"></canvas>
+    <div class="ufo-loader-bob" id="ufoFallback">
       <div class="ufo-loader-spin">
         <svg viewBox="0 0 120 90" class="ufo-loader-svg" xmlns="http://www.w3.org/2000/svg">
           <defs>
