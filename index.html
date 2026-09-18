@@ -603,6 +603,14 @@
     <div id="categoryCheckGrid" class="category-grid"></div>
     <button type="button" class="btn-secondary" onclick="selectAllCategories()" data-key="btnRandomAll">🎲 Random (All Categories)</button>
 
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblGameMode">Game Mode:</label>
+    <select id="gameModeSelect">
+      <option value="normal" data-key="modeNormal">🎮 Normal</option>
+      <option value="mole" data-key="modeMoleNetwork">🕸️ Mole Network</option>
+      <option value="silent" data-key="modeSilentStation" disabled>🤫 Silent Station (Coming Soon)</option>
+      <option value="sabotage" data-key="modeSabotage" disabled>🃏 Sabotage Cards (Coming Soon)</option>
+    </select>
+
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblMaxPlayers">Max Players (3 - 20):</label>
     <select id="maxPlayersSelect"></select>
 
@@ -622,7 +630,8 @@
   <div class="container-box" style="text-align:center;">
     <p data-key="stationCode">Station Frequency Code:</p>
     <div id="roomCodeDisplay" style="font-size:32px; color:var(--accent-blue); font-weight:bold; letter-spacing:4px; margin:5px 0;">------</div>
-    <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:10px;">Category: --</div>
+    <div id="roomCategoryDisplay" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin-bottom:4px;">Category: --</div>
+    <div id="roomModeDisplay" style="font-size:12px; color:#94a3b8; font-weight:bold; margin-bottom:10px;"></div>
 
     <div id="host-controls" class="hidden">
       <button onclick="openRoomEditModal()" class="btn-secondary" style="margin-bottom:8px;" data-key="btnEditRoom">Edit Station Settings ⚙️</button>
@@ -972,7 +981,10 @@ const dictionary = {
     lblSpyNetwork: "Spy Network (Secret)", lblSpyChatPlaceholder: "Coordinate with fellow spies...", lblFellowSpies: "🕵️ Fellow agents:",
     rankCadet: "Cadet", rankAgent: "Agent", rankCommander: "Commander", rankEliteCommander: "Elite Commander", rankLegend: "Legend",
     lblXpToNext: "XP to", lblMaxRank: "🏆 Max Rank Reached!",
-    lblHowToEarnXp: "+10 XP for playing a round, +25 bonus XP for winning the round! 🚀"
+    lblHowToEarnXp: "+10 XP for playing a round, +25 bonus XP for winning the round! 🚀",
+    lblGameMode: "Game Mode:", modeNormal: "🎮 Normal", modeMoleNetwork: "🕸️ Mole Network",
+    modeSilentStation: "🤫 Silent Station (Coming Soon)", modeSabotage: "🃏 Sabotage Cards (Coming Soon)",
+    modePrefix: "Mode: "
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -1034,7 +1046,10 @@ const dictionary = {
     lblSpyNetwork: "شبكة الجواسيس (سري)", lblSpyChatPlaceholder: "نسّق مع زمايلك الجواسيس...", lblFellowSpies: "🕵️ زمايلك الجواسيس:",
     rankCadet: "مجند", rankAgent: "عميل", rankCommander: "قائد", rankEliteCommander: "قائد النخبة", rankLegend: "أسطورة",
     lblXpToNext: "XP عشان توصل لرتبة", lblMaxRank: "🏆 وصلت لأعلى رتبة!",
-    lblHowToEarnXp: "+10 XP لكل راوند بتلعبه، +25 XP إضافية لو فزت بالراوند! 🚀"
+    lblHowToEarnXp: "+10 XP لكل راوند بتلعبه، +25 XP إضافية لو فزت بالراوند! 🚀",
+    lblGameMode: "وضع اللعب:", modeNormal: "🎮 عادي", modeMoleNetwork: "🕸️ شبكة الجواسيس",
+    modeSilentStation: "🤫 المحطة الصامتة (قريبًا)", modeSabotage: "🃏 كروت التخريب (قريبًا)",
+    modePrefix: "الوضع: "
   }
 };
 
@@ -1074,6 +1089,12 @@ function changeLanguage(lang) {
       const display = document.getElementById('roomCategoryDisplay');
       if(cats && display) {
         display.innerText = `${dictionary[currentLang].categoryPrefix}${formatCategoriesLabel(cats, currentLang)}`;
+      }
+    });
+    db.ref(`spy_rooms/${currentRoom}/gameMode`).once('value', snap => {
+      const modeDisplay = document.getElementById('roomModeDisplay');
+      if(modeDisplay) {
+        modeDisplay.innerText = `${dictionary[currentLang].modePrefix}${dictionary[currentLang][modeDictKey(snap.val())]}`;
       }
     });
   }
@@ -1224,6 +1245,13 @@ function selectAllCategories() {
   renderCategoryCheckGrid();
 }
 
+function modeDictKey(mode) {
+  if(mode === 'mole') return 'modeMoleNetwork';
+  if(mode === 'silent') return 'modeSilentStation';
+  if(mode === 'sabotage') return 'modeSabotage';
+  return 'modeNormal';
+}
+
 function formatCategoriesLabel(cats, lang) {
   if(!cats || cats.length === 0) return '';
   if(cats.length === Object.keys(CATEGORY_META).length) {
@@ -1256,6 +1284,64 @@ function getCombinedWordList(cats) {
   if(combined.length === 0) combined = wordsDB.players;
   return combined;
 }
+
+// ---- Screen Wake Lock (keeps the screen on while inside a room) ----
+let wakeLockObj = null;
+let wakeLockActive = false;
+let inRoomWakeLockEnabled = false;
+let inactivityTimer = null;
+const WAKE_LOCK_IDLE_LIMIT_MS = 3 * 60 * 1000;
+
+async function requestWakeLock() {
+  if(!('wakeLock' in navigator) || !inRoomWakeLockEnabled) return;
+  try {
+    wakeLockObj = await navigator.wakeLock.request('screen');
+    wakeLockActive = true;
+    wakeLockObj.addEventListener('release', () => { wakeLockActive = false; });
+  } catch(e) { /* e.g. low battery mode or unsupported - just fall back to normal behavior */ }
+}
+
+function releaseWakeLock() {
+  if(wakeLockObj) {
+    wakeLockObj.release().catch(() => {});
+    wakeLockObj = null;
+  }
+  wakeLockActive = false;
+}
+
+function resetWakeLockIdleTimer() {
+  if(!inRoomWakeLockEnabled) return;
+  if(inactivityTimer) clearTimeout(inactivityTimer);
+  if(!wakeLockActive) requestWakeLock();
+  // After 3 real minutes with no touch/interaction at all, release the lock
+  // so the phone's own screen-timeout setting takes back over - the very
+  // next touch immediately re-engages the lock again.
+  inactivityTimer = setTimeout(() => { releaseWakeLock(); }, WAKE_LOCK_IDLE_LIMIT_MS);
+}
+
+function startRoomWakeLock() {
+  inRoomWakeLockEnabled = true;
+  resetWakeLockIdleTimer();
+}
+
+function stopRoomWakeLock() {
+  inRoomWakeLockEnabled = false;
+  if(inactivityTimer) clearTimeout(inactivityTimer);
+  releaseWakeLock();
+}
+
+['touchstart', 'mousedown', 'keydown', 'scroll'].forEach(evt => {
+  window.addEventListener(evt, resetWakeLockIdleTimer, { passive: true });
+});
+
+document.addEventListener('visibilitychange', () => {
+  // Browsers auto-release the wake lock whenever the tab is hidden (screen
+  // manually turned off, app switched away) - re-acquire it the moment the
+  // player comes back, as long as they're still supposed to have it.
+  if(document.visibilityState === 'visible' && inRoomWakeLockEnabled) {
+    requestWakeLock();
+  }
+});
 
 function toggleBottomNav(show) {
   const nav = document.getElementById('main-bottom-nav');
@@ -2069,6 +2155,7 @@ async function openRoomEditModal() {
     document.getElementById('maxPlayersSelect').value = room.maxPlayers || 8;
     document.getElementById('spyCountSelect').value = room.spyCount || 1;
     document.getElementById('turnSecondsSelect').value = room.turnSeconds || 20;
+    document.getElementById('gameModeSelect').value = room.gameMode || 'normal';
   }
   renderCategoryCheckGrid();
   document.querySelectorAll('.page-screen').forEach(screen => screen.classList.add('hidden'));
@@ -2084,6 +2171,7 @@ async function confirmCreateOrUpdateRoom() {
   const maxPlayers = parseInt(document.getElementById('maxPlayersSelect').value);
   const turnSeconds = parseInt(document.getElementById('turnSecondsSelect').value);
   const visibility = document.getElementById('roomVisibilitySelect').value;
+  const gameMode = document.getElementById('gameModeSelect').value;
 
   if(!currentRoom) {
     currentRoom = generate6DigitCode();
@@ -2097,10 +2185,11 @@ async function confirmCreateOrUpdateRoom() {
       maxPlayers: maxPlayers,
       turnSeconds: turnSeconds,
       visibility: visibility,
+      gameMode: gameMode,
       createdAt: firebase.database.ServerValue.TIMESTAMP
     });
   } else {
-    await db.ref('spy_rooms/' + currentRoom).update({ categories: cats, spyCount: spies, maxPlayers: maxPlayers, turnSeconds: turnSeconds, visibility: visibility });
+    await db.ref('spy_rooms/' + currentRoom).update({ categories: cats, spyCount: spies, maxPlayers: maxPlayers, turnSeconds: turnSeconds, visibility: visibility, gameMode: gameMode });
   }
   joinRoomProcess();
 }
@@ -2186,6 +2275,7 @@ async function leaveRoom(manual = false) {
   localStorage.removeItem('spy_station_room');
   toggleInRoomFab(false);
   closeInRoomSettings();
+  stopRoomWakeLock();
 
   if(currentRoom && currentUser) {
     const rCode = currentRoom;
@@ -2241,6 +2331,7 @@ async function joinRoomProcess() {
   localStorage.setItem('spy_station_room', currentRoom);
   lastAnnouncedRound = 0;
   lastDisconnectStatus = null;
+  startRoomWakeLock();
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
   const existing = await playerRef.once('value');
@@ -2294,6 +2385,7 @@ async function joinRoomProcess() {
     if(data.status === 'waiting') {
       document.getElementById('roomCodeDisplay').innerText = currentRoom;
       document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${formatCategoriesLabel(roomCats, currentLang)}`;
+      document.getElementById('roomModeDisplay').innerText = `${dictionary[currentLang].modePrefix}${dictionary[currentLang][modeDictKey(data.gameMode)]}`;
 
       renderLobbyPlayersList(data);
 
@@ -2741,7 +2833,7 @@ function showGameScreen(data) {
 
   const fellowSpiesEl = document.getElementById('fellowSpiesDisplay');
   const spyChatEl = document.getElementById('spyChatContainer');
-  if(isSpy && !amSpectator) {
+  if(isSpy && !amSpectator && data.gameMode === 'mole') {
     const others = (data.spies || []).filter(uid => uid !== currentUser.uid).map(uid => (playersObj[uid] || {}).name).filter(Boolean);
     if(others.length > 0) {
       fellowSpiesEl.innerText = `${dictionary[currentLang].lblFellowSpies} ${others.join('، ')}`;
@@ -2998,6 +3090,7 @@ function renderPostGameLocalLobby(data) {
 
   const roomCats = data.categories || (data.category ? [data.category] : []);
   document.getElementById('roomCategoryDisplay').innerText = `${dictionary[currentLang].categoryPrefix}${formatCategoriesLabel(roomCats, currentLang)}`;
+  document.getElementById('roomModeDisplay').innerText = `${dictionary[currentLang].modePrefix}${dictionary[currentLang][modeDictKey(data.gameMode)]}`;
 
   document.getElementById('host-controls').classList.add('hidden');
   document.getElementById('playersContainer').innerHTML = Object.values(playersObj).map(p => {
