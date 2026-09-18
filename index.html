@@ -448,7 +448,7 @@
       <img id="userAvatarDisplay" class="avatar-img" src="" alt="avatar">
       <div>
         <span id="userDisplay" style="font-weight:bold; color:var(--accent-blue); display:block; font-size:16px;">Player</span>
-        <span id="userScoreDisplay" style="font-size:12px; color:#94a3b8;">Score: 0 pts</span>
+        <span id="userScoreDisplay" style="font-size:12px; color:#94a3b8; cursor:pointer; text-decoration:underline dotted;" onclick="openRankPanel()">Score: 0 pts</span>
       </div>
     </div>
     <div class="logo-title" style="font-size: 18px;">SPY STATION</div>
@@ -652,6 +652,7 @@
   <div class="container-box" style="text-align:center;">
     <div id="roundIndicator" style="font-size:13px; color:var(--accent-purple); font-weight:bold; letter-spacing:1px;">Round 1</div>
     <div id="roleDisplay" style="font-size:22px; font-weight:bold; margin:10px 0; background:rgba(3,7,18,0.8); padding:18px; border-radius:16px; border: 1px solid var(--accent-blue); box-shadow:var(--neon-glow);">...</div>
+    <div id="fellowSpiesDisplay" class="hidden" style="font-size:13px; color:var(--accent-purple); font-weight:bold; margin:-6px 0 10px 0;"></div>
 
     <div id="turnIndicatorBox" class="turn-indicator-box">...</div>
     <div id="turnTimerDisplay" style="font-size:16px; color:var(--accent-blue); font-weight:bold;">⏳ --</div>
@@ -665,6 +666,15 @@
       <div style="display:flex; gap:6px; margin-top:8px;">
         <input type="text" id="chatInputGame" data-key-placeholder="lblChatPlaceholder" placeholder="Discuss transmission..." style="margin:0;">
         <button id="btnSendGameChat" onclick="sendChatMessage('Game')" style="width:auto; padding:0 20px;">💬</button>
+      </div>
+    </div>
+
+    <div id="spyChatContainer" class="chat-container hidden" style="border-color:var(--accent-purple); box-shadow:0 0 18px rgba(192,132,252,0.2);">
+      <div style="font-size:11px; color:var(--accent-purple); font-weight:800; margin-bottom:6px; text-align:start;">🕵️ <span data-key="lblSpyNetwork">Spy Network (Secret)</span></div>
+      <div id="chatMessagesSpy" class="chat-messages"></div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="chatInputSpy" data-key-placeholder="lblSpyChatPlaceholder" placeholder="Coordinate with fellow spies..." style="margin:0;">
+        <button onclick="sendChatMessage('Spy')" style="width:auto; padding:0 20px; background:linear-gradient(135deg, var(--accent-purple), #9333ea);">🕵️</button>
       </div>
     </div>
   </div>
@@ -724,6 +734,21 @@
     <input type="range" id="inRoomSoundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolumeInRoom()">
     <button class="btn-secondary" onclick="closeInRoomSettings()" data-key="btnCancel">Cancel</button>
     <button class="btn-danger" onclick="leaveRoom(true)" data-key="lblLeaveGameBtn">Leave Game 🚪</button>
+  </div>
+</div>
+
+<!-- RANK / XP PANEL -->
+<div id="rank-info-panel" class="modal-overlay-panel hidden">
+  <div class="container-box" style="max-width:340px; text-align:center;">
+    <div id="rankPanelIcon" style="font-size:56px;">🥉</div>
+    <h3 id="rankPanelName" style="margin:6px 0; color:var(--accent-blue);">Cadet</h3>
+    <div id="rankPanelXp" style="font-size:13px; color:#94a3b8; margin-bottom:12px;">0 XP</div>
+    <div style="background:rgba(255,255,255,0.08); border-radius:10px; height:10px; overflow:hidden;">
+      <div id="rankPanelProgressBar" style="height:100%; background:linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); width:0%; border-radius:10px;"></div>
+    </div>
+    <div id="rankPanelNextText" style="font-size:11px; color:#64748b; margin:8px 0 15px 0;"></div>
+    <div style="font-size:11px; color:#94a3b8; text-align:start; background:rgba(3,7,18,0.5); border-radius:10px; padding:10px;" data-key="lblHowToEarnXp">+10 XP for playing a round, +25 bonus XP for winning the round! 🚀</div>
+    <button class="btn-secondary" style="margin-top:15px;" onclick="closeRankPanel()" data-key="btnCancel">Cancel</button>
   </div>
 </div>
 
@@ -943,7 +968,11 @@ const dictionary = {
     subtabMyFriends: "🚀 My Friends", subtabRequests: "📩 Requests", subtabInvites: "🎮 Invites",
     btnRemoveFriend: "🗑️", confirmRemoveFriend: "Remove {name} from your friends?", msgFriendRemoved: "Friend removed.",
     lblOnline: "Online", lblOffline: "Offline", errActionFailed: "Something went wrong - please try again.",
-    errUseGoogleInstead: "This email is registered with Google - please tap 'Sign in with Google' instead. 🚀"
+    errUseGoogleInstead: "This email is registered with Google - please tap 'Sign in with Google' instead. 🚀",
+    lblSpyNetwork: "Spy Network (Secret)", lblSpyChatPlaceholder: "Coordinate with fellow spies...", lblFellowSpies: "🕵️ Fellow agents:",
+    rankCadet: "Cadet", rankAgent: "Agent", rankCommander: "Commander", rankEliteCommander: "Elite Commander", rankLegend: "Legend",
+    lblXpToNext: "XP to", lblMaxRank: "🏆 Max Rank Reached!",
+    lblHowToEarnXp: "+10 XP for playing a round, +25 bonus XP for winning the round! 🚀"
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -1001,7 +1030,11 @@ const dictionary = {
     subtabMyFriends: "🚀 أصدقائي", subtabRequests: "📩 الطلبات", subtabInvites: "🎮 الدعوات",
     btnRemoveFriend: "🗑️", confirmRemoveFriend: "تشيل {name} من أصدقائك؟", msgFriendRemoved: "تم حذف الصديق.",
     lblOnline: "متصل", lblOffline: "غير متصل", errActionFailed: "حصلت مشكلة - جرب تاني.",
-    errUseGoogleInstead: "الإيميل ده متسجل بجوجل بالفعل - استخدم زرار 'الدخول بـ Google' بدل كده. 🚀"
+    errUseGoogleInstead: "الإيميل ده متسجل بجوجل بالفعل - استخدم زرار 'الدخول بـ Google' بدل كده. 🚀",
+    lblSpyNetwork: "شبكة الجواسيس (سري)", lblSpyChatPlaceholder: "نسّق مع زمايلك الجواسيس...", lblFellowSpies: "🕵️ زمايلك الجواسيس:",
+    rankCadet: "مجند", rankAgent: "عميل", rankCommander: "قائد", rankEliteCommander: "قائد النخبة", rankLegend: "أسطورة",
+    lblXpToNext: "XP عشان توصل لرتبة", lblMaxRank: "🏆 وصلت لأعلى رتبة!",
+    lblHowToEarnXp: "+10 XP لكل راوند بتلعبه، +25 XP إضافية لو فزت بالراوند! 🚀"
   }
 };
 
@@ -1046,6 +1079,10 @@ function changeLanguage(lang) {
   }
 
   renderFriendsTab();
+
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    updateRankDisplay(myCurrentXp);
+  }
 }
 
 function toggleAuthLanguage() {
@@ -1072,6 +1109,78 @@ let currentFriendsSubtab = 'myFriends';
 let friendStatusCache = {};
 let friendStatusListeners = {};
 let presenceSetupDone = false;
+
+// ---- Rank / XP system ----
+const RANK_TIERS = [
+  { min: 0, icon: '🥉', key: 'rankCadet' },
+  { min: 100, icon: '🥈', key: 'rankAgent' },
+  { min: 300, icon: '🥇', key: 'rankCommander' },
+  { min: 700, icon: '💎', key: 'rankEliteCommander' },
+  { min: 1500, icon: '🌌', key: 'rankLegend' }
+];
+let myCurrentXp = 0;
+
+function getRankInfo(xp) {
+  let currentIndex = 0;
+  for(let i = 0; i < RANK_TIERS.length; i++) {
+    if(xp >= RANK_TIERS[i].min) currentIndex = i;
+  }
+  return { current: RANK_TIERS[currentIndex], next: RANK_TIERS[currentIndex + 1] || null };
+}
+
+function updateRankDisplay(xp) {
+  myCurrentXp = xp;
+  const { current } = getRankInfo(xp);
+  const scoreEl = document.getElementById('userScoreDisplay');
+  if(scoreEl) scoreEl.innerText = `${current.icon} ${dictionary[currentLang][current.key]} • ${xp} XP`;
+}
+
+function openRankPanel() {
+  const { current, next } = getRankInfo(myCurrentXp);
+  document.getElementById('rankPanelIcon').innerText = current.icon;
+  document.getElementById('rankPanelName').innerText = dictionary[currentLang][current.key];
+  document.getElementById('rankPanelXp').innerText = `${myCurrentXp} XP`;
+
+  const progressBar = document.getElementById('rankPanelProgressBar');
+  const nextText = document.getElementById('rankPanelNextText');
+  if(next) {
+    const span = next.min - current.min;
+    const progressed = myCurrentXp - current.min;
+    const pct = Math.min(100, Math.max(0, (progressed / span) * 100));
+    progressBar.style.width = pct + '%';
+    nextText.innerText = `${next.min - myCurrentXp} ${dictionary[currentLang].lblXpToNext} ${dictionary[currentLang][next.key]}`;
+  } else {
+    progressBar.style.width = '100%';
+    nextText.innerText = dictionary[currentLang].lblMaxRank;
+  }
+
+  document.getElementById('rank-info-panel').classList.remove('hidden');
+}
+
+function closeRankPanel() {
+  document.getElementById('rank-info-panel').classList.add('hidden');
+}
+
+// Awards XP once, right when a game actually ends. Only ever called from
+// inside host-guarded code paths (checkLeaveWinCondition / processVoteResults
+// both already require isHost before reaching this point), so exactly one
+// client ever runs this per game - no risk of double-awarding XP.
+async function awardGameEndXP(playersObj, spyUids, winnerTeam) {
+  const updates = {};
+  for(const uid in (playersObj || {})) {
+    const isSpyPlayer = (spyUids || []).includes(uid);
+    const isWinner = (winnerTeam === 'crew' && !isSpyPlayer) || (winnerTeam === 'spies' && isSpyPlayer);
+    const xpGain = 10 + (isWinner ? 25 : 0);
+    try {
+      const snap = await db.ref(`users/${uid}/score`).once('value');
+      const currentXp = snap.val() || 0;
+      updates[`users/${uid}/score`] = currentXp + xpGain;
+    } catch(e) { /* skip this player, don't block the rest */ }
+  }
+  if(Object.keys(updates).length > 0) {
+    try { await db.ref().update(updates); } catch(e) {}
+  }
+}
 
 const CATEGORY_META = {
   players: { icon: '⚽', key: 'catFootball' },
@@ -1319,8 +1428,7 @@ function initUser(user) {
   document.getElementById('soundVolume').value = soundVol;
 
   db.ref(`users/${currentUser.uid}/score`).on('value', snap => {
-    const score = snap.val() || 0;
-    document.getElementById('userScoreDisplay').innerText = `Score: ${score} pts`;
+    updateRankDisplay(snap.val() || 0);
   });
 
   ensureFriendCode();
@@ -2065,6 +2173,7 @@ async function checkLeaveWinCondition(roomCode) {
     finalPlayers: playersObj,
     votes: null
   });
+  awardGameEndXP(playersObj, spies, winnerTeam);
 
   db.ref(`spy_rooms/${roomCode}/announcement`).set({
     msg: winnerTeam === 'crew' ? dictionary[currentLang].annSpiesGoneCrewWins : dictionary[currentLang].annCrewGoneSpiesWin,
@@ -2342,6 +2451,19 @@ async function sendChatMessage(screen) {
     if(inTurnPhase) {
       await advanceTurn();
     }
+  } else if(screen === 'Spy') {
+    // The spy-only network is a free strategy channel - no turn lock, no
+    // one-word rule, and the secret word itself is fair game here since
+    // coordinating around it in private is the entire point.
+    const myPlayerSnap = await db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`).once('value');
+    const myPlayer = myPlayerSnap.val();
+    if(!myPlayer || myPlayer.isSpectator) return;
+    const roomSnap = await db.ref(`spy_rooms/${currentRoom}/spies`).once('value');
+    const spies = roomSnap.val() || [];
+    if(!spies.includes(currentUser.uid)) return;
+
+    await db.ref(`spy_rooms/${currentRoom}/spyChat`).push({ sender: currentUser.displayName, text: msg });
+    input.value = '';
   } else {
     await db.ref(`spy_rooms/${currentRoom}/lobbyChat`).push({ sender: currentUser.displayName, text: msg });
     input.value = '';
@@ -2367,6 +2489,9 @@ function listenToChat() {
   });
   db.ref(`spy_rooms/${currentRoom}/gameChat`).on('value', snap => {
     renderChatContainer('chatMessagesGame', snap.val());
+  });
+  db.ref(`spy_rooms/${currentRoom}/spyChat`).on('value', snap => {
+    renderChatContainer('chatMessagesSpy', snap.val());
   });
 }
 
@@ -2408,6 +2533,7 @@ async function startGame() {
     votes: null,
     winnerTeam: null,
     gameChat: null,
+    spyChat: null,
     players: resetPlayers
   });
 
@@ -2613,6 +2739,22 @@ function showGameScreen(data) {
     ? dictionary[currentLang].lblSpectatorTag
     : (isSpy ? dictionary[currentLang].youAreSpy : `${dictionary[currentLang].theWordIs} ${displayWord}`);
 
+  const fellowSpiesEl = document.getElementById('fellowSpiesDisplay');
+  const spyChatEl = document.getElementById('spyChatContainer');
+  if(isSpy && !amSpectator) {
+    const others = (data.spies || []).filter(uid => uid !== currentUser.uid).map(uid => (playersObj[uid] || {}).name).filter(Boolean);
+    if(others.length > 0) {
+      fellowSpiesEl.innerText = `${dictionary[currentLang].lblFellowSpies} ${others.join('، ')}`;
+      fellowSpiesEl.classList.remove('hidden');
+    } else {
+      fellowSpiesEl.classList.add('hidden');
+    }
+    spyChatEl.classList.remove('hidden');
+  } else {
+    fellowSpiesEl.classList.add('hidden');
+    spyChatEl.classList.add('hidden');
+  }
+
   const turnOrder = data.turnOrder || [];
   const turnIndex = data.turnIndex || 0;
   const currentTurnUid = turnOrder[turnIndex];
@@ -2772,6 +2914,7 @@ async function processVoteResults(room) {
         votes: null
       });
       broadcastAnnouncement(dictionary[currentLang].annCrewWins.replace('{name}', ejectedName), 'success');
+      awardGameEndXP(playersObj, room.spies, 'crew');
       return;
     }
 
@@ -2796,6 +2939,7 @@ async function processVoteResults(room) {
       votes: null
     });
     broadcastAnnouncement(dictionary[currentLang].annSpiesWin.replace('{name}', ejectedName), 'danger');
+    awardGameEndXP(playersObj, room.spies, 'spies');
     return;
   }
 
