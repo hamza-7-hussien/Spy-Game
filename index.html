@@ -607,8 +607,8 @@
     <select id="gameModeSelect">
       <option value="normal" data-key="modeNormal">🎮 Normal</option>
       <option value="mole" data-key="modeMoleNetwork">🕸️ Mole Network</option>
-      <option value="silent" data-key="modeSilentStation" disabled>🤫 Silent Station (Coming Soon)</option>
-      <option value="sabotage" data-key="modeSabotage" disabled>🃏 Sabotage Cards (Coming Soon)</option>
+      <option value="silent" data-key="modeSilentStation">🤫 Silent Station</option>
+      <option value="sabotage" data-key="modeSabotage">🃏 Sabotage Cards</option>
     </select>
 
     <label style="font-size:12px; color:#94a3b8; display:block; margin-top:8px;" data-key="lblMaxPlayers">Max Players (3 - 20):</label>
@@ -668,9 +668,26 @@
 
     <button id="btnEmergencyVote" class="btn-danger hidden" style="margin-top:10px;" onclick="triggerVotingPhase()" data-key="btnEmergencyVote">Emergency Vote 🗳️</button>
 
+    <div id="sabotageCardBox" class="hidden" style="margin-top:10px; background:rgba(192,132,252,0.08); border:1px solid var(--accent-purple); border-radius:14px; padding:10px 14px; text-align:start;">
+      <div style="font-size:12px; color:var(--accent-purple); font-weight:800; margin-bottom:6px;" data-key="lblYourSabotageCard">🃏 Your Secret Card:</div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span id="sabotageCardLabel" style="font-size:13px; font-weight:bold;">--</span>
+        <button id="btnUseSabotageCard" style="width:auto; padding:6px 16px; font-size:12px;" onclick="useSabotageCard()" data-key="btnUseCard">Use</button>
+      </div>
+    </div>
+
     <div id="spectatorBadgeGame" class="spectator-badge hidden">👁️ <span class="spectator-count">0</span></div>
 
-    <div class="chat-container">
+    <div id="silentDrawContainer" class="hidden" style="margin-top:15px; text-align:start;">
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:6px;" data-key="lblSilentDrawHint">Draw a clue - no words allowed! ✏️</div>
+      <canvas id="silentDrawCanvas" width="300" height="180" style="width:100%; height:auto; aspect-ratio:300/180; background:rgba(3,7,18,0.85); border:1px solid var(--glass-border); border-radius:14px; touch-action:none; display:block;"></canvas>
+      <div id="silentDrawControls" class="hidden" style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn-secondary" style="width:auto; flex:1;" onclick="clearSilentDrawing()" data-key="btnClearDrawing">Clear 🧹</button>
+        <button style="width:auto; flex:1;" onclick="finishSilentTurn()" data-key="btnDoneDrawing">Done ✅</button>
+      </div>
+    </div>
+
+    <div id="stationChatBlock" class="chat-container">
       <div id="chatMessagesGame" class="chat-messages"></div>
       <div style="display:flex; gap:6px; margin-top:8px;">
         <input type="text" id="chatInputGame" data-key-placeholder="lblChatPlaceholder" placeholder="Discuss transmission..." style="margin:0;">
@@ -743,6 +760,15 @@
     <input type="range" id="inRoomSoundVolume" min="0" max="1" step="0.1" value="0.5" onchange="updateVolumeInRoom()">
     <button class="btn-secondary" onclick="closeInRoomSettings()" data-key="btnCancel">Cancel</button>
     <button class="btn-danger" onclick="leaveRoom(true)" data-key="lblLeaveGameBtn">Leave Game 🚪</button>
+  </div>
+</div>
+
+<!-- SABOTAGE SWAP TARGET PANEL -->
+<div id="sabotage-swap-panel" class="modal-overlay-panel hidden">
+  <div class="container-box" style="max-width:340px;">
+    <h3 style="text-align:center; margin-bottom:15px;" data-key="lblChooseSwapTarget">Choose who to swap turns with 🔀</h3>
+    <div id="sabotageSwapListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
+    <button class="btn-secondary" style="margin-top:15px;" onclick="closeSabotageSwapPanel()" data-key="btnCancel">Cancel</button>
   </div>
 </div>
 
@@ -983,8 +1009,15 @@ const dictionary = {
     lblXpToNext: "XP to", lblMaxRank: "🏆 Max Rank Reached!",
     lblHowToEarnXp: "+10 XP for playing a round, +25 bonus XP for winning the round! 🚀",
     lblGameMode: "Game Mode:", modeNormal: "🎮 Normal", modeMoleNetwork: "🕸️ Mole Network",
-    modeSilentStation: "🤫 Silent Station (Coming Soon)", modeSabotage: "🃏 Sabotage Cards (Coming Soon)",
-    modePrefix: "Mode: "
+    modeSilentStation: "🤫 Silent Station", modeSabotage: "🃏 Sabotage Cards",
+    modePrefix: "Mode: ",
+    lblSilentDrawHint: "Draw a clue - no words allowed! ✏️", btnClearDrawing: "Clear 🧹", btnDoneDrawing: "Done ✅",
+    cardRevote: "🔄 Forced Revote", cardImmunity: "⛨ Immunity", cardSwap: "🔀 Turn Swap",
+    lblYourSabotageCard: "🃏 Your Secret Card:", btnUseCard: "Use", lblCardUsed: "Used",
+    lblChooseSwapTarget: "Choose who to swap turns with 🔀",
+    msgImmunityActivated: "Immunity activated! You're safe this round. ⛨", msgSwapDone: "Turn order swapped! 🔀",
+    annForcedRevote: "🔄 A forced revote has been triggered!",
+    annImmunitySaved: "⛨ {name} used Immunity and survived the vote!"
   },
   ar: {
     googleAuth: "الدخول بـ Google 🚀", login: "تسجيل الدخول", signup: "إنشاء حساب جديد", loginBtn: "دخول المحطة 🚀", toggleAuth: "ليس لديك حساب؟ أنشئ حساباً جديداً",
@@ -1048,8 +1081,15 @@ const dictionary = {
     lblXpToNext: "XP عشان توصل لرتبة", lblMaxRank: "🏆 وصلت لأعلى رتبة!",
     lblHowToEarnXp: "+10 XP لكل راوند بتلعبه، +25 XP إضافية لو فزت بالراوند! 🚀",
     lblGameMode: "وضع اللعب:", modeNormal: "🎮 عادي", modeMoleNetwork: "🕸️ شبكة الجواسيس",
-    modeSilentStation: "🤫 المحطة الصامتة (قريبًا)", modeSabotage: "🃏 كروت التخريب (قريبًا)",
-    modePrefix: "الوضع: "
+    modeSilentStation: "🤫 المحطة الصامتة", modeSabotage: "🃏 كروت التخريب",
+    modePrefix: "الوضع: ",
+    lblSilentDrawHint: "ارسم تلميحك - ممنوع الكتابة! ✏️", btnClearDrawing: "مسح 🧹", btnDoneDrawing: "تم ✅",
+    cardRevote: "🔄 تصويت إجباري", cardImmunity: "⛨ حصانة", cardSwap: "🔀 تبديل دور",
+    lblYourSabotageCard: "🃏 كارتك السري:", btnUseCard: "استخدام", lblCardUsed: "اتستخدم",
+    lblChooseSwapTarget: "اختار حد تبدّل دورك معاه 🔀",
+    msgImmunityActivated: "الحصانة اتفعّلت! انت آمن الراوند ده. ⛨", msgSwapDone: "تم تبديل الدور! 🔀",
+    annForcedRevote: "🔄 حد فعّل تصويت إجباري جديد!",
+    annImmunitySaved: "⛨ {name} استخدم الحصانة ونجا من التصويت!"
   }
 };
 
@@ -1112,7 +1152,7 @@ function toggleAuthLanguage() {
 
 let currentUser = null, currentRoom = null, isHost = false, isSignUpMode = false;
 let turnInterval = null, voteInterval = null;
-let turnSyncStarting = false, advancingTurn = false, processingVoteResults = false, hostReassignInFlight = false;
+let turnSyncStarting = false, advancingTurn = false, processingVoteResults = false, hostReassignLockUntil = 0;
 let roomListener = null, annListener = null;
 let lastAnnouncedRound = 0;
 let lastDisconnectStatus = null;
@@ -1322,6 +1362,194 @@ function resetWakeLockIdleTimer() {
 function startRoomWakeLock() {
   inRoomWakeLockEnabled = true;
   resetWakeLockIdleTimer();
+}
+
+// ---- Host-assignment watchdog ----
+// The reactive listener already reassigns the host the moment it notices
+// the current host is gone, but that only fires when *some* room event
+// happens to occur. If a room sits quiet (nobody chatting, nobody acting)
+// right when the host disconnects, this periodic check guarantees the
+// remaining players still get a working host within a few seconds - no
+// manual refresh required, and no reliance on any single write succeeding.
+let hostWatchdogInterval = null;
+
+function startHostWatchdog() {
+  if(hostWatchdogInterval) return;
+  hostWatchdogInterval = setInterval(() => {
+    if(lastRoomSnapshotData) handleHostAssignment(lastRoomSnapshotData);
+  }, 4000);
+}
+
+function stopHostWatchdog() {
+  if(hostWatchdogInterval) { clearInterval(hostWatchdogInterval); hostWatchdogInterval = null; }
+}
+
+// ---- Silent Station: shared live drawing instead of text clues ----
+let silentDrawing = [];
+let silentCurrentStroke = null;
+let isDrawingActive = false;
+let silentCanvasCtx = null;
+
+function initSilentCanvas() {
+  const canvas = document.getElementById('silentDrawCanvas');
+  if(!canvas || silentCanvasCtx) return;
+  silentCanvasCtx = canvas.getContext('2d');
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX - rect.left) / rect.width, y: (clientY - rect.top) / rect.height };
+  }
+
+  function startStroke(e) {
+    if(!isDrawingActive) return;
+    e.preventDefault();
+    silentCurrentStroke = [getPos(e)];
+    silentDrawing.push(silentCurrentStroke);
+    renderSilentCanvas();
+  }
+  function moveStroke(e) {
+    if(!isDrawingActive || !silentCurrentStroke) return;
+    e.preventDefault();
+    silentCurrentStroke.push(getPos(e));
+    renderSilentCanvas();
+  }
+  async function endStroke() {
+    if(!isDrawingActive || !silentCurrentStroke) return;
+    silentCurrentStroke = null;
+    try { await db.ref(`spy_rooms/${currentRoom}/currentDrawing`).set(silentDrawing); } catch(e) {}
+  }
+
+  canvas.addEventListener('pointerdown', startStroke);
+  canvas.addEventListener('pointermove', moveStroke);
+  canvas.addEventListener('pointerup', endStroke);
+  canvas.addEventListener('pointerleave', endStroke);
+}
+
+function renderSilentCanvas() {
+  const canvas = document.getElementById('silentDrawCanvas');
+  if(!canvas || !silentCanvasCtx) return;
+  const w = canvas.width, h = canvas.height;
+  silentCanvasCtx.clearRect(0, 0, w, h);
+  silentCanvasCtx.strokeStyle = '#38bdf8';
+  silentCanvasCtx.lineWidth = 3;
+  silentCanvasCtx.lineCap = 'round';
+  silentCanvasCtx.lineJoin = 'round';
+  (silentDrawing || []).forEach(stroke => {
+    if(!stroke || stroke.length < 1) return;
+    silentCanvasCtx.beginPath();
+    stroke.forEach((pt, i) => {
+      const x = pt.x * w, y = pt.y * h;
+      if(i === 0) silentCanvasCtx.moveTo(x, y); else silentCanvasCtx.lineTo(x, y);
+    });
+    silentCanvasCtx.stroke();
+  });
+}
+
+function clearSilentDrawing() {
+  if(!isDrawingActive) return;
+  silentDrawing = [];
+  renderSilentCanvas();
+  db.ref(`spy_rooms/${currentRoom}/currentDrawing`).set(null).catch(() => {});
+}
+
+async function finishSilentTurn() {
+  if(!isDrawingActive) return;
+  await advanceTurn();
+}
+
+function listenToSilentDrawing() {
+  db.ref(`spy_rooms/${currentRoom}/currentDrawing`).on('value', snap => {
+    const val = snap.val();
+    // Don't stomp on a stroke I'm actively drawing locally right now, but
+    // do accept every other update (someone else's lines, or a fresh blank
+    // canvas for a new turn).
+    if(!isDrawingActive || val === null) {
+      silentDrawing = val || [];
+      renderSilentCanvas();
+    }
+  });
+}
+
+// ---- Sabotage Cards ----
+const SABOTAGE_CARD_TYPES = ['revote', 'immunity', 'swap'];
+
+function randomSabotageCard() {
+  return SABOTAGE_CARD_TYPES[Math.floor(Math.random() * SABOTAGE_CARD_TYPES.length)];
+}
+
+function sabotageCardLabelText(type) {
+  if(type === 'revote') return dictionary[currentLang].cardRevote;
+  if(type === 'immunity') return dictionary[currentLang].cardImmunity;
+  if(type === 'swap') return dictionary[currentLang].cardSwap;
+  return '--';
+}
+
+async function useSabotageCard() {
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+  const room = roomSnap.val();
+  if(!room || room.status !== 'playing') return;
+  const myPlayer = (room.players || {})[currentUser.uid];
+  if(!myPlayer || myPlayer.isSpectator || !myPlayer.sabotageCard || myPlayer.sabotageUsed) return;
+
+  const cardType = myPlayer.sabotageCard;
+
+  if(cardType === 'immunity') {
+    await db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`).update({
+      sabotageUsed: true, immunityActiveRound: room.round || 1
+    });
+    showToast(dictionary[currentLang].msgImmunityActivated, 'success');
+  } else if(cardType === 'revote') {
+    await db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}/sabotageUsed`).set(true);
+    await db.ref(`spy_rooms/${currentRoom}`).update({ status: 'voting', voteTimeLeft: 80, votes: null });
+    broadcastAnnouncement(dictionary[currentLang].annForcedRevote, 'danger');
+  } else if(cardType === 'swap') {
+    openSabotageSwapPanel(room);
+  }
+}
+
+function openSabotageSwapPanel(room) {
+  const playersObj = room.players || {};
+  const turnOrder = room.turnOrder || [];
+  const container = document.getElementById('sabotageSwapListContainer');
+  let html = '';
+  turnOrder.forEach(uid => {
+    if(uid === currentUser.uid) return;
+    const p = playersObj[uid];
+    if(!p || p.isSpectator) return;
+    html += `
+      <div class="player-item">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img class="avatar-img" style="width:32px; height:32px;" src="${p.avatar || ''}" alt="a">
+          <span style="font-size:13px; font-weight:bold;">${p.name || 'Player'}</span>
+        </div>
+        <button onclick="confirmSabotageSwap('${uid}')" style="width:auto; padding:6px 16px; font-size:12px;">🔀</button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+  document.getElementById('sabotage-swap-panel').classList.remove('hidden');
+}
+
+function closeSabotageSwapPanel() {
+  document.getElementById('sabotage-swap-panel').classList.add('hidden');
+}
+
+async function confirmSabotageSwap(targetUid) {
+  closeSabotageSwapPanel();
+  const roomSnap = await db.ref(`spy_rooms/${currentRoom}`).once('value');
+  const room = roomSnap.val();
+  if(!room || room.status !== 'playing' || !room.turnOrder) return;
+  const order = [...room.turnOrder];
+  const myIndex = order.indexOf(currentUser.uid);
+  const targetIndex = order.indexOf(targetUid);
+  if(myIndex === -1 || targetIndex === -1) return;
+  [order[myIndex], order[targetIndex]] = [order[targetIndex], order[myIndex]];
+
+  await db.ref(`spy_rooms/${currentRoom}`).update({ turnOrder: order });
+  await db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}/sabotageUsed`).set(true);
+  showToast(dictionary[currentLang].msgSwapDone, 'success');
 }
 
 function stopRoomWakeLock() {
@@ -2276,6 +2504,7 @@ async function leaveRoom(manual = false) {
   toggleInRoomFab(false);
   closeInRoomSettings();
   stopRoomWakeLock();
+  stopHostWatchdog();
 
   if(currentRoom && currentUser) {
     const rCode = currentRoom;
@@ -2290,7 +2519,7 @@ async function leaveRoom(manual = false) {
     turnSyncStarting = false;
     advancingTurn = false;
     processingVoteResults = false;
-    hostReassignInFlight = false;
+    hostReassignLockUntil = 0;
 
     // Leaving now always removes the player's record entirely, regardless of
     // what's happening in the room - no lingering "spectator"/"in lobby"
@@ -2332,6 +2561,7 @@ async function joinRoomProcess() {
   lastAnnouncedRound = 0;
   lastDisconnectStatus = null;
   startRoomWakeLock();
+  startHostWatchdog();
 
   const playerRef = db.ref(`spy_rooms/${currentRoom}/players/${currentUser.uid}`);
   const existing = await playerRef.once('value');
@@ -2351,6 +2581,7 @@ async function joinRoomProcess() {
   }
 
   listenToChat();
+  listenToSilentDrawing();
   listenToSystemAnnouncements();
 
   if(roomListener) db.ref(`spy_rooms/${currentRoom}`).off('value', roomListener);
@@ -2440,7 +2671,12 @@ function handleHostAssignment(data) {
   const currentHostPlayer = data.hostUid ? playersObj[data.hostUid] : null;
   const hostStillActive = currentHostPlayer && !currentHostPlayer.isSpectator;
 
-  if(!hostStillActive && Object.keys(playersObj).length > 0 && !hostReassignInFlight) {
+  // hostReassignLockUntil is a timestamp, not a plain boolean: if the
+  // transaction's promise ever fails to fire its .then/.catch for any
+  // reason, a boolean lock would stay stuck forever and silently block all
+  // future attempts. A timestamp lock naturally expires on its own after a
+  // few seconds, so the watchdog below always gets another chance to retry.
+  if(!hostStillActive && Object.keys(playersObj).length > 0 && Date.now() > hostReassignLockUntil) {
     // Whoever becomes the new host is picked purely by who joined the
     // room earliest among the players who are still here - this reflects
     // who was around while the previous host was still present, not who
@@ -2450,7 +2686,7 @@ function handleHostAssignment(data) {
       .sort((a,b) => (a.joinedAt || 0) - (b.joinedAt || 0));
 
     if(activeSorted.length > 0) {
-      hostReassignInFlight = true;
+      hostReassignLockUntil = Date.now() + 6000;
       const newHostUid = activeSorted[0].uid;
 
       // The transaction only touches the hostUid field itself (not the
@@ -2464,8 +2700,8 @@ function handleHostAssignment(data) {
         const stillActive = hp && !hp.isSpectator;
         if(stillActive) return; // abort - someone else already assigned an active host
         return newHostUid;
-      }).then(() => { hostReassignInFlight = false; })
-        .catch(() => { hostReassignInFlight = false; });
+      }).then(() => { hostReassignLockUntil = 0; })
+        .catch(() => { hostReassignLockUntil = 0; });
     }
   }
 
@@ -2610,7 +2846,15 @@ async function startGame() {
   }
 
   const resetPlayers = {};
-  playersArr.forEach(p => { resetPlayers[p.uid] = { ...p, isSpectator: false, postGame: null }; });
+  const useSabotage = (data.gameMode === 'sabotage');
+  playersArr.forEach(p => {
+    resetPlayers[p.uid] = {
+      ...p, isSpectator: false, postGame: null,
+      sabotageCard: useSabotage ? randomSabotageCard() : null,
+      sabotageUsed: false,
+      immunityActiveRound: null
+    };
+  });
   const shuffledOrder = playersArr.map(p => p.uid).sort(() => Math.random() - 0.5);
 
   await db.ref(`spy_rooms/${currentRoom}`).update({
@@ -2626,6 +2870,7 @@ async function startGame() {
     winnerTeam: null,
     gameChat: null,
     spyChat: null,
+    currentDrawing: null,
     players: resetPlayers
   });
 
@@ -2643,7 +2888,8 @@ async function transitionToRound(newRoundNumber, playersObj, turnSeconds) {
     turnOrder: activeUids,
     turnIndex: 0,
     turnTimeLeft: turnSeconds || 20,
-    votes: null
+    votes: null,
+    currentDrawing: null
   });
 }
 
@@ -2686,6 +2932,7 @@ async function advanceTurn() {
         room.turnIndex = nextIndex;
         room.turnTimeLeft = room.turnSeconds || 20;
       }
+      room.currentDrawing = null;
 
       return room;
     });
@@ -2865,6 +3112,32 @@ function showGameScreen(data) {
   chatBtn.disabled = !isMyTurn;
   chatInput.placeholder = isMyTurn ? dictionary[currentLang].lblChatPlaceholder : dictionary[currentLang].lblWaitingForTurn.replace('{name}', currentTurnName);
 
+  const stationChatBlock = document.getElementById('stationChatBlock');
+  const silentContainer = document.getElementById('silentDrawContainer');
+  const silentControls = document.getElementById('silentDrawControls');
+  if(data.gameMode === 'silent') {
+    stationChatBlock.classList.add('hidden');
+    silentContainer.classList.remove('hidden');
+    initSilentCanvas();
+    isDrawingActive = isMyTurn && !amSpectator;
+    silentControls.classList.toggle('hidden', !isDrawingActive);
+    renderSilentCanvas();
+  } else {
+    stationChatBlock.classList.remove('hidden');
+    silentContainer.classList.add('hidden');
+    isDrawingActive = false;
+  }
+
+  const sabotageBox = document.getElementById('sabotageCardBox');
+  if(data.gameMode === 'sabotage' && !amSpectator && myPlayer.sabotageCard) {
+    sabotageBox.classList.remove('hidden');
+    const usedSuffix = myPlayer.sabotageUsed ? ` (${dictionary[currentLang].lblCardUsed})` : '';
+    document.getElementById('sabotageCardLabel').innerText = sabotageCardLabelText(myPlayer.sabotageCard) + usedSuffix;
+    document.getElementById('btnUseSabotageCard').disabled = !!myPlayer.sabotageUsed;
+  } else {
+    sabotageBox.classList.add('hidden');
+  }
+
   const btnEmergency = document.getElementById('btnEmergencyVote');
   if(!amSpectator && (data.round || 1) >= 2) {
     btnEmergency.classList.remove('hidden');
@@ -2976,10 +3249,23 @@ async function processVoteResults(room) {
     else if(counts[key] === maxVotes) { topCandidates.push(key); }
   }
 
-  const ejectedUid = (maxVotes > 0 && topCandidates.length === 1 && topCandidates[0] !== 'SKIP') ? topCandidates[0] : null;
+  const rawEjectedUid = (maxVotes > 0 && topCandidates.length === 1 && topCandidates[0] !== 'SKIP') ? topCandidates[0] : null;
   const currentSpies = room.spies || [];
   const playersObj = { ...(room.players || {}) };
   const nextRound = (room.round || 1) + 1;
+
+  // The Immunity sabotage card protects its holder from being ejected on
+  // the exact round they activated it - beyond that round, it's already
+  // one-time-used and offers no further protection.
+  const rawEjectedPlayer = rawEjectedUid ? playersObj[rawEjectedUid] : null;
+  const hasImmunity = rawEjectedPlayer && rawEjectedPlayer.immunityActiveRound === (room.round || 1);
+  const ejectedUid = hasImmunity ? null : rawEjectedUid;
+
+  if(hasImmunity) {
+    await transitionToRound(nextRound, playersObj, room.turnSeconds);
+    broadcastAnnouncement(dictionary[currentLang].annImmunitySaved.replace('{name}', rawEjectedPlayer.name || '?'), 'success');
+    return;
+  }
 
   if(!ejectedUid) {
     await transitionToRound(nextRound, playersObj, room.turnSeconds);
